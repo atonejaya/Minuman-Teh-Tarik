@@ -152,6 +152,8 @@ enum MovementType {
   ISSUE_FROM_WAREHOUSE
   RETURN_TO_WAREHOUSE
   ADJUSTMENT
+  RECEIVED_FROM_WAREHOUSE
+  RESTOCK_OUTLET
 }
 
 enum InventoryLocationType {
@@ -169,6 +171,7 @@ enum ReferenceType {
   ADJUSTMENT
   OPENING
   SETTLEMENT
+  TRANSFER
 }
 
 enum SettlementStatus {
@@ -244,6 +247,12 @@ model User {
   sales_visit_activities SalesVisitActivity[]
   sales_visit_notes      SalesVisitNote[]
   sales_visit_photos     SalesVisitPhoto[]
+  warehouse_ledgers        WarehouseLedger[] @relation("WarehouseLedgerSales")
+  warehouse_ledgers_created WarehouseLedger[] @relation("WarehouseLedgerCreator")
+  warehouse_transfers      WarehouseTransfer[] @relation("WarehouseTransferSales")
+  transfers_created        WarehouseTransfer[] @relation("WarehouseTransferCreator")
+  sales_days               SalesDay[] @relation("SalesDaySales")
+  sales_days_closed        SalesDay[] @relation("SalesDayCloser")
 
   @@index([role])
   @@index([is_active])
@@ -471,6 +480,9 @@ model Product {
   outlet_stock_projections OutletStockProjection[]
   outlet_stock_count_items OutletStockCountItem[]
   outlet_delivery_items    OutletDeliveryItem[]
+
+  warehouse_ledgers        WarehouseLedger[]
+  warehouse_transfer_items WarehouseTransferItem[]
 
   @@index([category_id])
   @@index([brand_id])
@@ -721,6 +733,8 @@ model Warehouse {
   settlements WarehouseSettlement[] @relation("WarehouseSettlements")
   products    Product[]
   sales_stock_issues SalesStockIssue[]
+  ledgers     WarehouseLedger[]
+  transfers   WarehouseTransfer[]
 
   @@index([code])
   @@index([is_active])
@@ -745,6 +759,7 @@ model ProductBatch {
   settlement_differences  SettlementDifference[]
 
   outlet_stock_ledgers OutletStockLedger[]
+  warehouse_transfer_items WarehouseTransferItem[]
 
   @@unique([product_id, batch_number])
   @@index([product_id])
@@ -1597,6 +1612,120 @@ model SalesStockProjection {
   @@unique([sales_id, product_id])
   @@index([sales_id])
   @@index([product_id])
+}
+
+// ==========================================
+// WAREHOUSE TRANSFER (SPRINT 11.2A)
+// ==========================================
+
+enum WarehouseMovementType {
+  ISSUE_TO_SALES
+  RETURN_FROM_SALES
+}
+
+enum WarehouseTransferType {
+  ISSUE
+  RETURN
+}
+
+enum WarehouseTransferStatus {
+  PENDING
+  POSTED
+  FAILED
+}
+
+enum SalesDayStatus {
+  OPEN
+  CLOSED
+}
+
+model WarehouseLedger {
+  id               Int                  @id @default(autoincrement())
+  warehouse_id     Int
+  sales_id         Int
+  product_id       Int
+  movement_type    WarehouseMovementType
+  qty              Int
+  balance          Int
+  reference_type   String
+  reference_id     String
+  notes            String?
+  created_by       Int?
+  transaction_date DateTime             @db.Date
+  created_at       DateTime             @default(now())
+
+  warehouse Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: Restrict)
+  sales     User      @relation("WarehouseLedgerSales", fields: [sales_id], references: [id], onDelete: Restrict)
+  product   Product   @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  creator   User?     @relation("WarehouseLedgerCreator", fields: [created_by], references: [id], onDelete: SetNull)
+
+  @@index([warehouse_id])
+  @@index([sales_id])
+  @@index([product_id])
+  @@index([transaction_date])
+}
+
+model WarehouseTransfer {
+  id               Int                    @id @default(autoincrement())
+  transfer_number  String                 @unique
+  type             WarehouseTransferType
+  warehouse_id     Int
+  sales_id         Int
+  transaction_date DateTime               @db.Date
+  status           WarehouseTransferStatus @default(PENDING)
+  reference_type   String
+  reference_id     String
+  notes            String?
+  created_by       Int?
+  posted_at        DateTime?
+  error_message    String?
+  created_at       DateTime               @default(now())
+  updated_at       DateTime               @updatedAt
+
+  warehouse Warehouse   @relation(fields: [warehouse_id], references: [id], onDelete: Restrict)
+  sales     User        @relation("WarehouseTransferSales", fields: [sales_id], references: [id], onDelete: Restrict)
+  creator   User?       @relation("WarehouseTransferCreator", fields: [created_by], references: [id], onDelete: SetNull)
+  items     WarehouseTransferItem[]
+
+  @@unique([type, reference_type, reference_id])
+  @@index([warehouse_id])
+  @@index([sales_id])
+  @@index([status])
+  @@index([transaction_date])
+}
+
+model WarehouseTransferItem {
+  id          Int          @id @default(autoincrement())
+  transfer_id Int
+  product_id  Int
+  qty         Int
+  batch_id    Int?
+
+  transfer   WarehouseTransfer @relation(fields: [transfer_id], references: [id], onDelete: Cascade)
+  product    Product           @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  batch      ProductBatch?     @relation(fields: [batch_id], references: [id], onDelete: SetNull)
+
+  @@index([transfer_id])
+  @@index([product_id])
+}
+
+model SalesDay {
+  id         Int            @id @default(autoincrement())
+  sales_id   Int
+  sales_date DateTime       @db.Date
+  status     SalesDayStatus @default(OPEN)
+  summary    Json?
+  closed_by  Int?
+  closed_at  DateTime?
+  created_at DateTime       @default(now())
+  updated_at DateTime       @updatedAt
+
+  sales User   @relation("SalesDaySales", fields: [sales_id], references: [id], onDelete: Restrict)
+  closer User? @relation("SalesDayCloser", fields: [closed_by], references: [id], onDelete: SetNull)
+
+  @@unique([sales_id, sales_date])
+  @@index([sales_id])
+  @@index([sales_date])
 }
 
 model OutletParStock {

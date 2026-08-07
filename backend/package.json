@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha tests/product-master.test.js tests/outlet-inventory.unit.test.js tests/sales-visit.unit.test.js tests/outlet-delivery.unit.test.js --exit",
-    "test:integration": "mocha tests/sales-stock.test.js tests/outlet-stock.test.js tests/sales-visit.test.js tests/outlet-delivery.test.js --exit --timeout 30000"
+    "test": "mocha tests/product-master.test.js tests/outlet-inventory.unit.test.js tests/sales-visit.unit.test.js tests/outlet-delivery.unit.test.js tests/warehouse-transfer.unit.test.js --exit",
+    "test:integration": "mocha tests/sales-stock.test.js tests/outlet-stock.test.js tests/sales-visit.test.js tests/outlet-delivery.test.js tests/warehouse-transfer.test.js --exit --timeout 30000"
   },
   "keywords": [],
   "author": "",

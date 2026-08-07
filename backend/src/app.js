@@ -82,6 +82,7 @@ const outletInventoryRoutes = require('./modules/outlet-inventory/presentation/r
 const salesVisitRoutes = require('./modules/sales-visit/presentation/routes/sales-visit.routes');
 const creditNoteRoutes = require('./routes/credit-note.routes');
 const warehouseSettlementRoutes = require('./routes/warehouse-settlement.routes');
+const warehouseTransferRoutes = require('./modules/warehouse/presentation/routes/warehouse-transfer.routes');
 const reportRoutes = require('./modules/reporting/routes/reporting.routes');
 const dashboardRoutes = require('./modules/dashboard/routes/dashboard.routes');
 
@@ -133,6 +134,7 @@ apiRouter.use('/sales/outlet-stock', outletInventoryRoutes);
 apiRouter.use('/sales-visits', salesVisitRoutes);
 apiRouter.use('/credit-notes', creditNoteRoutes);
 apiRouter.use('/settlements', warehouseSettlementRoutes);
+apiRouter.use('/warehouse/transfers', warehouseTransferRoutes);
 apiRouter.use('/reports', reportRoutes);
 apiRouter.use('/dashboard', dashboardRoutes);
 

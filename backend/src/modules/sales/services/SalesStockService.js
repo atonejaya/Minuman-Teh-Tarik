@@ -47,7 +47,7 @@ class SalesStockService {
     });
 
     const currentQty = projection ? projection.qty_available : 0;
-    const DECREASE_TYPES = new Set(['LOAD_OUT', 'SALE', 'RETURN_TO_WAREHOUSE', 'ADJUSTMENT_OUT']);
+    const DECREASE_TYPES = new Set(['LOAD_OUT', 'SALE', 'RETURN_TO_WAREHOUSE', 'ADJUSTMENT_OUT', 'RESTOCK_OUTLET']);
     const qtyChange = DECREASE_TYPES.has(data.movement_type) ? -data.qty : data.qty;
     const newQty = currentQty + qtyChange;
 

@@ -20,6 +20,9 @@ const SalesVisitDeliveredEvent = require('../../../modules/sales-visit/domain/ev
 const SalesVisitCheckedOutEvent = require('../../../modules/sales-visit/domain/events/SalesVisitCheckedOutEvent');
 const SalesVisitCompletedEvent = require('../../../modules/sales-visit/domain/events/SalesVisitCompletedEvent');
 const SalesVisitCancelledEvent = require('../../../modules/sales-visit/domain/events/SalesVisitCancelledEvent');
+const WarehouseTransferPostedEvent = require('../../../modules/warehouse/domain/events/WarehouseTransferPostedEvent');
+const WarehouseReturnReceivedEvent = require('../../../modules/warehouse/domain/events/WarehouseReturnReceivedEvent');
+const SalesDayClosedEvent = require('../../../modules/warehouse/domain/events/SalesDayClosedEvent');
 
 /**
  * Event Registry
@@ -47,7 +50,10 @@ const EventRegistry = {
   SalesVisitDeliveredEvent,
   SalesVisitCheckedOutEvent,
   SalesVisitCompletedEvent,
-  SalesVisitCancelledEvent
+  SalesVisitCancelledEvent,
+  WarehouseTransferPostedEvent,
+  WarehouseReturnReceivedEvent,
+  SalesDayClosedEvent
 };
 
 module.exports = EventRegistry;

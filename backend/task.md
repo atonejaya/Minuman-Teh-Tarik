@@ -28,6 +28,13 @@
 - Regression Test: **PASSED**
 - Note: `README.md` intentionally kept untracked (review on a separate commit)
 
+## Sprint 11.2A — Warehouse ⇄ Sales Stock Transfer (over frozen 11.1A)
+- Branch: `feature/sprint-11.2A-warehouse-stock-transfer`
+- Status: **FROZEN**
+- Definition of Done: **PASSED**
+- Regression Test: **PASSED**
+- Note: `README.md` intentionally kept untracked (review on a separate commit)
+
 # Tasks: Sprint 10.3 (CQRS Read Model & Projection)
 
 - `[x]` 1. Read Model Schema & Database
@@ -162,5 +169,34 @@
   - `[x]` Update `docs/architecture/sales-visit-domain.md` (delivery kini memposting stok via 11.1A)
   - `[x]` `docs/architecture/adr/0001-delivery-outlet-inventory.md`
   - [x] Freeze commit + tag `v11.1A`
+
+# Tasks: Sprint 11.2A (Warehouse ⇄ Sales Stock Transfer)
+
+- `[x]` 1. Database Migration
+  - `[x]` Migration `prisma/migrations/20260807190000_sprint_11_2a_warehouse_transfer` (enum `WarehouseMovementType`, `WarehouseTransferType`, `WarehouseTransferStatus`, `SalesDayStatus` + tabel `WarehouseLedger`, `WarehouseTransfer`(+Item), `SalesDay`; `MovementType` + `RECEIVED_FROM_WAREHOUSE`/`RESTOCK_OUTLET`; back-relations `User`/`Warehouse`/`Product`/`ProductBatch`)
+  - `[x]` Revisi additive: `20260807190100_..._item_batch` (kolom `batch_id` di `WarehouseTransferItem` utk target RETURN) dan `20260807190200_..._reference_type_transfer` (`ReferenceType` + `TRANSFER`)
+  - `[x]` Deploy via `prisma migrate deploy` (workaround session URL `:5432`) + `prisma generate` (v7.9.1)
+- `[x]` 2. Domain Layer (`src/modules/warehouse/domain`)
+  - `[x]` Constants: `WarehouseTransferStatus` (+`RETRYABLE_STATUSES`), `WarehouseTransferType`, `WarehouseMovementType`, `SalesDayStatus`
+  - `[x]` Entities `WarehouseTransfer` (ISSUE/RETURN, batch_id wajib utk RETURN, duplikat/qty>0, `toPrisma()`) & `SalesDay`
+  - `[x]` Events `WarehouseTransferPostedEvent`, `WarehouseReturnReceivedEvent`, `SalesDayClosedEvent`
+  - `[x]` Repositories `WarehouseTransfer` (findByReference idempotency), `WarehouseLedger`, `SalesDay` (find-or-create OPEN)
+- `[x]` 3. Application Layer
+  - `[x]` `SalesStockService`: `RESTOCK_OUTLET` ditambahkan ke `DECREASE_TYPES` (RECEIVED_FROM_WAREHOUSE otomatis kenaikan)
+  - `[x]` `WarehouseTransferService.issueStockToSales`: Phase 0 atomic validation (gudang/sales/produk) -> Phase 1 find-or-create PENDING di bawah `_withSalesLock` -> Phase 2 posting satu transaksi (reserve FEFO + decrease WarehouseStock + WarehouseLedger ISSUE_TO_SALES + SalesStock RECEIVED_FROM_WAREHOUSE + InventoryMovement LOAD_OUT + POSTED + outbox) -> FAILED + rethrow
+  - `[x]` `receiveReturnedStock`: RETURN dengan batch_id, cek stok sales (INSUFFICIENT_STOCK) + increase WarehouseStock + WarehouseLedger RETURN_FROM_SALES + SalesStock RETURN_TO_WAREHOUSE + InventoryMovement LOAD_IN
+  - `[x]` `closeSalesDay`: ringkasan harian dari WarehouseLedger -> CLOSED (summary JSONB, idempotent pada re-close)
+- `[x]` 4. Presentation
+  - `[x]` `WarehouseTransferController` + `routes/warehouse-transfer.routes.js` (auth)
+  - `[x]` `POST /warehouse/transfers/issue`, `POST /return`, `POST /sales-days/close`, `GET /`, `GET /:id`, `GET /ledger`, `GET /sales-days`
+  - `[x]` Register route di `src/app.js`; register 3 events di `EventRegistry`
+- `[x]` 5. Verification
+  - `[x]` `tests/warehouse-transfer.unit.test.js` (11 unit) — bagian `npm test`
+  - `[x]` `tests/warehouse-transfer.test.js` (10 integrasi: issue, idempotensi, konkuensi duplicate issue, insufficient warehouse, return, return idempotent, return-exceeds, close-day idempotent, 422 tanpa batch_id, list/ledger/sales-days) — bagian `npm run test:integration`
+  - [x] `npm test` (65) + `npm run test:integration` (57) passing; baseline 11.0C/11.0D/11.0E/11.1A tetap hijau
+- `[x]` 6. Docs & Freeze
+  - `[x]` `docs/architecture/warehouse.md` (data model, algoritma issue/return/close-day, sequence diagram, API)
+  - `[x]` `docs/architecture/adr/0002-warehouse-sales-stock-transfer.md`
+  - [x] Freeze commit + tag `v11.2A`
 
 
