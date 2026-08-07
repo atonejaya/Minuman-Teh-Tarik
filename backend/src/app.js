@@ -78,6 +78,7 @@ const collectionRoutes = require('./routes/collection.routes');
 const salesReturnRoutes = require('./modules/sales/routes/sales-return.routes');
 const salesStockIssueRoutes = require('./modules/sales/routes/sales-stock-issue.routes');
 const salesStockRoutes = require('./modules/sales/routes/sales-stock.routes');
+const outletInventoryRoutes = require('./modules/outlet-inventory/presentation/routes/outlet-inventory.routes');
 const creditNoteRoutes = require('./routes/credit-note.routes');
 const warehouseSettlementRoutes = require('./routes/warehouse-settlement.routes');
 const reportRoutes = require('./modules/reporting/routes/reporting.routes');
@@ -127,6 +128,7 @@ apiRouter.use('/collections', collectionRoutes);
 apiRouter.use('/sales/returns', salesReturnRoutes);
 apiRouter.use('/sales/stock-issues', salesStockIssueRoutes);
 apiRouter.use('/sales/stock', salesStockRoutes);
+apiRouter.use('/sales/outlet-stock', outletInventoryRoutes);
 apiRouter.use('/credit-notes', creditNoteRoutes);
 apiRouter.use('/settlements', warehouseSettlementRoutes);
 apiRouter.use('/reports', reportRoutes);
@@ -148,6 +150,7 @@ const CustomerLedgerProjector = require('./read-model/projectors/CustomerLedgerP
 const ProductSalesProjector = require('./read-model/projectors/ProductSalesProjector');
 const SalesPerformanceProjector = require('./read-model/projectors/SalesPerformanceProjector');
 const SalesStockProjector = require('./read-model/projectors/SalesStockProjector');
+const OutletInventoryProjector = require('./modules/outlet-inventory/infrastructure/projectors/OutletInventoryProjector');
 
 const eventAdapter = new NodeEventEmitterAdapter();
 const eventDispatcher = new EventDispatcher();
@@ -162,6 +165,7 @@ eventBus.register(new CustomerLedgerProjector());
 eventBus.register(new ProductSalesProjector());
 eventBus.register(new SalesPerformanceProjector());
 eventBus.register(new SalesStockProjector());
+eventBus.register(new OutletInventoryProjector());
 
 // Export the eventBus so that other parts of the application can publish events (mostly workers now)
 app.set('eventBus', eventBus);

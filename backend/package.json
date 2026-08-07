@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha tests/product-master.test.js",
-    "test:integration": "mocha tests/sales-stock.test.js --exit --timeout 30000"
+    "test": "mocha tests/product-master.test.js tests/outlet-inventory.unit.test.js --exit",
+    "test:integration": "mocha tests/sales-stock.test.js tests/outlet-stock.test.js --exit --timeout 30000"
   },
   "keywords": [],
   "author": "",

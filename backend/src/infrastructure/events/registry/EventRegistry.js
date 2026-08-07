@@ -6,6 +6,11 @@ const SettlementCompletedEvent = require('../../../domain/events/SettlementCompl
 const SalesStockIssuedEvent = require('../../../domain/events/SalesStockIssuedEvent');
 const SalesStockConfirmedEvent = require('../../../domain/events/SalesStockConfirmedEvent');
 const SalesStockClosedEvent = require('../../../domain/events/SalesStockClosedEvent');
+const OutletParStockUpdatedEvent = require('../../../modules/outlet-inventory/domain/events/OutletParStockUpdatedEvent');
+const StockCountRecordedEvent = require('../../../modules/outlet-inventory/domain/events/StockCountRecordedEvent');
+const SalesCalculatedEvent = require('../../../modules/outlet-inventory/domain/events/SalesCalculatedEvent');
+const RefillCalculatedEvent = require('../../../modules/outlet-inventory/domain/events/RefillCalculatedEvent');
+const OutletProjectionUpdatedEvent = require('../../../modules/outlet-inventory/domain/events/OutletProjectionUpdatedEvent');
 
 /**
  * Event Registry
@@ -19,7 +24,12 @@ const EventRegistry = {
   SettlementCompletedEvent,
   SalesStockIssuedEvent,
   SalesStockConfirmedEvent,
-  SalesStockClosedEvent
+  SalesStockClosedEvent,
+  OutletParStockUpdatedEvent,
+  StockCountRecordedEvent,
+  SalesCalculatedEvent,
+  RefillCalculatedEvent,
+  OutletProjectionUpdatedEvent
 };
 
 module.exports = EventRegistry;

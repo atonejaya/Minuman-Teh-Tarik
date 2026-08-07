@@ -1,3 +1,17 @@
+# Milestones
+
+## Sprint 11.0C — Sales Stock Issue
+- Baseline: `v11.0C` (tag `695aa7c`)
+- Status: **FROZEN**
+- Definition of Done: **PASSED**
+- Regression Test: **PASSED**
+- Note: `README.md` intentionally kept untracked (review on a separate commit)
+
+## Sprint 11.0D — Outlet Inventory (Fixed Par Stock Consignment)
+- Branch: `feature/sprint-11.0D-outlet-inventory`
+- Status: **IN PROGRESS** (implementation + tests complete; not yet frozen)
+- Definition of Done: Pending final review + freeze commit
+
 # Tasks: Sprint 10.3 (CQRS Read Model & Projection)
 
 - `[x]` 1. Read Model Schema & Database
@@ -49,4 +63,33 @@
 - `[x]` 6. Verification
   - `[x]` `tests/sales-stock.test.js` integration suite (10 tests) + `tests/product-master.test.js` unit suite (9 tests)
   - `[x]` Frontend `npm run build` + `npm run lint` pass
+
+# Tasks: Sprint 11.0D (Outlet Inventory - Fixed Par Stock Consignment)
+
+- `[x]` 1. Database Migration
+  - `[x]` Create & apply `prisma/migrations/20260807160000_sprint_11_0d_outlet_inventory` (OutletMovementType enum + OutletParStock, OutletStockLedger, OutletStockProjection, OutletStockCount, OutletStockCountItem)
+  - `[x]` `prisma validate` clean + `prisma generate`
+- `[x]` 2. Domain Layer (`src/modules/outlet-inventory/domain`)
+  - `[x]` Value object `MovementType` (ISSUE_TO_OUTLET / REFILL / SALE / RETURN_GOOD / RETURN_BAD / ADJUSTMENT)
+  - `[x]` Engines: `AutoSalesEngine` (sales = max(0, currentBalance - physical)), `AutoRefillEngine` (refill = max(0, par - physical))
+  - `[x]` Entities `OutletParStock`, `OutletStockCount`; aggregate `OutletInventory` (processItem incl. sell-through)
+  - `[x]` Events: OutletParStockUpdated, StockCountRecorded, SalesCalculated, RefillCalculated, OutletProjectionUpdated
+  - `[x]` Repositories: OutletParStock, OutletStockLedger, OutletStockProjection, OutletStockCount
+- `[x]` 3. Application Layer
+  - `[x]` `OutletInventoryService`: upsertParStock (batch + projection sync), recordStockCount (transactional count -> SALE ledger (reference STOCK_COUNT) -> projection -> outbox events), getParStock / getProjection / getLedger / getStockCounts
+  - `[x]` Events carry projection `version` for optimistic concurrency; projector skips reconcile when a newer write bumped the version (fixes async write race)
+- `[x]` 4. Presentation
+  - `[x]` `OutletInventoryController` + `routes/outlet-inventory.routes.js` (auth)
+  - `[x]` `PUT /sales/outlet-stock/par-stock`, `GET /par-stock`, `GET /:warungId/projection`, `GET /:warungId/ledger`, `POST /:warungId/stock-count`, `GET /:warungId/stock-counts`
+  - `[x]` Register route + `OutletInventoryProjector` in `src/app.js`; register 5 events in `EventRegistry`
+- `[x]` 5. Verification
+  - `[x]` `tests/outlet-inventory.unit.test.js` (domain engines/entities) — part of `npm test`
+  - `[x]` `tests/outlet-stock.test.js` (9 integration tests incl. concurrency regression) — part of `npm run test:integration`
+  - `[x]` `npm test` (19) + `npm run test:integration` (19) = 38 passing, stable across repeated runs; app boots OK
+  - [x] 6. Audit fixes
+    - [x] Concurrency blocker: concurrent `recordStockCount` read the same `current_stock` -> broken ledger chain + overcounted `total_sales`. Fixed with per-warung async mutex (`_withWarungLock`) serializing `upsertParStock`/`recordStockCount`; projector uses optimistic locking (`updateIfVersion` + event `version`).
+    - [x] Ledger ordering tiebreaker `[{created_at:'desc'},{id:'desc'}]` added.
+    - [x] Dead code removed (`sumByMovementType`, `upsertFromItems`, `projectionSnapshots`, unused `ledgerRow`); projector rewritten onto repository's `updateIfVersion`.
+    - [x] Concurrency regression test made order-agnostic (chain integrity + `total_sales=8` + final stock in {2,3}) with `try/finally` cleanup.
+
 

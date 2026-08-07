@@ -239,6 +239,7 @@ model User {
   sales_stock_ledgers    SalesStockLedger[]
   sales_stock_projections SalesStockProjection[]
   stock_issue_histories  SalesStockIssueHistory[]
+  outlet_stock_counts    OutletStockCount[]
 
   @@index([role])
   @@index([is_active])
@@ -461,6 +462,11 @@ model Product {
   sales_stock_ledgers     SalesStockLedger[]
   sales_stock_projections SalesStockProjection[]
 
+  outlet_par_stocks        OutletParStock[]
+  outlet_stock_ledgers     OutletStockLedger[]
+  outlet_stock_projections OutletStockProjection[]
+  outlet_stock_count_items OutletStockCountItem[]
+
   @@index([category_id])
   @@index([brand_id])
   @@index([supplier_id])
@@ -634,6 +640,11 @@ model Warung {
   sales_returns      SalesReturn[]
   credit_notes       CreditNote[]
 
+  outlet_par_stocks        OutletParStock[]
+  outlet_stock_ledgers     OutletStockLedger[]
+  outlet_stock_projections OutletStockProjection[]
+  outlet_stock_counts      OutletStockCount[]
+
   @@unique([assigned_sales_id, visit_day, visit_order])
   @@index([code])
   @@index([visit_day])
@@ -725,6 +736,8 @@ model ProductBatch {
   sales_return_items      SalesReturnItem[]
   settlement_items        WarehouseSettlementItem[]
   settlement_differences  SettlementDifference[]
+
+  outlet_stock_ledgers OutletStockLedger[]
 
   @@unique([product_id, batch_number])
   @@index([product_id])
@@ -1456,6 +1469,19 @@ enum SalesStockIssueStatus {
   CLOSED
 }
 
+// ==========================================
+// OUTLET INVENTORY (SPRINT 11.0D)
+// ==========================================
+
+enum OutletMovementType {
+  ISSUE_TO_OUTLET
+  REFILL
+  SALE
+  RETURN_GOOD
+  RETURN_BAD
+  ADJUSTMENT
+}
+
 model SalesStockIssue {
   id           Int                   @id @default(autoincrement())
   issue_number String                @unique
@@ -1559,3 +1585,111 @@ model SalesStockProjection {
   @@index([sales_id])
   @@index([product_id])
 }
+
+model OutletParStock {
+  id         Int      @id @default(autoincrement())
+  warung_id  Int
+  product_id Int
+  par_qty    Int
+  min_qty    Int      @default(0)
+  max_qty    Int?
+  priority   Int      @default(0)
+  is_active  Boolean  @default(true)
+  created_by Int?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  warung  Warung  @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  product Product @relation(fields: [product_id], references: [id], onDelete: Restrict)
+
+  @@unique([warung_id, product_id])
+  @@index([warung_id])
+  @@index([product_id])
+  @@index([is_active])
+}
+
+model OutletStockLedger {
+  id                 Int                @id @default(autoincrement())
+  warung_id          Int
+  product_id         Int
+  batch_id           Int?
+  movement_type      OutletMovementType
+  qty_before         Int
+  qty_change         Int
+  qty_after          Int
+  reference_type     String?
+  reference_id       Int?
+  visit_id           Int?
+  created_by         Int?
+  created_at         DateTime           @default(now())
+
+  warung  Warung        @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  product Product       @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  batch   ProductBatch? @relation(fields: [batch_id], references: [id], onDelete: SetNull)
+
+  @@index([warung_id])
+  @@index([product_id])
+  @@index([warung_id, product_id])
+  @@index([movement_type])
+  @@index([created_at])
+}
+
+model OutletStockProjection {
+  id                 Int       @id @default(autoincrement())
+  warung_id          Int
+  product_id         Int
+  current_stock      Int       @default(0)
+  par_qty            Int       @default(0)
+  opening_stock      Int       @default(0)
+  total_refill       Int       @default(0)
+  total_sales        Int       @default(0)
+  total_return       Int       @default(0)
+  calculated_sales   Int       @default(0)
+  required_refill    Int       @default(0)
+  average_daily_sales Decimal  @default(0) @db.Decimal(18, 2)
+  sell_through       Decimal   @default(0) @db.Decimal(5, 2)
+  last_visit_id      Int?
+  last_count_at      DateTime?
+  last_refill_at     DateTime?
+  version            BigInt    @default(1) @db.BigInt
+  updated_at         DateTime  @updatedAt
+
+  warung  Warung  @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  product Product @relation(fields: [product_id], references: [id], onDelete: Restrict)
+
+  @@unique([warung_id, product_id])
+  @@index([warung_id])
+  @@index([product_id])
+}
+
+model OutletStockCount {
+  id         Int       @id @default(autoincrement())
+  warung_id  Int
+  sales_id   Int
+  visit_id   Int?
+  counted_at DateTime  @db.Date
+  created_by Int?
+  created_at DateTime  @default(now())
+
+  warung Warung                @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  sales  User                  @relation(fields: [sales_id], references: [id], onDelete: Restrict)
+  items  OutletStockCountItem[]
+
+  @@index([warung_id])
+  @@index([sales_id])
+  @@index([counted_at])
+}
+
+model OutletStockCountItem {
+  id             Int    @id @default(autoincrement())
+  stock_count_id Int
+  product_id     Int
+  physical_qty   Int
+
+  stock_count OutletStockCount @relation(fields: [stock_count_id], references: [id], onDelete: Cascade)
+  product     Product          @relation(fields: [product_id], references: [id], onDelete: Restrict)
+
+  @@index([stock_count_id])
+  @@index([product_id])
+}
+
