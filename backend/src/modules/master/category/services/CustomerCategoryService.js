@@ -1,4 +1,5 @@
 const prisma = require('../../../../config/database');
+const AuditLogService = require('../../../../services/audit-log.service');
 
 class CustomerCategoryService {
   async getAll() {
@@ -11,16 +12,21 @@ class CustomerCategoryService {
     });
   }
 
-  async create(data) {
-    return prisma.customerCategory.create({
-      data
+  async create(data, userId) {
+    return prisma.$transaction(async (tx) => {
+      const created = await tx.customerCategory.create({ data });
+      await AuditLogService.log('CREATE_CATEGORY', 'CustomerCategory', created.id, created, userId, tx);
+      return created;
     });
   }
 
-  async update(id, data) {
-    return prisma.customerCategory.update({
-      where: { id: parseInt(id) },
-      data
+  async update(id, data, userId) {
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.customerCategory.update({ where: { id: parseInt(id) }, data });
+      
+      
+      await AuditLogService.log('UPDATE_CATEGORY', 'CustomerCategory', updated.id, updated, userId, tx);
+      return updated;
     });
   }
 

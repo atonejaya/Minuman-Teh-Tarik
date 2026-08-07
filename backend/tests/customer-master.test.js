@@ -21,7 +21,10 @@ describe('Customer Master Data API', () => {
     await prisma.area.deleteMany({ where: { name: 'Test Area' } });
     await prisma.regional.deleteMany({ where: { name: 'Test Regional' } });
     await prisma.customerCategory.deleteMany({ where: { name: 'Test Category' } });
-    await prisma.user.deleteMany({ where: { username: { in: ['sales_test_cust', 'sales_test_cust2', 'admin_test_cust'] } } });
+    const testUsers = await prisma.user.findMany({ where: { username: { in: ['sales_test_cust', 'sales_test_cust2', 'admin_test_cust'] } } });
+    const userIds = testUsers.map(u => u.id);
+    await prisma.auditLog.deleteMany({ where: { user_id: { in: userIds } } });
+    await prisma.user.deleteMany({ where: { id: { in: userIds } } });
 
     // Setup test data
     testSales = await prisma.user.create({
@@ -76,14 +79,21 @@ describe('Customer Master Data API', () => {
   });
 
   after(async () => {
-    // Cleanup
-    await prisma.customerSalesHistory.deleteMany();
-    await prisma.warung.deleteMany({ where: { name: { contains: 'Test Customer API' } } });
-    await prisma.route.deleteMany({ where: { id: testRoute?.id } });
-    await prisma.area.deleteMany({ where: { id: testArea?.id } });
-    await prisma.regional.deleteMany({ where: { id: testRegional?.id } });
-    await prisma.customerCategory.deleteMany({ where: { id: testCategory?.id } });
-    await prisma.user.deleteMany({ where: { username: { in: ['sales_test_cust', 'sales_test_cust2', 'admin_test_cust'] } } });
+    try {
+      await prisma.customerSalesHistory.deleteMany({ where: { customer_id: customerId } });
+      await prisma.warung.deleteMany({ where: { id: customerId } });
+      await prisma.route.deleteMany({ where: { id: testRoute?.id } });
+      await prisma.area.deleteMany({ where: { id: testArea?.id } });
+      await prisma.regional.deleteMany({ where: { id: testRegional?.id } });
+      await prisma.customerCategory.deleteMany({ where: { id: testCategory?.id } });
+      
+      const testUsers = await prisma.user.findMany({ where: { username: { in: ['sales_test_cust', 'sales_test_cust2', 'admin_test_cust'] } } });
+      const userIds = testUsers.map(u => u.id);
+      await prisma.auditLog.deleteMany({ where: { user_id: { in: userIds } } });
+      await prisma.user.deleteMany({ where: { id: { in: userIds } } });
+    } catch (error) {
+      console.error('Error during cleanup:', error);
+    }
   });
 
   it('should create a customer with auto-generated code', async () => {
@@ -159,5 +169,52 @@ describe('Customer Master Data API', () => {
     expect(res.body.success).to.be.true;
     expect(res.body.data).to.be.an('array');
     expect(res.body.data.length).to.be.greaterThan(0);
+  });
+
+  it('should prevent transfer if outstanding > 0 unless overridden by OWNER', async () => {
+    // 1. Create a dummy ledger entry with outstanding > 0
+    await prisma.customerLedgerSummary.create({
+      data: {
+        customer_id: customerId,
+        receivable: 500000
+      }
+    });
+
+    // 2. Try to transfer without override, should fail
+    let res = await request(app)
+      .put(`/api/v1/master/customers/${customerId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        assigned_sales_id: testSales.id
+      });
+    expect(res.status).to.equal(400);
+    expect(res.body.message).to.contain('unless override is true');
+
+    // 3. Try to transfer with override but as a normal user (SALES role)
+    const salesToken = require('jsonwebtoken').sign({ sub: testSales.id, role: testSales.role }, require('../src/config/jwt').SECRET);
+    res = await request(app)
+      .put(`/api/v1/master/customers/${customerId}`)
+      .set('Authorization', `Bearer ${salesToken}`)
+      .send({
+        assigned_sales_id: testSales.id,
+        override_transfer_restriction: true
+      });
+    expect(res.status).to.equal(400);
+    expect(res.body.message).to.contain('Only Supervisor/OWNER can override');
+
+    // 4. Transfer with override as OWNER, should succeed
+    res = await request(app)
+      .put(`/api/v1/master/customers/${customerId}`)
+      .set('Authorization', `Bearer ${token}`) // OWNER token
+      .send({
+        assigned_sales_id: testSales.id,
+        override_transfer_restriction: true,
+        transfer_reason: 'Supervisor override'
+      });
+    expect(res.status).to.equal(200);
+    expect(res.body.data.assigned_sales_id).to.equal(testSales.id);
+
+    // Cleanup ledger
+    await prisma.customerLedgerSummary.delete({ where: { customer_id: customerId } });
   });
 });

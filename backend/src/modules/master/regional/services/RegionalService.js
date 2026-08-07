@@ -1,4 +1,5 @@
 const prisma = require('../../../../config/database');
+const AuditLogService = require('../../../../services/audit-log.service');
 
 class RegionalService {
   async getAll() {
@@ -11,16 +12,21 @@ class RegionalService {
     });
   }
 
-  async create(data) {
-    return prisma.regional.create({
-      data
+  async create(data, userId) {
+    return prisma.$transaction(async (tx) => {
+      const created = await tx.regional.create({ data });
+      await AuditLogService.log('CREATE_REGIONAL', 'Regional', created.id, created, userId, tx);
+      return created;
     });
   }
 
-  async update(id, data) {
-    return prisma.regional.update({
-      where: { id: parseInt(id) },
-      data
+  async update(id, data, userId) {
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.regional.update({ where: { id: parseInt(id) }, data });
+      
+      
+      await AuditLogService.log('UPDATE_REGIONAL', 'Regional', updated.id, updated, userId, tx);
+      return updated;
     });
   }
 

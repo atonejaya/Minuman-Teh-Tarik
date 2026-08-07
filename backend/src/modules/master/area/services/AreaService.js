@@ -1,4 +1,5 @@
 const prisma = require('../../../../config/database');
+const AuditLogService = require('../../../../services/audit-log.service');
 
 class AreaService {
   async getAll() {

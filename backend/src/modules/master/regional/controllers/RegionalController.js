@@ -35,7 +35,7 @@ class RegionalController {
 
   async create(req, res) {
     try {
-      const data = await RegionalService.create(req.body);
+      const data = await RegionalService.create(req.body, req.user ? req.user.id : null);
       return res.status(201).json({
         success: true,
         message: 'Success creating data',

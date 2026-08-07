@@ -1,0 +1,744 @@
+openapi: 3.0.0
+info:
+  title: Master Data API
+  description: API for managing Regional, Area, Route, Customer Category, and Customer Master Data
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+  # --- Regional Endpoints ---
+  /api/v1/master/regional:
+    get:
+      summary: Get all regionals
+      tags: [Regional]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_Regional'
+    post:
+      summary: Create a regional
+      tags: [Regional]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegionalInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Regional'
+
+  /api/v1/master/regional/{id}:
+    get:
+      summary: Get a regional by ID
+      tags: [Regional]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Regional'
+    put:
+      summary: Update a regional
+      tags: [Regional]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegionalInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Regional'
+
+  /api/v1/master/regional/{id}/status:
+    put:
+      summary: Update regional status
+      tags: [Regional]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Regional'
+
+  # --- Area Endpoints ---
+  /api/v1/master/area:
+    get:
+      summary: Get all areas
+      tags: [Area]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_Area'
+    post:
+      summary: Create an area
+      tags: [Area]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AreaInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Area'
+
+  /api/v1/master/area/{id}:
+    get:
+      summary: Get an area by ID
+      tags: [Area]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Area'
+    put:
+      summary: Update an area
+      tags: [Area]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AreaInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Area'
+
+  /api/v1/master/area/{id}/status:
+    put:
+      summary: Update area status
+      tags: [Area]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Area'
+
+  # --- Route Endpoints ---
+  /api/v1/master/route:
+    get:
+      summary: Get all routes
+      tags: [Route]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_Route'
+    post:
+      summary: Create a route
+      tags: [Route]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Route'
+
+  /api/v1/master/route/{id}:
+    get:
+      summary: Get a route by ID
+      tags: [Route]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Route'
+    put:
+      summary: Update a route
+      tags: [Route]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Route'
+
+  /api/v1/master/route/{id}/status:
+    put:
+      summary: Update route status
+      tags: [Route]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Route'
+
+  # --- Customer Category Endpoints ---
+  /api/v1/master/category:
+    get:
+      summary: Get all customer categories
+      tags: [CustomerCategory]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_Category'
+    post:
+      summary: Create a customer category
+      tags: [CustomerCategory]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Category'
+
+  /api/v1/master/category/{id}:
+    get:
+      summary: Get a customer category by ID
+      tags: [CustomerCategory]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Category'
+    put:
+      summary: Update a customer category
+      tags: [CustomerCategory]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Category'
+
+  /api/v1/master/category/{id}/status:
+    put:
+      summary: Update customer category status
+      tags: [CustomerCategory]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Category'
+
+  # --- Customer Endpoints ---
+  /api/v1/master/customers:
+    get:
+      summary: Get all customers
+      tags: [Customer]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_Customer'
+    post:
+      summary: Create a customer
+      tags: [Customer]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Customer'
+
+  /api/v1/master/customers/search:
+    get:
+      summary: Search customers
+      tags: [Customer]
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: Search query
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_Customer'
+
+  /api/v1/master/customers/{id}:
+    get:
+      summary: Get a customer by ID
+      tags: [Customer]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Customer'
+    put:
+      summary: Update a customer
+      tags: [Customer]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Customer'
+
+  /api/v1/master/customers/{id}/status:
+    put:
+      summary: Update customer status
+      tags: [Customer]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Customer'
+
+  /api/v1/master/customers/{id}/dashboard:
+    get:
+      summary: Get customer dashboard data
+      tags: [Customer]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_CustomerDashboard'
+
+components:
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Entity ID
+
+  schemas:
+    # Basic inputs
+    StatusInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+      required:
+        - status
+
+    RegionalInput:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+      required:
+        - code
+        - name
+
+    AreaInput:
+      type: object
+      properties:
+        regionalId:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+      required:
+        - regionalId
+        - code
+        - name
+
+    RouteInput:
+      type: object
+      properties:
+        areaId:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+      required:
+        - areaId
+        - code
+        - name
+
+    CategoryInput:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+      required:
+        - code
+        - name
+
+    CustomerInput:
+      type: object
+      properties:
+        routeId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        contact:
+          type: string
+      required:
+        - routeId
+        - categoryId
+        - code
+        - name
+
+    # Entities
+    Regional:
+      allOf:
+        - $ref: '#/components/schemas/RegionalInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    Area:
+      allOf:
+        - $ref: '#/components/schemas/AreaInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    Route:
+      allOf:
+        - $ref: '#/components/schemas/RouteInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    Category:
+      allOf:
+        - $ref: '#/components/schemas/CategoryInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    Customer:
+      allOf:
+        - $ref: '#/components/schemas/CustomerInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    CustomerDashboard:
+      type: object
+      properties:
+        customerId:
+          type: string
+          format: uuid
+        totalOrders:
+          type: integer
+        totalRevenue:
+          type: number
+        lastOrderDate:
+          type: string
+          format: date-time
+
+    # Standard Responses
+    StandardResponse_Regional:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Regional'
+    StandardResponse_List_Regional:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Regional'
+
+    StandardResponse_Area:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Area'
+    StandardResponse_List_Area:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Area'
+
+    StandardResponse_Route:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Route'
+    StandardResponse_List_Route:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Route'
+
+    StandardResponse_Category:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Category'
+    StandardResponse_List_Category:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+
+    StandardResponse_Customer:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Customer'
+    StandardResponse_List_Customer:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Customer'
+
+    StandardResponse_CustomerDashboard:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/CustomerDashboard'

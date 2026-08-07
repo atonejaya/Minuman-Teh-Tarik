@@ -1,0 +1,16 @@
+.app-layout { display: flex; min-height: 100vh; width: 100%; }
+.app-sidebar { width: 260px; background-color: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: width var(--transition); }
+.app-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.app-header { height: 64px; background-color: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+.app-content { flex: 1; padding: 24px; overflow-y: auto; background-color: var(--background); }
+.card { background-color: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border); padding: 24px; transition: box-shadow var(--transition), transform var(--transition); }
+.card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.btn { display: inline-flex; align-items: center; justify-content: center; padding: 8px 16px; border-radius: var(--radius-md); font-weight: 500; transition: var(--transition); }
+.btn-primary { background-color: var(--primary); color: white; }
+.btn-primary:hover { background-color: var(--primary-hover); }
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-main); }
+.form-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background-color: var(--surface); color: var(--text-main); transition: var(--transition); }
+.form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(230, 115, 0, 0.1); }
+.login-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: var(--background); }
+.login-box { width: 100%; max-width: 400px; padding: 32px; }

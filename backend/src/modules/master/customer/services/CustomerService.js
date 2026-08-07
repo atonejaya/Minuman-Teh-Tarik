@@ -1,4 +1,5 @@
 const prisma = require('../../../../config/database');
+const AuditLogService = require('../../../../services/audit-log.service');
 
 class CustomerService {
   async generateCustomerCode() {
@@ -106,6 +107,8 @@ class CustomerService {
         }
       });
       
+      await AuditLogService.log('CREATE_CUSTOMER', 'Customer', warung.id, warung, createdBy, tx);
+      
       return warung;
     });
   }
@@ -118,10 +121,14 @@ class CustomerService {
       // Check for sales transfer
       if (data.assigned_sales_id && data.assigned_sales_id !== existing.assigned_sales_id) {
         // Validation: outstanding > 0 ?
-        if (!data.override_transfer_restriction) {
-          const ledger = await tx.customerLedgerSummary.findUnique({ where: { customer_id: existing.id } });
-          if (ledger && Number(ledger.receivable) > 0) {
+        const ledger = await tx.customerLedgerSummary.findUnique({ where: { customer_id: existing.id } });
+        if (ledger && Number(ledger.receivable) > 0) {
+          if (!data.override_transfer_restriction) {
             throw new Error('Cannot transfer customer with outstanding balance > 0 unless override is true');
+          }
+          const user = await tx.user.findUnique({ where: { id: updatedBy } });
+          if (!user || user.role !== 'OWNER') {
+            throw new Error('Only Supervisor/OWNER can override transfer restriction');
           }
         }
         
@@ -137,6 +144,66 @@ class CustomerService {
             transfer_type: 'MANUAL',
             created_by: updatedBy,
             effective_from: new Date()
+          }
+        });
+
+        await tx.outboxEvent.create({
+          data: {
+            event_name: 'CustomerTransferredEvent',
+            aggregate_id: existing.id.toString(),
+            aggregate_type: 'Customer',
+            correlation_id: existing.id.toString(),
+            causation_id: existing.id.toString(),
+            payload: { customer_id: existing.id, old_sales_id: existing.assigned_sales_id, new_sales_id: data.assigned_sales_id },
+            metadata: { updated_by: updatedBy },
+            occurred_at: new Date()
+          }
+        });
+        await AuditLogService.log('TRANSFER_CUSTOMER', 'Customer', existing.id, { old: existing.assigned_sales_id, new: data.assigned_sales_id }, updatedBy, tx);
+      }
+
+      if (data.status && data.status !== existing.status) {
+        await tx.outboxEvent.create({
+          data: {
+            event_name: 'CustomerStatusChangedEvent',
+            aggregate_id: existing.id.toString(),
+            aggregate_type: 'Customer',
+            correlation_id: existing.id.toString(),
+            causation_id: existing.id.toString(),
+            payload: { customer_id: existing.id, old_status: existing.status, new_status: data.status },
+            metadata: { updated_by: updatedBy },
+            occurred_at: new Date()
+          }
+        });
+        await AuditLogService.log('CHANGE_CUSTOMER_STATUS', 'Customer', existing.id, { old: existing.status, new: data.status }, updatedBy, tx);
+      }
+
+      if (data.area_id && data.area_id !== existing.area_id) {
+        await tx.outboxEvent.create({
+          data: {
+            event_name: 'CustomerAreaChangedEvent',
+            aggregate_id: existing.id.toString(),
+            aggregate_type: 'Customer',
+            correlation_id: existing.id.toString(),
+            causation_id: existing.id.toString(),
+            payload: { customer_id: existing.id, old_area_id: existing.area_id, new_area_id: data.area_id },
+            metadata: { updated_by: updatedBy },
+            occurred_at: new Date()
+          }
+        });
+      }
+
+      if (data.category_id && data.category_id !== existing.category_id) {
+        await tx.outboxEvent.create({
+          data: {
+            event_name: 'CustomerCategoryChangedEvent',
+            aggregate_id: existing.id.toString(),
+            aggregate_type: 'Customer',
+            correlation_id: existing.id.toString(),
+            causation_id: existing.id.toString(),
+            payload: { customer_id: existing.id, old_category_id: existing.category_id, new_category_id: data.category_id },
+            metadata: { updated_by: updatedBy },
+            occurred_at: new Date()
           }
         });
       }
@@ -164,6 +231,8 @@ class CustomerService {
           occurred_at: new Date()
         }
       });
+      
+      await AuditLogService.log('UPDATE_CUSTOMER', 'Customer', updated.id, updated, updatedBy, tx);
       
       return updated;
     });

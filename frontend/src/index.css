@@ -1,0 +1,52 @@
+:root {
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  
+  --primary: hsl(28, 90%, 50%); /* Tea Orange */
+  --primary-hover: hsl(28, 90%, 45%);
+  --secondary: hsl(210, 40%, 20%);
+  --success: hsl(150, 60%, 40%);
+  --warning: hsl(40, 90%, 50%);
+  --danger: hsl(0, 70%, 50%);
+  
+  --background: hsl(0, 0%, 98%);
+  --surface: hsl(0, 0%, 100%);
+  --border: hsl(210, 20%, 90%);
+  --text-main: hsl(210, 30%, 15%);
+  --text-muted: hsl(210, 10%, 40%);
+  
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme='dark'] {
+  --background: hsl(210, 30%, 8%);
+  --surface: hsl(210, 30%, 12%);
+  --border: hsl(210, 20%, 20%);
+  --text-main: hsl(0, 0%, 95%);
+  --text-muted: hsl(210, 10%, 60%);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-family);
+  background-color: var(--background);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color var(--transition), color var(--transition);
+}
+a { color: var(--primary); text-decoration: none; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}

@@ -26,7 +26,12 @@ const createCustomerSchema = Joi.object({
   route_id: Joi.number().integer().allow(null)
 });
 
-const updateCustomerSchema = createCustomerSchema.append({
+const updateCustomerSchema = createCustomerSchema.keys({
+  name: Joi.string().optional(),
+  owner_name: Joi.string().optional(),
+  latitude: Joi.number().optional(),
+  longitude: Joi.number().optional()
+}).append({
   transfer_reason: Joi.string().allow(null, ''),
   override_transfer_restriction: Joi.boolean().default(false)
 });
