@@ -269,9 +269,11 @@ class SalesVisitService {
 
   /**
    * POST /sales-visits/:id/delivery
-   * Catat delivery (DELIVERED) sebagai aktivitas kunjungan.
-   * Keputusan Sprint 11.0E: TANPA mutasi stok Outlet Inventory -
-   * integrasi delivery ke stok outlet adalah sprint berikutnya.
+   * Catat delivery (DELIVERED) sebagai aktivitas kunjungan DAN memosting
+   * stok ke Outlet Inventory (SPRINT 11.1A) melalui public API
+   * OutletInventoryService.recordDelivery. Idempotent terhadap
+   * (reference_type, reference_id): delivery yang sudah POSTED tidak akan
+   * diposting ulang (tanpa double stock).
    */
   async recordDelivery(visitId, payload, user) {
     const { items, note, reference_type, reference_id } = payload;
@@ -285,31 +287,47 @@ class SalesVisitService {
       if (!productId) throw new ValidationError('product_id wajib diisi');
       if (seen.has(productId)) throw new ValidationError(`product_id ${productId} terduplikasi dalam items`);
       seen.add(productId);
-      if (!Number.isInteger(qty) || qty < 0) throw new ValidationError(`qty produk ${productId} harus bilangan bulat >= 0`);
+      if (!Number.isInteger(qty) || qty <= 0) throw new ValidationError(`qty produk ${productId} harus bilangan bulat > 0`);
     }
 
-    return _withVisitLock(visitId, () => prisma.$transaction(async (tx) => {
-      const visit = await this._loadVisit(visitId, user, tx);
+    return _withVisitLock(visitId, async () => {
+      const visit = await this._loadVisit(visitId, user);
       VisitValidationService.assertCanRecordDelivery(visit);
 
-      await SalesVisitRepository.update(tx, visitId, { status: VisitStatus.DELIVERED });
-      await this._recordActivity(tx, visitId, VisitActivityType.DELIVERED, {
-        items,
-        note: note || null,
-        reference_type: reference_type || null,
-        reference_id: reference_id || null
-      }, user.id);
-
-      await this._emit(tx, new SalesVisitDeliveredEvent(visitId, {
-        visitId,
+      const delivery = await OutletInventoryService.recordDelivery({
         warungId: visit.warung_id,
-        itemCount: items.length,
-        referenceType: reference_type || null,
-        referenceId: reference_id || null
-      }, { userId: user.id }));
+        deliveryDate: payload.delivery_date || visit.visit_date,
+        referenceType: reference_type || 'SALES_VISIT',
+        referenceId: reference_id || visit.id,
+        performedBy: user.id,
+        notes: note || null,
+        items: items.map(i => ({ productId: Number(i.product_id), quantity: Number(i.qty) }))
+      });
 
-      return SalesVisitRepository.findById(tx, visitId);
-    }));
+      await prisma.$transaction(async (tx) => {
+        await SalesVisitRepository.update(tx, visitId, { status: VisitStatus.DELIVERED });
+        await this._recordActivity(tx, visitId, VisitActivityType.DELIVERED, {
+          items,
+          note: note || null,
+          reference_type: reference_type || 'SALES_VISIT',
+          reference_id: reference_id || visit.id,
+          delivery_id: delivery.delivery_id,
+          delivery_status: delivery.status
+        }, user.id);
+
+        await this._emit(tx, new SalesVisitDeliveredEvent(visitId, {
+          visitId,
+          warungId: visit.warung_id,
+          itemCount: items.length,
+          referenceType: reference_type || 'SALES_VISIT',
+          referenceId: reference_id || visit.id,
+          deliveryId: delivery.delivery_id,
+          deliveryStatus: delivery.status
+        }, { userId: user.id }));
+      });
+
+      return SalesVisitRepository.findById(prisma, visitId, { includeActivities: true });
+    });
   }
 
   /**

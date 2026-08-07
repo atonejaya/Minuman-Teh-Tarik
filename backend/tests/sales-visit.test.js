@@ -22,6 +22,12 @@ describe('Sprint 11.0E - Sales Visit', () => {
   async function cleanupWarung(wid) {
     await prisma.salesVisit.deleteMany({ where: { warung_id: wid } });
     await prisma.outletStockLedger.deleteMany({ where: { warung_id: wid } });
+    const deliveries = await prisma.outletDelivery.findMany({ where: { warung_id: wid } });
+    const deliveryIds = deliveries.map((d) => d.id);
+    if (deliveryIds.length > 0) {
+      await prisma.outletDeliveryItem.deleteMany({ where: { delivery_id: { in: deliveryIds } } });
+    }
+    await prisma.outletDelivery.deleteMany({ where: { warung_id: wid } });
     const counts = await prisma.outletStockCount.findMany({ where: { warung_id: wid } });
     const ids = counts.map((c) => c.id);
     if (ids.length > 0) {

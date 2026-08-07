@@ -11,6 +11,7 @@ const StockCountRecordedEvent = require('../../../modules/outlet-inventory/domai
 const SalesCalculatedEvent = require('../../../modules/outlet-inventory/domain/events/SalesCalculatedEvent');
 const RefillCalculatedEvent = require('../../../modules/outlet-inventory/domain/events/RefillCalculatedEvent');
 const OutletProjectionUpdatedEvent = require('../../../modules/outlet-inventory/domain/events/OutletProjectionUpdatedEvent');
+const OutletDeliveryRecordedEvent = require('../../../modules/outlet-inventory/domain/events/OutletDeliveryRecordedEvent');
 const SalesVisitPlannedEvent = require('../../../modules/sales-visit/domain/events/SalesVisitPlannedEvent');
 const SalesVisitCheckedInEvent = require('../../../modules/sales-visit/domain/events/SalesVisitCheckedInEvent');
 const SalesVisitStockCountedEvent = require('../../../modules/sales-visit/domain/events/SalesVisitStockCountedEvent');
@@ -38,6 +39,7 @@ const EventRegistry = {
   SalesCalculatedEvent,
   RefillCalculatedEvent,
   OutletProjectionUpdatedEvent,
+  OutletDeliveryRecordedEvent,
   SalesVisitPlannedEvent,
   SalesVisitCheckedInEvent,
   SalesVisitStockCountedEvent,

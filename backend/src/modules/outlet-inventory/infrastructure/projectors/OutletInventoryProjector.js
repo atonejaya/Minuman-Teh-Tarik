@@ -84,10 +84,12 @@ class OutletInventoryProjector extends BaseProjector {
     let ret = 0;
 
     for (const row of rows) {
-      if (row.movement_type === 'REFILL') refill += Number(row.qty_change);
+      // ISSUE_TO_OUTLET (SPRINT 11.1A): delivery barang ke outlet dihitung
+      // sebagai refill/stock-in sehingga reconcile konsisten dengan penulisan
+      // sinkron di recordDelivery (current_stock + total_refill).
+      if (row.movement_type === 'REFILL' || row.movement_type === 'ISSUE_TO_OUTLET') refill += Number(row.qty_change);
       else if (row.movement_type === 'SALE') sales += Math.abs(Number(row.qty_change));
       else if (row.movement_type === 'RETURN_GOOD' || row.movement_type === 'RETURN_BAD') ret += Number(row.qty_change);
-      else if (row.movement_type === 'ISSUE_TO_OUTLET') opening += Number(row.qty_change);
     }
 
     return { opening, refill, sales, ret };

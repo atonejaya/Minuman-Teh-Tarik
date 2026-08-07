@@ -68,11 +68,23 @@ kehilangan konsistensi.
 `GET :id/inventory` = proyeksi stok outlet (read model 11.0D).
 `GET :id/sales-history` = ledger dengan filter `movement_type=SALE` (riwayat penjualan).
 
-### Delivery (keputusan Sprint 11.0E)
+### Delivery (Sprint 11.0E + 11.1A)
 
-`POST :id/delivery` hanya **aktivitas kunjungan** (timeline). **Tanpa mutasi stok
-outlet** — integrasi delivery → stok outlet dijadwalkan pada sprint berikutnya
-(rationale terdokumentasi di `SalesVisitService.recordDelivery`).
+`POST :id/delivery` menandai kunjungan sebagai `DELIVERED` **dan** memposting stok ke
+outlet. Sejak **Sprint 11.1A**, alurnya dua transaksi (pola sama dengan `recordStockCount`):
+
+1. `OutletInventoryService.recordDelivery(warungId, { referenceType: 'SALES_VISIT',
+   referenceId: visit.id, items, notes, performedBy })` — satu transaksi yang menulis
+   ledger `ISSUE_TO_OUTLET` + projection (source of truth stok) + outbox
+   `OutletDeliveryRecordedEvent`. Idempotent per `(reference_type, reference_id)`.
+2. Transaksi Sales Visit: update status `DELIVERED` + aktivitas timeline + outbox
+   event `SalesVisitDeliveredEvent`.
+
+Pada 11.0E keputusan awal adalah delivery **tanpa mutasi stok** (hanya timeline);
+integrasi stok dilaksanakan di 11.1A via public API baru `recordDelivery` (detail dan
+diagram alur di `docs/architecture/inventory.md`). Sama seperti stock-count, jika langkah
+#2 gagal catatan stok sudah durable dan status kunjungan dapat disinkronkan ulang —
+stok tidak pernah kehilangan konsistensi.
 
 ## 5. Konkurensi & Keamanan
 
@@ -145,4 +157,6 @@ src/modules/sales-visit/
 - `tests/sales-visit.test.js` (23 integrasi: plan, duplicate, check-in GPS, invalid
   transisi, stock-count via public API 11.0D, sales history, order/delivery, check-out,
   complete, timeline, ownership, outbox events) — `npm run test:integration`
+- Sprint 11.1A: `tests/outlet-delivery.test.js` (5 integrasi delivery → stok outlet),
+  total `npm run test:integration` = 47 passing; `npm test` = 54 passing.
 - Regression: seluruh suite 11.0C/11.0D tetap hijau; baseline 11.0D tidak diubah.

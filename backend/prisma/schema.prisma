@@ -470,6 +470,7 @@ model Product {
   outlet_stock_ledgers     OutletStockLedger[]
   outlet_stock_projections OutletStockProjection[]
   outlet_stock_count_items OutletStockCountItem[]
+  outlet_delivery_items    OutletDeliveryItem[]
 
   @@index([category_id])
   @@index([brand_id])
@@ -648,6 +649,7 @@ model Warung {
   outlet_stock_ledgers     OutletStockLedger[]
   outlet_stock_projections OutletStockProjection[]
   outlet_stock_counts      OutletStockCount[]
+  outlet_deliveries        OutletDelivery[]
   sales_visits             SalesVisit[]
 
   @@unique([assigned_sales_id, visit_day, visit_order])
@@ -1487,6 +1489,12 @@ enum OutletMovementType {
   ADJUSTMENT
 }
 
+enum OutletDeliveryStatus {
+  PENDING
+  POSTED
+  FAILED
+}
+
 model SalesStockIssue {
   id           Int                   @id @default(autoincrement())
   issue_number String                @unique
@@ -1625,6 +1633,7 @@ model OutletStockLedger {
   reference_type     String?
   reference_id       Int?
   visit_id           Int?
+  notes              String?
   created_by         Int?
   created_at         DateTime           @default(now())
 
@@ -1695,6 +1704,46 @@ model OutletStockCountItem {
   product     Product          @relation(fields: [product_id], references: [id], onDelete: Restrict)
 
   @@index([stock_count_id])
+  @@index([product_id])
+}
+
+// ==========================================
+// OUTLET DELIVERY (SPRINT 11.1A)
+// ==========================================
+
+model OutletDelivery {
+  id             Int                 @id @default(autoincrement())
+  warung_id      Int
+  delivery_date  DateTime            @db.Date
+  status         OutletDeliveryStatus @default(PENDING)
+  reference_type String
+  reference_id   String
+  notes          String?
+  performed_by   Int?
+  posted_at      DateTime?
+  error_message  String?
+  created_at     DateTime            @default(now())
+  updated_at     DateTime            @updatedAt
+
+  warung Warung              @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  items  OutletDeliveryItem[]
+
+  @@unique([reference_type, reference_id])
+  @@index([warung_id])
+  @@index([status])
+  @@index([delivery_date])
+}
+
+model OutletDeliveryItem {
+  id          Int    @id @default(autoincrement())
+  delivery_id Int
+  product_id  Int
+  quantity    Int
+
+  delivery OutletDelivery @relation(fields: [delivery_id], references: [id], onDelete: Cascade)
+  product  Product        @relation(fields: [product_id], references: [id], onDelete: Restrict)
+
+  @@index([delivery_id])
   @@index([product_id])
 }
 

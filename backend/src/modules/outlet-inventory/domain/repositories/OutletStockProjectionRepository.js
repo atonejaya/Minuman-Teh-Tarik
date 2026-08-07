@@ -100,6 +100,39 @@ class OutletStockProjectionRepository {
   }
 
   /**
+   * Menerapkan delivery (stock-in) ke projection (SPRINT 11.1A).
+   * current_stock dan total_refill diakumulasi; sinkron dengan ledger
+   * yang di-tulis pada transaksi yang sama (Source of Truth).
+   */
+  async applyDelivery(client, warungId, productId, { qty, deliveredAt }) {
+    const c = client || prisma;
+    const existing = await this.findByWarungProduct(c, warungId, productId);
+
+    if (!existing) {
+      return c.outletStockProjection.create({
+        data: {
+          warung_id: Number(warungId),
+          product_id: Number(productId),
+          current_stock: qty,
+          total_refill: qty,
+          last_refill_at: deliveredAt,
+          version: 1
+        }
+      });
+    }
+
+    return c.outletStockProjection.update({
+      where: { id: existing.id },
+      data: {
+        current_stock: { increment: qty },
+        total_refill: { increment: qty },
+        last_refill_at: deliveredAt,
+        version: { increment: 1 }
+      }
+    });
+  }
+
+  /**
    * Menyinkronkan par_qty ke projection saat Par Stock diubah.
    */
   async syncParQty(client, warungId, productId, parQty) {

@@ -21,6 +21,13 @@
 - Regression Test: **PASSED**
 - Note: `README.md` intentionally kept untracked (review on a separate commit)
 
+## Sprint 11.1A — Delivery -> Outlet Inventory (public API over frozen 11.0E)
+- Branch: `feature/sprint-11.1A-delivery-outlet-integration`
+- Status: **FROZEN**
+- Definition of Done: **PASSED**
+- Regression Test: **PASSED**
+- Note: `README.md` intentionally kept untracked (review on a separate commit)
+
 # Tasks: Sprint 10.3 (CQRS Read Model & Projection)
 
 - `[x]` 1. Read Model Schema & Database
@@ -128,5 +135,32 @@
 - `[x]` 6. Docs & Freeze
   - `[x]` `docs/architecture/sales-visit-domain.md` (posisi orchestrator, state machine, integrasi 11.0D, API)
   - `[x]` Freeze commit + tag `v11.0E`
+
+# Tasks: Sprint 11.1A (Delivery -> Outlet Inventory)
+
+- `[x]` 1. Database Migration
+  - `[x]` Migration `prisma/migrations/20260807180000_sprint_11_1a_outlet_delivery` (enum `OutletDeliveryStatus` + tabel `OutletDelivery`, `OutletDeliveryItem`, kolom `notes` di `OutletStockLedger`, back-relation Warung/Product)
+  - `[x]` Deploy via `prisma migrate deploy` (workaround session URL `:5432`) + `prisma generate` (v7.9.1); `ISSUE_TO_OUTLET` sudah ada sejak 11.0D (tidak perlu ubah enum)
+- `[x]` 2. Domain Layer (`src/modules/outlet-inventory/domain`)
+  - `[x]` `OutletDeliveryStatus` (PENDING/POSTED/FAILED + `RETRYABLE_STATUSES`)
+  - `[x]` Entity `OutletDelivery` (validasi warung/tanggal/reference, qty integer > 0, tanpa duplikat produk; `toPrisma()` snake_case)
+  - `[x]` `OutletDeliveryRepository` (create / findByReference / updateStatus)
+  - `[x]` `OutletStockProjectionRepository.applyDelivery` (increment current_stock/total_refill/version, create-if-missing)
+  - `[x]` Event `OutletDeliveryRecordedEvent`
+- `[x]` 3. Application Layer
+  - `[x]` `OutletInventoryService.recordDelivery`: Phase 0 atomic validation (warung + produk, sebelum persist) -> Phase 1 find-or-create dokumen di bawah `_withWarungLock` -> Phase 2 posting satu transaksi (ledger ISSUE_TO_OUTLET + projection + POSTED + outbox) -> `FAILED` + rethrow saat error; helper `_parseIntOrNull`/`_serializeDelivery`
+  - `[x]` `OutletInventoryProjector`: `ISSUE_TO_OUTLET` dihitung sebagai refill (selaras dengan penulisan langsung)
+  - `[x]` `SalesVisitService.recordDelivery` men-delegasikan ke `recordDelivery` (referenceType default `SALES_VISIT`, referenceId `visit.id`) lalu DELIVERED + aktivitas + `SalesVisitDeliveredEvent` (dua transaksi, pola sama dengan stock-count)
+  - `[x]` Register `OutletDeliveryRecordedEvent` di `EventRegistry`
+- `[x]` 4. Verification
+  - `[x]` `tests/outlet-delivery.unit.test.js` (8 unit) — bagian `npm test`
+  - `[x]` `tests/outlet-delivery.test.js` (5 integrasi: posting via endpoint visit, idempotensi tanpa double stock, atomic validation produk tak dikenal, retry FAILED -> POSTED, penolakan 422) — bagian `npm run test:integration`
+  - `[x]` Fix: pindahkan validasi produk ke Phase 0 (sebelum persist) agar tidak memunculkan `P2003`; tambah `idempotent: false` pada respon sukses
+  - [x] `npm test` (54) + `npm run test:integration` (47) passing; baseline 11.0D/11.0E tetap hijau
+- `[x]` 5. Docs & Freeze
+  - `[x]` `docs/architecture/inventory.md` (data model, algoritma recordDelivery, projection, event, sequence diagram)
+  - `[x]` Update `docs/architecture/sales-visit-domain.md` (delivery kini memposting stok via 11.1A)
+  - `[x]` `docs/architecture/adr/0001-delivery-outlet-inventory.md`
+  - [x] Freeze commit + tag `v11.1A`
 
 
