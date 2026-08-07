@@ -445,6 +445,851 @@ paths:
               schema:
                 $ref: '#/components/schemas/StandardResponse_CustomerDashboard'
 
+  # --- Brand Endpoints ---
+  /api/v1/master/brands:
+    get:
+      summary: Get all brands
+      tags: [Brand]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_Brand'
+    post:
+      summary: Create a brand
+      tags: [Brand]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Brand'
+
+  /api/v1/master/brands/{id}:
+    get:
+      summary: Get a brand by ID
+      tags: [Brand]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Brand'
+    put:
+      summary: Update a brand
+      tags: [Brand]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Brand'
+
+  /api/v1/master/brands/{id}/status:
+    put:
+      summary: Update brand status
+      tags: [Brand]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Brand'
+
+  # --- Packaging Endpoints ---
+  /api/v1/master/packagings:
+    get:
+      summary: Get all packagings
+      tags: [Packaging]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_Packaging'
+    post:
+      summary: Create a packaging
+      tags: [Packaging]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PackagingInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Packaging'
+
+  /api/v1/master/packagings/{id}:
+    get:
+      summary: Get a packaging by ID
+      tags: [Packaging]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Packaging'
+    put:
+      summary: Update a packaging
+      tags: [Packaging]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PackagingInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Packaging'
+
+  /api/v1/master/packagings/{id}/status:
+    put:
+      summary: Update packaging status
+      tags: [Packaging]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Packaging'
+
+  # --- Unit Endpoints ---
+  /api/v1/master/units:
+    get:
+      summary: Get all units
+      tags: [Unit]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_Unit'
+    post:
+      summary: Create a unit
+      tags: [Unit]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Unit'
+
+  /api/v1/master/units/{id}:
+    get:
+      summary: Get a unit by ID
+      tags: [Unit]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Unit'
+    put:
+      summary: Update a unit
+      tags: [Unit]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Unit'
+
+  /api/v1/master/units/{id}/status:
+    put:
+      summary: Update unit status
+      tags: [Unit]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Unit'
+
+  # --- Product Category Endpoints ---
+  /api/v1/master/product-categories:
+    get:
+      summary: Get all product categories
+      tags: [ProductCategory]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_ProductCategory'
+    post:
+      summary: Create a product category
+      tags: [ProductCategory]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCategoryInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_ProductCategory'
+
+  /api/v1/master/product-categories/{id}:
+    get:
+      summary: Get a product category by ID
+      tags: [ProductCategory]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_ProductCategory'
+    put:
+      summary: Update a product category
+      tags: [ProductCategory]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCategoryInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_ProductCategory'
+
+  /api/v1/master/product-categories/{id}/status:
+    put:
+      summary: Update product category status
+      tags: [ProductCategory]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_ProductCategory'
+
+  # --- Product Endpoints ---
+  /api/v1/master/products:
+    get:
+      summary: Get all products
+      tags: [Product]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_Product'
+    post:
+      summary: Create a product
+      tags: [Product]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Product'
+
+  /api/v1/master/products/search:
+    get:
+      summary: Search products
+      tags: [Product]
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: Search query
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_Product'
+
+  /api/v1/master/products/{id}:
+    get:
+      summary: Get a product by ID
+      tags: [Product]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Product'
+    put:
+      summary: Update a product
+      tags: [Product]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Product'
+
+  /api/v1/master/products/{id}/status:
+    put:
+      summary: Update product status
+      tags: [Product]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Product'
+
+  /api/v1/master/products/{id}/dashboard:
+    get:
+      summary: Get product dashboard data
+      tags: [Product]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_ProductDashboard'
+
+  /api/v1/master/products/{id}/prices:
+    get:
+      summary: Get all prices for a product
+      tags: [ProductPrice]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_ProductPrice'
+    post:
+      summary: Create a product price
+      tags: [ProductPrice]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductPriceInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_ProductPrice'
+
+  /api/v1/master/products/{id}/prices/{priceId}:
+    put:
+      summary: Update a product price
+      tags: [ProductPrice]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - name: priceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductPriceInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_ProductPrice'
+
+  /api/v1/master/products/{id}/prices/{priceId}/status:
+    patch:
+      summary: Update product price status
+      tags: [ProductPrice]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - name: priceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_ProductPrice'
+
+  # --- Supplier Endpoints ---
+  /api/v1/master/suppliers:
+    get:
+      summary: Get all suppliers
+      tags: [Supplier]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_Supplier'
+    post:
+      summary: Create a supplier
+      tags: [Supplier]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Supplier'
+
+  /api/v1/master/suppliers/{id}:
+    get:
+      summary: Get a supplier by ID
+      tags: [Supplier]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Supplier'
+    put:
+      summary: Update a supplier
+      tags: [Supplier]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Supplier'
+
+  /api/v1/master/suppliers/{id}/status:
+    put:
+      summary: Update supplier status
+      tags: [Supplier]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Supplier'
+
+  # --- Tax Endpoints ---
+  /api/v1/master/taxes:
+    get:
+      summary: Get all taxes
+      tags: [Tax]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_Tax'
+    post:
+      summary: Create a tax
+      tags: [Tax]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaxInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Tax'
+
+  /api/v1/master/taxes/{id}:
+    get:
+      summary: Get a tax by ID
+      tags: [Tax]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Tax'
+    put:
+      summary: Update a tax
+      tags: [Tax]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaxInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Tax'
+
+  /api/v1/master/taxes/{id}/status:
+    put:
+      summary: Update tax status
+      tags: [Tax]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Tax'
+
+  # --- Price Level Endpoints ---
+  /api/v1/master/price-levels:
+    get:
+      summary: Get all price levels
+      tags: [PriceLevel]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_PriceLevel'
+    post:
+      summary: Create a price level
+      tags: [PriceLevel]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PriceLevelInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_PriceLevel'
+
+  /api/v1/master/price-levels/{id}:
+    get:
+      summary: Get a price level by ID
+      tags: [PriceLevel]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_PriceLevel'
+    put:
+      summary: Update a price level
+      tags: [PriceLevel]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PriceLevelInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_PriceLevel'
+
+  /api/v1/master/price-levels/{id}/status:
+    put:
+      summary: Update price level status
+      tags: [PriceLevel]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_PriceLevel'
+
+  # --- Warehouse Endpoints ---
+  /api/v1/master/warehouses:
+    get:
+      summary: Get all warehouses
+      tags: [Warehouse]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_List_Warehouse'
+    post:
+      summary: Create a warehouse
+      tags: [Warehouse]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarehouseInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Warehouse'
+
+  /api/v1/master/warehouses/{id}:
+    get:
+      summary: Get a warehouse by ID
+      tags: [Warehouse]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Warehouse'
+    put:
+      summary: Update a warehouse
+      tags: [Warehouse]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarehouseInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Warehouse'
+
+  /api/v1/master/warehouses/{id}/status:
+    put:
+      summary: Update warehouse status
+      tags: [Warehouse]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse_Warehouse'
+
 components:
   parameters:
     IdParam:
@@ -539,6 +1384,192 @@ components:
       required:
         - routeId
         - categoryId
+        - code
+        - name
+
+    BrandInput:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+      required:
+        - code
+        - name
+
+    PackagingInput:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+      required:
+        - code
+        - name
+
+    UnitInput:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+      required:
+        - code
+        - name
+
+    ProductCategoryInput:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+      required:
+        - code
+        - name
+
+    ProductInput:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        barcode:
+          type: string
+        sku:
+          type: string
+        display_name:
+          type: string
+        search_keywords:
+          type: string
+        is_purchasable:
+          type: boolean
+        is_consignment:
+          type: boolean
+        shelf_life_days:
+          type: integer
+        average_cost:
+          type: number
+        last_purchase_price:
+          type: number
+        brand_id:
+          type: string
+          format: uuid
+        category_id:
+          type: string
+          format: uuid
+        packaging_id:
+          type: string
+          format: uuid
+        unit_id:
+          type: string
+          format: uuid
+        cost_price:
+          type: number
+        supplier_id:
+          type: string
+          format: uuid
+        tax_id:
+          type: string
+          format: uuid
+        warehouse_id:
+          type: string
+          format: uuid
+      required:
+        - code
+        - name
+        - brand_id
+        - category_id
+        - packaging_id
+        - unit_id
+
+    ProductPriceInput:
+      type: object
+      properties:
+        price_level_id:
+          type: string
+          format: uuid
+        price:
+          type: number
+        effective_from:
+          type: string
+          format: date-time
+        effective_until:
+          type: string
+          format: date-time
+      required:
+        - price_level_id
+        - price
+        - effective_from
+
+    SupplierInput:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        contact:
+          type: string
+        pic_name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        city:
+          type: string
+        province:
+          type: string
+      required:
+        - code
+        - name
+
+    TaxInput:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        rate:
+          type: number
+        is_default:
+          type: boolean
+      required:
+        - code
+        - name
+        - rate
+
+    PriceLevelInput:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        priority:
+          type: integer
+      required:
+        - code
+        - name
+
+    WarehouseInput:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+      required:
         - code
         - name
 
@@ -742,3 +1773,379 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/CustomerDashboard'
+
+    Brand:
+      allOf:
+        - $ref: '#/components/schemas/BrandInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    Packaging:
+      allOf:
+        - $ref: '#/components/schemas/PackagingInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    Unit:
+      allOf:
+        - $ref: '#/components/schemas/UnitInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    ProductCategory:
+      allOf:
+        - $ref: '#/components/schemas/ProductCategoryInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    Product:
+      allOf:
+        - $ref: '#/components/schemas/ProductInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    ProductPrice:
+      allOf:
+        - $ref: '#/components/schemas/ProductPriceInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            product_id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    ProductDashboard:
+      type: object
+      properties:
+        productId:
+          type: string
+          format: uuid
+        totalSales:
+          type: integer
+        totalRevenue:
+          type: number
+        stockLevel:
+          type: integer
+
+    Supplier:
+      allOf:
+        - $ref: '#/components/schemas/SupplierInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    Tax:
+      allOf:
+        - $ref: '#/components/schemas/TaxInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    PriceLevel:
+      allOf:
+        - $ref: '#/components/schemas/PriceLevelInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    Warehouse:
+      allOf:
+        - $ref: '#/components/schemas/WarehouseInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+
+    StandardResponse_Brand:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Brand'
+    StandardResponse_List_Brand:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Brand'
+
+    StandardResponse_Packaging:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Packaging'
+    StandardResponse_List_Packaging:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Packaging'
+
+    StandardResponse_Unit:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Unit'
+    StandardResponse_List_Unit:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Unit'
+
+    StandardResponse_ProductCategory:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ProductCategory'
+    StandardResponse_List_ProductCategory:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductCategory'
+
+    StandardResponse_Product:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Product'
+    StandardResponse_List_Product:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+
+    StandardResponse_ProductDashboard:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ProductDashboard'
+
+    StandardResponse_ProductPrice:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ProductPrice'
+    StandardResponse_List_ProductPrice:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductPrice'
+
+    StandardResponse_Supplier:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Supplier'
+    StandardResponse_List_Supplier:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Supplier'
+
+    StandardResponse_Tax:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Tax'
+    StandardResponse_List_Tax:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tax'
+
+    StandardResponse_PriceLevel:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PriceLevel'
+    StandardResponse_List_PriceLevel:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceLevel'
+
+    StandardResponse_Warehouse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Warehouse'
+    StandardResponse_List_Warehouse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Warehouse'

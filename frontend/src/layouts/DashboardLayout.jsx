@@ -11,12 +11,15 @@ const DashboardLayout = () => {
         <div style={{ padding: '24px', fontSize: '20px', fontWeight: 'bold', color: 'var(--primary)' }}>
           @One Konsinyasi
         </div>
-        <nav style={{ flex: 1, padding: '0 16px' }}>
-          <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', padding: '12px', gap: '12px', color: 'var(--text-main)', borderRadius: 'var(--radius-md)', background: 'var(--border)' }}>
+        <nav style={{ flex: 1, padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', padding: '12px', gap: '12px', color: 'var(--text-main)', borderRadius: 'var(--radius-md)' }}>
             <Home size={20} /> Dashboard
           </a>
-          <a href="#" style={{ display: 'flex', alignItems: 'center', padding: '12px', gap: '12px', color: 'var(--text-muted)' }}>
-            <Users size={20} /> Master Data
+          <a href="/customers" style={{ display: 'flex', alignItems: 'center', padding: '12px', gap: '12px', color: 'var(--text-main)', borderRadius: 'var(--radius-md)' }}>
+            <Users size={20} /> Customers
+          </a>
+          <a href="/products" style={{ display: 'flex', alignItems: 'center', padding: '12px', gap: '12px', color: 'var(--text-main)', borderRadius: 'var(--radius-md)' }}>
+            <ShoppingCart size={20} /> Products
           </a>
         </nav>
       </aside>

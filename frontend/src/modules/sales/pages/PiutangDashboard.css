@@ -1,0 +1,204 @@
+.piutang-dashboard {
+  padding: 24px;
+  background-color: #f9fafc;
+  min-height: 100vh;
+  font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+.piutang-dashboard-loading {
+  padding: 24px;
+  color: #666;
+  font-family: 'Inter', 'Roboto', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.1rem;
+}
+
+.dashboard-header {
+  margin-bottom: 32px;
+}
+
+.dashboard-header h2 {
+  margin: 0 0 8px 0;
+  color: #111827;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 15px;
+}
+
+.dashboard-section {
+  margin-bottom: 40px;
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.priority-section {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.section-title {
+  margin: 0 0 20px 0;
+  color: #374151;
+  font-size: 18px;
+  font-weight: 600;
+  border-bottom: 2px solid #f3f4f6;
+  padding-bottom: 12px;
+}
+
+.priority-section .section-title {
+  background: white;
+  padding: 24px 24px 12px 24px;
+  border-radius: 16px 16px 0 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid #f3f4f6;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.priority-lists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.priority-list-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  border: 1px solid #f3f4f6;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.priority-list-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.list-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.list-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.list-icon {
+  font-size: 20px;
+}
+
+/* Color Variants */
+.card-blue .list-header { background-color: #eff6ff; border-bottom-color: #bfdbfe; }
+.card-blue .list-header h4 { color: #1e3a8a; }
+.card-blue .score-value { background-color: #dbeafe; color: #1e40af; }
+
+.card-red .list-header { background-color: #fef2f2; border-bottom-color: #fecaca; }
+.card-red .list-header h4 { color: #7f1d1d; }
+.card-red .score-value { background-color: #fee2e2; color: #991b1b; }
+
+.card-yellow .list-header { background-color: #fefce8; border-bottom-color: #fef08a; }
+.card-yellow .list-header h4 { color: #713f12; }
+.card-yellow .score-value { background-color: #fef9c3; color: #854d0e; }
+
+.card-purple .list-header { background-color: #f5f3ff; border-bottom-color: #e9d5ff; }
+.card-purple .list-header h4 { color: #4c1d95; }
+.card-purple .score-value { background-color: #ede9fe; color: #5b21b6; }
+
+.list-content {
+  padding: 0;
+  flex: 1;
+}
+
+.empty-list {
+  padding: 32px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.list-item {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.15s ease;
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item:hover {
+  background-color: #f8fafc;
+}
+
+.item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.customer-name {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.invoice-no {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.item-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.amount {
+  font-weight: 700;
+  color: #111827;
+  font-size: 14px;
+}
+
+.priority-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.score-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.score-value {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 11px;
+}
