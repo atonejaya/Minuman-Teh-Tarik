@@ -9,8 +9,10 @@
 
 ## Sprint 11.0D — Outlet Inventory (Fixed Par Stock Consignment)
 - Branch: `feature/sprint-11.0D-outlet-inventory`
-- Status: **IN PROGRESS** (implementation + tests complete; not yet frozen)
-- Definition of Done: Pending final review + freeze commit
+- Status: **FROZEN**
+- Definition of Done: **PASSED**
+- Regression Test: **PASSED**
+- Note: `README.md` intentionally kept untracked (review on a separate commit)
 
 # Tasks: Sprint 10.3 (CQRS Read Model & Projection)
 
