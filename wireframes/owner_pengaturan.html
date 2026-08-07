@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan - @One</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="owner-layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-mug-hot text-primary"></i> @One
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="owner_dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="owner_master.html"><i class="fa-solid fa-database"></i> Master Data</a></li>
+                <li><a href="owner_operasional.html"><i class="fa-solid fa-truck-fast"></i> Operasional</a></li>
+                <li><a href="owner_laporan.html"><i class="fa-solid fa-file-invoice"></i> Laporan</a></li>
+                <li><a href="owner_pengaturan.html" class="active"><i class="fa-solid fa-gear"></i> Pengaturan</a></li>
+                <li class="mt-4"><a href="login.html" class="text-danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <h2 class="fw-bold mb-4">Pengaturan Sistem</h2>
+
+            <ul class="nav nav-pills mb-4 gap-2" id="pengaturanTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#perusahaan">Perusahaan</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#payroll">Payroll</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#penomoran">Penomoran</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#user">User Management</button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- PERUSAHAAN -->
+                <div class="tab-pane fade show active" id="perusahaan">
+                    <div class="card-custom p-4 col-md-8">
+                        <h5 class="fw-bold mb-4">Profil Perusahaan</h5>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-bold text-muted small">Nama Brand</label>
+                                <input type="text" class="form-control form-control-custom" value="@One Consignment">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold text-muted small">Alamat</label>
+                                <textarea class="form-control form-control-custom" rows="2">Jl. Pusat Bisnis No. 1</textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small">Nomor Telepon</label>
+                                <input type="text" class="form-control form-control-custom" value="021-555-1234">
+                            </div>
+                            <div class="col-12 mt-4">
+                                <button class="btn btn-primary-custom px-4 py-2 rounded-xl fw-bold">Simpan Perubahan</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAYROLL -->
+                <div class="tab-pane fade" id="payroll">
+                    <div class="card-custom p-4 col-md-8">
+                        <h5 class="fw-bold mb-4">Parameter Gaji & Komisi</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small">Komisi per Cup Terjual (Rp)</label>
+                                <input type="number" class="form-control form-control-custom" value="500">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small">Uang Bensin Harian (Rp)</label>
+                                <input type="number" class="form-control form-control-custom" value="10000">
+                            </div>
+                            <div class="col-12 mt-4">
+                                <button class="btn btn-primary-custom px-4 py-2 rounded-xl fw-bold">Simpan Parameter</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PENOMORAN -->
+                <div class="tab-pane fade" id="penomoran">
+                    <div class="card-custom p-4 col-md-8">
+                        <h5 class="fw-bold mb-4">Format Penomoran Dokumen</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small">Prefix Faktur (INVOICE)</label>
+                                <input type="text" class="form-control form-control-custom" value="INV-[YYMM]-">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small">Prefix Visit</label>
+                                <input type="text" class="form-control form-control-custom" value="VST-[YYMM]-">
+                            </div>
+                            <div class="col-12 mt-4">
+                                <button class="btn btn-primary-custom px-4 py-2 rounded-xl fw-bold">Simpan Format</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- USER -->
+                <div class="tab-pane fade" id="user">
+                    <div class="card-custom p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0">Manajemen Pengguna</h5>
+                            <button class="btn btn-primary-custom rounded-pill px-4"><i class="fa-solid fa-plus me-2"></i> Tambah User</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Nama Lengkap</th>
+                                        <th>Username</th>
+                                        <th>Role</th>
+                                        <th>No HP</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold">Bapak Owner</td>
+                                        <td>admin1</td>
+                                        <td><span class="badge bg-dark">OWNER</span></td>
+                                        <td>0811-1234-5678</td>
+                                        <td><span class="badge bg-success">Aktif</span></td>
+                                        <td><button class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-pen"></i></button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Andi Surya</td>
+                                        <td>andi</td>
+                                        <td><span class="badge bg-primary">SALES</span></td>
+                                        <td>0812-3456-7890</td>
+                                        <td><span class="badge bg-success">Aktif</span></td>
+                                        <td><button class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-pen"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

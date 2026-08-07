@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operasional - @One</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="owner-layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-mug-hot text-primary"></i> @One
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="owner_dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="owner_master.html"><i class="fa-solid fa-database"></i> Master Data</a></li>
+                <li><a href="owner_operasional.html" class="active"><i class="fa-solid fa-truck-fast"></i> Operasional</a></li>
+                <li><a href="owner_laporan.html"><i class="fa-solid fa-file-invoice"></i> Laporan</a></li>
+                <li><a href="owner_pengaturan.html"><i class="fa-solid fa-gear"></i> Pengaturan</a></li>
+                <li class="mt-4"><a href="login.html" class="text-danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <h2 class="fw-bold mb-4">Operasional Harian</h2>
+
+            <ul class="nav nav-pills mb-4 gap-2" id="operasionalTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#load">Load (Pagi)</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#return">Return (Sore)</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#setoran">Verifikasi Setoran</button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- LOAD TAB -->
+                <div class="tab-pane fade show active" id="load">
+                    <div class="card-custom p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0">Pengambilan Barang Sales</h5>
+                            <button class="btn btn-primary-custom rounded-pill px-4"><i class="fa-solid fa-plus me-2"></i> Buat Load Baru</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Kode</th>
+                                        <th>Tanggal</th>
+                                        <th>Sales</th>
+                                        <th>Total Qty</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold">LOD-2608-01</td>
+                                        <td>15 Ags 2026 07:15</td>
+                                        <td>Andi Surya</td>
+                                        <td>250 Cup</td>
+                                        <td><span class="badge bg-success">CONFIRMED</span></td>
+                                        <td><button class="btn btn-sm btn-outline-secondary">Detail</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RETURN TAB -->
+                <div class="tab-pane fade" id="return">
+                    <div class="card-custom p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0">Pengembalian Barang Sisa</h5>
+                            <button class="btn btn-primary-custom rounded-pill px-4"><i class="fa-solid fa-plus me-2"></i> Buat Return Baru</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Kode</th>
+                                        <th>Tanggal</th>
+                                        <th>Sales</th>
+                                        <th>Bagus</th>
+                                        <th>Expired</th>
+                                        <th>Pecah</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold">RET-2608-01</td>
+                                        <td>14 Ags 2026 17:30</td>
+                                        <td>Andi Surya</td>
+                                        <td>35 Cup</td>
+                                        <td>5 Cup</td>
+                                        <td class="text-danger fw-bold">1 Cup</td>
+                                        <td><span class="badge bg-success">CONFIRMED</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SETORAN TAB -->
+                <div class="tab-pane fade" id="setoran">
+                    <div class="card-custom p-4 border-start border-4 border-warning mb-4">
+                        <h5 class="fw-bold mb-3">Menunggu Verifikasi</h5>
+                        
+                        <div class="d-flex justify-content-between align-items-center p-3 border rounded bg-light">
+                            <div>
+                                <h6 class="fw-bold mb-1">SET-2608-05 <span class="badge bg-warning text-dark ms-2">DRAFT</span></h6>
+                                <small class="text-muted">Sales: Andi Surya | 15 Ags 2026 18:00</small>
+                            </div>
+                            <div class="text-end d-flex align-items-center gap-4">
+                                <h4 class="fw-bold text-primary mb-0">Rp 1.250.000</h4>
+                                <button class="btn btn-success fw-bold px-4 rounded-pill"><i class="fa-solid fa-check me-2"></i> VERIFIKASI</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-custom p-4">
+                        <h5 class="fw-bold mb-4">Riwayat Setoran</h5>
+                        <table class="table align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Kode</th>
+                                    <th>Tanggal</th>
+                                    <th>Sales</th>
+                                    <th>Nominal</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>SET-2608-04</td>
+                                    <td>14 Ags 2026</td>
+                                    <td>Andi Surya</td>
+                                    <td class="fw-bold">Rp 1.100.000</td>
+                                    <td><span class="badge bg-success"><i class="fa-solid fa-check-double"></i> DIVERIFIKASI</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

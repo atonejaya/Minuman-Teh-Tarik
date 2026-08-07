@@ -1,0 +1,26 @@
+# Tasks: Sprint 10.3 (CQRS Read Model & Projection)
+
+- `[x]` 1. Read Model Schema & Database
+  - `[x]` Update `prisma/schema.prisma` with `DailySalesSummary`, `CustomerLedgerSummary`, `ProductSalesSummary`, `SalesPerformanceSummary`, and `ProcessedEvent`
+  - `[x]` Generate & apply Prisma migration
+- `[x]` 2. Idempotency & Projection Infrastructure
+  - `[x]` Create base projector or helper for idempotency using `ProcessedEvent` table
+- `[x]` 3. Projectors (Event Subscribers)
+  - `[x]` Create `src/read-model/projectors/SalesSummaryProjector.js`
+  - `[x]` Create `src/read-model/projectors/CustomerLedgerProjector.js`
+  - `[x]` Create `src/read-model/projectors/ProductSalesProjector.js`
+  - `[x]` Create `src/read-model/projectors/SalesPerformanceProjector.js`
+- `[x]` 4. Read Repositories
+  - `[x]` Create `src/repositories/read/daily-sales-summary.repository.js`
+  - `[x]` Create `src/repositories/read/customer-ledger-summary.repository.js`
+  - `[x]` Create `src/repositories/read/product-sales-summary.repository.js`
+  - `[x]` Create `src/repositories/read/sales-performance-summary.repository.js`
+- `[x]` 5. Query API (Controllers & Routes)
+  - `[x]` Create `src/controllers/report.controller.js`
+  - `[x]` Create `src/routes/report.routes.js`
+  - `[x]` Register routes in `app.js`
+- `[x]` 6. Event Registration
+  - `[x]` Register projectors in `app.js` (Event Bus)
+- `[x]` 7. Verification & Documentation
+  - `[x]` Create and run `tests/cqrs.test.js`
+  - `[x]` Create `docs/architecture/cqrs-read-model.md`

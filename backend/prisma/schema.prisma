@@ -1,0 +1,1078 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  OWNER
+  SALES
+}
+
+enum ProductCategory {
+  MINUMAN
+  SIRUP
+  BUBUK
+  TOPPING
+  CUP
+  LID
+  SEDOTAN
+  BAHAN_LAIN
+}
+
+enum InvoiceStatus {
+  LUNAS
+  BELUM_LUNAS
+}
+
+enum VisitStatus {
+  PENDING
+  ONGOING
+  CHECKED_IN
+  SELLING
+  CHECKED_OUT
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  QRIS
+  TRANSFER
+  CREDIT
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  PARTIALLY_PAID
+}
+
+enum SalesTransactionStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
+enum ReturnStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
+enum CollectionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum CollectionResult {
+  FULL
+  PARTIAL
+  NONE
+}
+
+enum CollectionFailureReason {
+  CUSTOMER_NOT_FOUND
+  CUSTOMER_CLOSED
+  CUSTOMER_REFUSED
+  CUSTOMER_NO_CASH
+  CUSTOMER_PROMISE_TO_PAY
+  OTHER
+}
+
+enum ReturnReason {
+  DAMAGED
+  LEAKED
+  WRONG_ITEM
+  EXPIRED
+  NOT_SOLD
+  OTHER
+}
+
+enum ReturnCondition {
+  GOOD
+  DAMAGED
+}
+
+enum CreditNoteStatus {
+  ACTIVE
+  USED
+  CANCELLED
+}
+
+enum ItemCondition {
+  GOOD
+  DAMAGED
+}
+
+enum SetoranStatus {
+  DRAFT
+  VERIFIED
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum WarungStatus {
+  ACTIVE
+  INACTIVE
+  BLACKLIST
+  CLOSED
+}
+
+enum MovementType {
+  STOCK_IN
+  LOAD_OUT
+  LOAD_IN
+  SALE
+  RETURN
+  SALE_RETURN_GOOD
+  SALE_RETURN_DAMAGED
+  ADJUSTMENT_IN
+  ADJUSTMENT_OUT
+  SETTLEMENT_GOOD
+  SETTLEMENT_DAMAGED
+  SETTLEMENT_ADJUSTMENT
+}
+
+enum InventoryLocationType {
+  WAREHOUSE
+  SALES
+  CUSTOMER
+  SUPPLIER
+  ADJUSTMENT
+}
+
+enum ReferenceType {
+  LOAD
+  SALE
+  RETURN
+  ADJUSTMENT
+  OPENING
+  SETTLEMENT
+}
+
+enum SettlementStatus {
+  DRAFT
+  COUNTING
+  VERIFIED
+  COMPLETED
+  CANCELLED
+}
+
+enum SettlementResult {
+  MATCH
+  DIFFERENCE
+}
+
+enum DifferenceReason {
+  LOST
+  DAMAGED_IN_TRANSIT
+  DATA_ENTRY_ERROR
+  THEFT
+  EXPIRED
+  BROKEN
+  OTHER
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  username      String    @unique
+  password_hash String
+  name          String
+  phone         String?   @unique
+  role          UserRole
+  is_active     Boolean   @default(true)
+  last_login_at DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  area_id       Int?
+
+  area                Area?                  @relation(fields: [area_id], references: [id], onDelete: Restrict)
+  old_sales_histories CustomerSalesHistory[] @relation("OldSalesHistory")
+  new_sales_histories CustomerSalesHistory[] @relation("NewSalesHistory")
+  history_created     CustomerSalesHistory[] @relation("HistoryCreator")
+  visit_notes         VisitNote[]
+
+  refresh_tokens     RefreshToken[]
+  login_logs         LoginLog[]
+  audit_logs         AuditLog[]
+  warungs            Warung[]
+  visits             Visit[]
+  loads_sales        Load[]              @relation("LoadSales")
+  loads_created      Load[]              @relation("LoadCreator")
+  loads_confirmed    Load[]              @relation("LoadConfirmer")
+  mobile_stocks      MobileStock[]
+  movements_created  InventoryMovement[] @relation("MovementCreator")
+  sales_transactions SalesTransaction[]
+  payments_created   Payment[]
+  collections        Collection[]
+  sales_returns      SalesReturn[]
+
+  sales_settlements    WarehouseSettlement[] @relation("SalesSettlements")
+  created_settlements  WarehouseSettlement[] @relation("SettlementCreator")
+  verified_settlements WarehouseSettlement[] @relation("SettlementVerifier")
+
+  @@index([role])
+  @@index([is_active])
+}
+
+model RefreshToken {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  token_hash String
+  expires_at DateTime
+  revoked_at DateTime?
+  created_at DateTime  @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model LoginLog {
+  id             Int      @id @default(autoincrement())
+  user_id        Int?
+  login_at       DateTime @default(now())
+  ip_address     String?
+  user_agent     String?
+  success        Boolean
+  failure_reason String?
+
+  user User? @relation(fields: [user_id], references: [id], onDelete: NoAction)
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  user_id    Int?
+  action     String
+  entity     String
+  entity_id  Int?
+  details    Json?
+  created_at DateTime @default(now())
+
+  user User? @relation(fields: [user_id], references: [id], onDelete: NoAction)
+}
+
+model Product {
+  id            Int             @id @default(autoincrement())
+  code          String          @unique
+  name          String
+  category      ProductCategory
+  unit          String
+  cost_price    Decimal         @db.Decimal(18, 2)
+  selling_price Decimal         @db.Decimal(18, 2)
+  shelf_life    Int
+  display_order Int             @default(0)
+  description   String?
+  is_active     Boolean         @default(true)
+  deleted_at    DateTime?
+  created_at    DateTime        @default(now())
+  updated_at    DateTime        @updatedAt
+
+  load_items              LoadItem[]
+  mobile_stocks           MobileStock[]
+  batches                 ProductBatch[]
+  warehouse_stocks        WarehouseStock[]
+  inventory_movements     InventoryMovement[]
+  sales_transaction_items SalesTransactionItem[]
+  sales_return_items      SalesReturnItem[]
+  settlement_items        WarehouseSettlementItem[]
+  settlement_differences  SettlementDifference[]
+
+  @@index([code])
+  @@index([name])
+  @@index([category])
+  @@index([is_active])
+}
+
+model Setting {
+  key        String   @id
+  value      String
+  type       String // "number", "string", "boolean"
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Warung {
+  id                    Int          @id @default(autoincrement())
+  code                  String       @unique
+  name                  String
+  owner_name            String
+  phone                 String?
+  address               String?
+  latitude              Decimal      @db.Decimal(10, 7)
+  longitude             Decimal      @db.Decimal(10, 7)
+  visit_day             DayOfWeek?
+  visit_order        Int?
+  target_cups           Int          @default(0)
+  status                WarungStatus @default(ACTIVE)
+  assigned_sales_id     Int?
+  notes                 String?
+  whatsapp              String?
+  email                 String?
+  province              String?
+  city                  String?
+  district              String?
+  village               String?
+  postal_code           String?
+  visit_week            Int?
+  payment_term          Int          @default(0)
+  credit_limit          Decimal      @default(0) @db.Decimal(18, 2)
+  last_visit_date       DateTime?
+  last_invoice_date     DateTime?
+  last_payment_date     DateTime?
+  last_return_date      DateTime?
+  merged_to_customer_id Int?
+  category_id           Int?
+  route_id              Int?
+  area_id               Int?
+  deleted_at            DateTime?
+  created_at            DateTime     @default(now())
+  updated_at            DateTime     @updatedAt
+
+  assignedSales      User?                  @relation(fields: [assigned_sales_id], references: [id], onDelete: Restrict)
+  category           CustomerCategory?      @relation(fields: [category_id], references: [id], onDelete: Restrict)
+  route              Route?                 @relation(fields: [route_id], references: [id], onDelete: Restrict)
+  area               Area?                  @relation(fields: [area_id], references: [id], onDelete: Restrict)
+  sales_histories    CustomerSalesHistory[]
+  visits             Visit[]
+  sales_transactions SalesTransaction[]
+  collections        Collection[]
+  sales_returns      SalesReturn[]
+  credit_notes       CreditNote[]
+
+  @@unique([assigned_sales_id, visit_day, visit_order])
+  @@index([code])
+  @@index([visit_day])
+  @@index([visit_order])
+  @@index([assigned_sales_id])
+  @@index([status])
+}
+
+model NumberSequence {
+  id         String   @id
+  last_value Int      @default(0)
+  updated_at DateTime @updatedAt
+}
+
+model Visit {
+  id                  Int         @id @default(autoincrement())
+  code                String      @unique
+  sales_id            Int
+  warung_id           Int
+  status              VisitStatus @default(PENDING)
+  visit_date          DateTime    @db.Date
+  planned_sequence    Int?
+  check_in_time       DateTime?
+  check_out_time      DateTime?
+  check_in_latitude   Decimal?    @db.Decimal(10, 7)
+  check_in_longitude  Decimal?    @db.Decimal(10, 7)
+  check_out_latitude  Decimal?    @db.Decimal(10, 7)
+  check_out_longitude Decimal?    @db.Decimal(10, 7)
+  before_photo_url    String?
+  after_photo_url     String?
+  signature_url       String?
+  distance_meter      Int?
+  notes               String?
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @updatedAt
+
+  visit_locations VisitLocation[]
+  visit_photos    VisitPhoto[]
+  visit_notes     VisitNote[]
+
+  sales              User               @relation(fields: [sales_id], references: [id], onDelete: Restrict)
+  warung             Warung             @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  sales_transactions SalesTransaction[]
+  collections        Collection[]
+  sales_returns      SalesReturn[]
+
+  @@unique([sales_id, warung_id, visit_date])
+  @@index([sales_id])
+  @@index([warung_id])
+  @@index([visit_date])
+  @@index([status])
+}
+
+// ======================== INVENTORY FOUNDATION ======================== //
+
+model Warehouse {
+  id         Int      @id @default(autoincrement())
+  code       String   @unique
+  name       String
+  address    String?
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  stocks      WarehouseStock[]
+  loads       Load[]
+  settlements WarehouseSettlement[] @relation("WarehouseSettlements")
+
+  @@index([code])
+  @@index([is_active])
+}
+
+model ProductBatch {
+  id              Int      @id @default(autoincrement())
+  product_id      Int
+  batch_number    String
+  production_date DateTime @db.Date
+  expired_at      DateTime @db.Date
+  created_at      DateTime @default(now())
+
+  product                 Product                   @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  warehouse_stocks        WarehouseStock[]
+  mobile_stocks           MobileStock[]
+  inventory_movements     InventoryMovement[]
+  load_items              LoadItem[]
+  sales_transaction_items SalesTransactionItem[]
+  sales_return_items      SalesReturnItem[]
+  settlement_items        WarehouseSettlementItem[]
+  settlement_differences  SettlementDifference[]
+
+  @@unique([product_id, batch_number])
+  @@index([product_id])
+  @@index([expired_at])
+}
+
+model WarehouseStock {
+  id            Int           @id @default(autoincrement())
+  warehouse_id  Int
+  product_id    Int
+  batch_id      Int
+  qty_available Int           @default(0)
+  version       Int           @default(1)
+  condition     ItemCondition @default(GOOD)
+  updated_at    DateTime      @updatedAt
+
+  warehouse Warehouse    @relation(fields: [warehouse_id], references: [id], onDelete: Restrict)
+  product   Product      @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  batch     ProductBatch @relation(fields: [batch_id], references: [id], onDelete: Restrict)
+
+  @@unique([warehouse_id, product_id, batch_id, condition])
+  @@index([warehouse_id])
+  @@index([product_id])
+  @@index([batch_id])
+}
+
+model MobileStock {
+  id            Int           @id @default(autoincrement())
+  sales_id      Int
+  product_id    Int
+  batch_id      Int
+  qty_available Int           @default(0)
+  version       Int           @default(1)
+  condition     ItemCondition @default(GOOD)
+  updated_at    DateTime      @updatedAt
+
+  sales   User         @relation(fields: [sales_id], references: [id], onDelete: Restrict)
+  product Product      @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  batch   ProductBatch @relation(fields: [batch_id], references: [id], onDelete: Restrict)
+
+  @@unique([sales_id, product_id, batch_id, condition])
+  @@index([sales_id])
+  @@index([product_id])
+  @@index([batch_id])
+}
+
+model InventoryMovement {
+  id                 Int                   @id @default(autoincrement())
+  movement_number    String                @unique
+  movement_type      MovementType
+  source_type        InventoryLocationType
+  source_id          Int?
+  destination_type   InventoryLocationType
+  destination_id     Int?
+  qty_before         Int
+  qty_change         Int
+  qty_after          Int
+  reference_document String?
+  reference_type     ReferenceType?
+  product_id         Int
+  batch_id           Int
+  batch_number       String
+  expired_at         DateTime              @db.Date
+  created_by         Int?
+  created_at         DateTime              @default(now())
+
+  creator User?        @relation("MovementCreator", fields: [created_by], references: [id], onDelete: Restrict)
+  product Product      @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  batch   ProductBatch @relation(fields: [batch_id], references: [id], onDelete: Restrict)
+
+  @@index([movement_number])
+  @@index([movement_type])
+  @@index([source_type, source_id])
+  @@index([destination_type, destination_id])
+  @@index([product_id])
+  @@index([batch_id])
+}
+
+enum LoadStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
+model Load {
+  id           Int        @id @default(autoincrement())
+  code         String     @unique
+  warehouse_id Int
+  sales_id     Int
+  load_date    DateTime   @db.Date
+  status       LoadStatus @default(DRAFT)
+  notes        String?
+  created_by   Int?
+  confirmed_by Int?
+  confirmed_at DateTime?
+  created_at   DateTime   @default(now())
+  updated_at   DateTime   @updatedAt
+
+  warehouse Warehouse  @relation(fields: [warehouse_id], references: [id], onDelete: Restrict)
+  sales     User       @relation("LoadSales", fields: [sales_id], references: [id], onDelete: Restrict)
+  creator   User?      @relation("LoadCreator", fields: [created_by], references: [id], onDelete: Restrict)
+  confirmer User?      @relation("LoadConfirmer", fields: [confirmed_by], references: [id], onDelete: Restrict)
+  items     LoadItem[]
+
+  @@index([warehouse_id])
+  @@index([sales_id])
+  @@index([status])
+  @@index([load_date])
+}
+
+model LoadItem {
+  id         Int      @id @default(autoincrement())
+  load_id    Int
+  product_id Int
+  batch_id   Int
+  qty        Int
+  created_at DateTime @default(now())
+
+  load    Load         @relation(fields: [load_id], references: [id], onDelete: Cascade)
+  product Product      @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  batch   ProductBatch @relation(fields: [batch_id], references: [id], onDelete: Restrict)
+
+  @@unique([load_id, product_id, batch_id])
+  @@index([load_id])
+  @@index([product_id])
+  @@index([batch_id])
+}
+
+// ======================== SALES TRANSACTION ======================== //
+
+model SalesTransaction {
+  id                   Int                    @id @default(autoincrement())
+  code                 String                 @unique
+  visit_id             Int
+  sales_id             Int
+  warung_id            Int
+  payment_method       PaymentMethod
+  payment_status       PaymentStatus          @default(UNPAID)
+  status               SalesTransactionStatus @default(DRAFT)
+  subtotal             Decimal                @db.Decimal(18, 2)
+  item_discount        Decimal                @db.Decimal(18, 2)
+  transaction_discount Decimal                @db.Decimal(18, 2)
+  tax                  Decimal                @db.Decimal(18, 2)
+  grand_total          Decimal                @db.Decimal(18, 2)
+  paid_amount          Decimal                @default(0) @db.Decimal(18, 2)
+  outstanding_amount   Decimal                @default(0) @db.Decimal(18, 2)
+  notes                String?
+  created_at           DateTime               @default(now())
+  updated_at           DateTime               @updatedAt
+
+  visit            Visit                  @relation(fields: [visit_id], references: [id], onDelete: Restrict)
+  sales            User                   @relation(fields: [sales_id], references: [id], onDelete: Restrict)
+  warung           Warung                 @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  items            SalesTransactionItem[]
+  payments         Payment[]
+  collection_items CollectionItem[]
+  sales_returns    SalesReturn[]
+
+  @@index([visit_id])
+  @@index([sales_id])
+  @@index([warung_id])
+  @@index([status])
+  @@index([payment_status])
+  @@index([code])
+}
+
+model SalesTransactionItem {
+  id                   Int             @id @default(autoincrement())
+  sales_transaction_id Int
+  product_id           Int
+  batch_id             Int?
+  qty                  Int
+  unit                 String
+  category             ProductCategory
+  selling_price        Decimal         @db.Decimal(18, 2)
+  discount             Decimal         @db.Decimal(18, 2)
+  subtotal             Decimal         @db.Decimal(18, 2)
+  product_code         String
+  product_name         String
+  batch_number         String?
+  expired_at           DateTime?       @db.Date
+
+  sales_transaction SalesTransaction @relation(fields: [sales_transaction_id], references: [id], onDelete: Cascade)
+  product           Product          @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  batch             ProductBatch?    @relation(fields: [batch_id], references: [id], onDelete: Restrict)
+
+  @@index([sales_transaction_id])
+  @@index([product_id])
+  @@index([batch_id])
+}
+
+// ======================== PAYMENT ======================== //
+
+model Payment {
+  id             Int           @id @default(autoincrement())
+  code           String        @unique
+  transaction_id Int
+  payment_date   DateTime      @db.Date
+  payment_method PaymentMethod
+  amount         Decimal       @db.Decimal(18, 2)
+  notes          String?
+  created_by     Int
+  created_at     DateTime      @default(now())
+  collection_id  Int?
+
+  transaction SalesTransaction @relation(fields: [transaction_id], references: [id], onDelete: Restrict)
+  creator     User             @relation(fields: [created_by], references: [id], onDelete: Restrict)
+  collection  Collection?      @relation(fields: [collection_id], references: [id], onDelete: Restrict)
+
+  @@index([transaction_id])
+  @@index([created_by])
+  @@index([collection_id])
+  @@index([code])
+}
+
+// ======================== COLLECTION ======================== //
+
+model Collection {
+  id              Int                      @id @default(autoincrement())
+  code            String                   @unique
+  sales_id        Int
+  warung_id       Int
+  visit_id        Int
+  collection_date DateTime                 @db.Date
+  status          CollectionStatus         @default(PENDING)
+  result          CollectionResult?
+  failure_reason  CollectionFailureReason?
+  notes           String?
+  created_at      DateTime                 @default(now())
+  updated_at      DateTime                 @updatedAt
+
+  sales    User             @relation(fields: [sales_id], references: [id], onDelete: Restrict)
+  warung   Warung           @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  visit    Visit            @relation(fields: [visit_id], references: [id], onDelete: Restrict)
+  items    CollectionItem[]
+  payments Payment[]
+
+  @@index([sales_id])
+  @@index([warung_id])
+  @@index([visit_id])
+  @@index([status])
+  @@index([code])
+}
+
+model CollectionItem {
+  id                   Int     @id @default(autoincrement())
+  collection_id        Int
+  sales_transaction_id Int
+  invoice_total        Decimal @db.Decimal(18, 2)
+  outstanding_before   Decimal @db.Decimal(18, 2)
+  payment_amount       Decimal @default(0) @db.Decimal(18, 2)
+  outstanding_after    Decimal @default(0) @db.Decimal(18, 2)
+
+  collection        Collection       @relation(fields: [collection_id], references: [id], onDelete: Restrict)
+  sales_transaction SalesTransaction @relation(fields: [sales_transaction_id], references: [id], onDelete: Restrict)
+
+  @@index([collection_id])
+  @@index([sales_transaction_id])
+}
+
+// ======================== RETURN & CREDIT NOTE ======================== //
+
+model SalesReturn {
+  id             Int          @id @default(autoincrement())
+  code           String       @unique
+  visit_id       Int?
+  sales_id       Int
+  warung_id      Int
+  transaction_id Int
+  status         ReturnStatus @default(DRAFT)
+  return_date    DateTime     @db.Date
+  total_amount   Decimal      @db.Decimal(18, 2)
+  notes          String?
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
+
+  visit       Visit?            @relation(fields: [visit_id], references: [id], onDelete: Restrict)
+  sales       User              @relation(fields: [sales_id], references: [id], onDelete: Restrict)
+  warung      Warung            @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  transaction SalesTransaction  @relation(fields: [transaction_id], references: [id], onDelete: Restrict)
+  items       SalesReturnItem[]
+  credit_note CreditNote?
+
+  @@index([sales_id])
+  @@index([warung_id])
+  @@index([transaction_id])
+  @@index([code])
+}
+
+model SalesReturnItem {
+  id              Int             @id @default(autoincrement())
+  sales_return_id Int
+  product_id      Int
+  batch_id        Int
+  qty             Int
+  condition       ReturnCondition
+  reason          ReturnReason
+  item_price      Decimal         @db.Decimal(18, 2)
+  subtotal        Decimal         @db.Decimal(18, 2)
+
+  sales_return SalesReturn  @relation(fields: [sales_return_id], references: [id], onDelete: Cascade)
+  product      Product      @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  batch        ProductBatch @relation(fields: [batch_id], references: [id], onDelete: Restrict)
+
+  @@index([sales_return_id])
+  @@index([product_id])
+}
+
+model CreditNote {
+  id               Int              @id @default(autoincrement())
+  code             String           @unique
+  warung_id        Int
+  sales_return_id  Int              @unique
+  amount           Decimal          @db.Decimal(18, 2)
+  remaining_amount Decimal          @db.Decimal(18, 2)
+  status           CreditNoteStatus @default(ACTIVE)
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+
+  warung       Warung      @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  sales_return SalesReturn @relation(fields: [sales_return_id], references: [id], onDelete: Restrict)
+
+  @@index([warung_id])
+  @@index([code])
+}
+
+model WarehouseSettlement {
+  id           Int               @id @default(autoincrement())
+  code         String            @unique
+  sales_id     Int
+  warehouse_id Int
+  status       SettlementStatus  @default(DRAFT)
+  result       SettlementResult?
+
+  // Snapshot master
+  sales_name     String
+  warehouse_name String
+
+  // Cash Reconciliation
+  invoice_amount   Decimal @db.Decimal(15, 2)
+  payment_received Decimal @db.Decimal(15, 2)
+  deposit          Decimal @db.Decimal(15, 2)
+  cash_on_hand     Decimal @db.Decimal(15, 2)
+  cash_difference  Decimal @db.Decimal(15, 2)
+
+  verified_by Int?
+  verified_at DateTime?
+  notes       String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  created_by Int?
+
+  sales       User                      @relation("SalesSettlements", fields: [sales_id], references: [id])
+  warehouse   Warehouse                 @relation("WarehouseSettlements", fields: [warehouse_id], references: [id])
+  creator     User?                     @relation("SettlementCreator", fields: [created_by], references: [id])
+  verifier    User?                     @relation("SettlementVerifier", fields: [verified_by], references: [id])
+  items       WarehouseSettlementItem[]
+  differences SettlementDifference[]
+}
+
+model WarehouseSettlementItem {
+  id                      Int @id @default(autoincrement())
+  warehouse_settlement_id Int
+  product_id              Int
+  batch_id                Int
+
+  // Snapshot Master Data
+  product_code    String
+  product_name    String
+  batch_number    String
+  unit_price      Decimal @db.Decimal(15, 2)
+  inventory_value Decimal @db.Decimal(15, 2)
+
+  condition      ItemCondition
+  qty_expected   Int
+  qty_actual     Int
+  qty_difference Int
+
+  settlement WarehouseSettlement @relation(fields: [warehouse_settlement_id], references: [id])
+  product    Product             @relation(fields: [product_id], references: [id])
+  batch      ProductBatch        @relation(fields: [batch_id], references: [id])
+}
+
+model SettlementDifference {
+  id                      Int              @id @default(autoincrement())
+  warehouse_settlement_id Int
+  product_id              Int
+  batch_id                Int
+  condition               ItemCondition
+  qty                     Int
+  reason                  DifferenceReason
+  notes                   String?
+  resolved                Boolean          @default(false)
+
+  settlement WarehouseSettlement @relation(fields: [warehouse_settlement_id], references: [id])
+  product    Product             @relation(fields: [product_id], references: [id])
+  batch      ProductBatch        @relation(fields: [batch_id], references: [id])
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  PUBLISHED
+  FAILED
+}
+
+model OutboxEvent {
+  id                    String       @id @default(uuid())
+  event_name            String
+  aggregate_id          String
+  aggregate_type        String
+  event_version         Int          @default(1)
+  correlation_id        String
+  causation_id          String
+  payload               Json
+  metadata              Json
+  status                OutboxStatus @default(PENDING)
+  retry_count           Int          @default(0)
+  next_retry_at         DateTime?
+  error_message         String?
+  occurred_at           DateTime
+  processing_started_at DateTime?
+  published_at          DateTime?
+  published_by          String?
+  created_at            DateTime     @default(now())
+  updated_at            DateTime     @updatedAt
+
+  @@index([status, created_at])
+  @@index([aggregate_id])
+  @@index([aggregate_type])
+  @@index([correlation_id])
+  @@index([next_retry_at])
+}
+
+// ==========================================
+// CQRS READ MODELS (PROJECTIONS)
+// ==========================================
+
+model DailySalesSummary {
+  id                 String   @id @default(uuid())
+  date               DateTime @db.Date
+  sales_id           Int
+  warehouse_id       Int
+  invoice_count      Int      @default(0)
+  sales_amount       Decimal  @default(0) @db.Decimal(15, 2)
+  paid_amount        Decimal  @default(0) @db.Decimal(15, 2)
+  outstanding_amount Decimal  @default(0) @db.Decimal(15, 2)
+  return_amount      Decimal  @default(0) @db.Decimal(15, 2)
+  settlement_amount  Decimal  @default(0) @db.Decimal(15, 2)
+  updated_at         DateTime @default(now())
+
+  @@unique([date, sales_id, warehouse_id])
+}
+
+model CustomerLedgerSummary {
+  id                    String    @id @default(uuid())
+  customer_id           Int       @unique
+  receivable            Decimal   @default(0) @db.Decimal(15, 2)
+  credit_note           Decimal   @default(0) @db.Decimal(15, 2)
+  paid                  Decimal   @default(0) @db.Decimal(15, 2)
+  last_transaction_date DateTime?
+  updated_at            DateTime  @default(now())
+}
+
+model ProductSalesSummary {
+  id            String  @id @default(uuid())
+  product_id    Int     @unique
+  sales_qty     Int     @default(0)
+  return_qty    Int     @default(0)
+  net_sales_qty Int     @default(0)
+  sales_value   Decimal @default(0) @db.Decimal(15, 2)
+}
+
+model SalesPerformanceSummary {
+  id                  String  @id @default(uuid())
+  sales_id            Int     @unique
+  total_customer      Int     @default(0)
+  total_invoice       Int     @default(0)
+  total_sales         Decimal @default(0) @db.Decimal(15, 2)
+  total_collection    Decimal @default(0) @db.Decimal(15, 2)
+  total_return        Decimal @default(0) @db.Decimal(15, 2)
+  total_settlement    Decimal @default(0) @db.Decimal(15, 2)
+  assigned_customer   Int     @default(0)
+  visited_customer    Int     @default(0)
+  productive_customer Int     @default(0)
+  invoice_customer    Int     @default(0)
+  collection_customer Int     @default(0)
+  new_customer        Int     @default(0)
+  lost_customer       Int     @default(0)
+}
+
+model ProcessedEvent {
+  id             String   @id @default(uuid())
+  event_id       String
+  projector_name String
+  processed_at   DateTime @default(now())
+
+  @@unique([event_id, projector_name])
+}
+
+// ==========================================
+// MASTER DATA FOUNDATION (SPRINT 10.5A)
+// ==========================================
+
+model Regional {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String
+  description String?
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  areas Area[]
+}
+
+model Area {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String
+  regional_id Int
+  description String?
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  regional Regional @relation(fields: [regional_id], references: [id], onDelete: Restrict)
+  routes   Route[]
+  warungs  Warung[]
+  users    User[]
+}
+
+model Route {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String
+  area_id     Int
+  description String?
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  area                Area                   @relation(fields: [area_id], references: [id], onDelete: Restrict)
+  warungs             Warung[]
+  old_sales_histories CustomerSalesHistory[] @relation("OldRouteHistory")
+  new_sales_histories CustomerSalesHistory[] @relation("NewRouteHistory")
+}
+
+model CustomerCategory {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String
+  description String?
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  warungs Warung[]
+}
+
+enum TransferType {
+  AUTO
+  MANUAL
+}
+
+model CustomerSalesHistory {
+  id              Int          @id @default(autoincrement())
+  customer_id     Int
+  old_sales_id    Int?
+  new_sales_id    Int
+  old_route_id    Int?
+  new_route_id    Int?
+  effective_from  DateTime     @default(now())
+  effective_until DateTime?
+  reason          String?
+  transfer_type   TransferType @default(MANUAL)
+  created_by      Int?
+  created_at      DateTime     @default(now())
+
+  customer  Warung @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  old_sales User?  @relation("OldSalesHistory", fields: [old_sales_id], references: [id], onDelete: SetNull)
+  new_sales User   @relation("NewSalesHistory", fields: [new_sales_id], references: [id], onDelete: Restrict)
+  old_route Route? @relation("OldRouteHistory", fields: [old_route_id], references: [id], onDelete: SetNull)
+  new_route Route? @relation("NewRouteHistory", fields: [new_route_id], references: [id], onDelete: Restrict)
+  creator   User?  @relation("HistoryCreator", fields: [created_by], references: [id], onDelete: SetNull)
+}
+
+model CustomerTransactionProjection {
+  id                  String   @id @default(uuid())
+  customer_id         Int
+  transaction_date    DateTime @db.Date
+  type                String // INVOICE, PAYMENT, RETURN
+  reference_id        Int
+  reference_no        String
+  amount              Decimal  @db.Decimal(15, 2)
+  balance_after       Decimal  @db.Decimal(15, 2)
+  running_credit_note Decimal  @default(0) @db.Decimal(15, 2)
+  status              String // e.g. COMPLETED
+  sales_id            Int
+  created_at          DateTime @default(now())
+
+  @@index([customer_id, transaction_date])
+  @@index([sales_id])
+}
+
+model VisitLocation {
+  id          Int      @id @default(autoincrement())
+  visit_id    Int
+  latitude    Decimal  @db.Decimal(10, 7)
+  longitude   Decimal  @db.Decimal(10, 7)
+  accuracy    Decimal? @db.Decimal(10, 2)
+  captured_at DateTime @default(now())
+
+  visit Visit @relation(fields: [visit_id], references: [id], onDelete: Cascade)
+}
+
+model VisitPhoto {
+  id          Int      @id @default(autoincrement())
+  visit_id    Int
+  photo_url   String
+  photo_type  String // BEFORE, AFTER, DISPLAY
+  captured_at DateTime @default(now())
+
+  visit Visit @relation(fields: [visit_id], references: [id], onDelete: Cascade)
+}
+
+model VisitNote {
+  id         Int      @id @default(autoincrement())
+  visit_id   Int
+  note       String
+  created_by Int
+  created_at DateTime @default(now())
+
+  visit   Visit @relation(fields: [visit_id], references: [id], onDelete: Cascade)
+  creator User  @relation(fields: [created_by], references: [id], onDelete: Restrict)
+}

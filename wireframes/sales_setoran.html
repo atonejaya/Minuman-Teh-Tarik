@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setoran - @One</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="mobile-wrapper">
+        <div class="top-app-bar">
+            <h1 class="h5">Setoran Kas</h1>
+            <span class="badge bg-success rounded-pill">Hari Ini</span>
+        </div>
+
+        <div class="p-3">
+            <div class="card-custom p-4 mb-4 text-center bg-primary-custom">
+                <p class="mb-1 text-white-50">Kas Tunai Dibawa</p>
+                <h1 class="fw-bold mb-0">Rp 1.250.000</h1>
+                <p class="mb-0 mt-2 small text-white-50">Dari 15 Transaksi Tunai</p>
+            </div>
+
+            <h6 class="fw-bold mb-3 text-muted">Rincian Setoran</h6>
+            
+            <div class="card-custom p-3 mb-4">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Kas Penjualan</span>
+                    <span class="fw-bold">Rp 1.250.000</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
+                    <span class="text-muted">Uang Pecahan</span>
+                    <span class="fw-bold text-success">+ Rp 0</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold fs-5">Setor Sekarang</span>
+                    <span class="fw-bold fs-5 text-primary">Rp 1.250.000</span>
+                </div>
+            </div>
+
+            <div class="alert alert-warning border-0 rounded-xl mb-4 d-flex align-items-center">
+                <i class="fa-solid fa-circle-info fa-2x me-3 text-warning"></i>
+                <small>Pastikan jumlah uang tunai fisik yang diserahkan ke Owner sesuai dengan nominal di atas.</small>
+            </div>
+
+            <button onclick="alert('Setoran berhasil diajukan dan menunggu verifikasi Owner.')" class="btn btn-primary-custom w-100 py-3 rounded-xl fw-bold shadow-hover fs-5">
+                AJUKAN SETORAN
+            </button>
+            
+            <div class="mt-5">
+                <h6 class="fw-bold mb-3 text-muted">Riwayat Setoran Terbaru</h6>
+                <div class="card-custom p-3 mb-2 opacity-75">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="fw-bold mb-0">Kamis, 15 Ags 2026</h6>
+                            <small class="text-success"><i class="fa-solid fa-check-double"></i> Diverifikasi Owner</small>
+                        </div>
+                        <h6 class="fw-bold mb-0">Rp 1.100.000</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <a href="sales_dashboard.html" class="nav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="sales_visit_list.html" class="nav-item">
+                <i class="fa-solid fa-store"></i>
+                <span>Visit</span>
+            </a>
+            <a href="sales_setoran.html" class="nav-item active">
+                <i class="fa-solid fa-money-bill-wave"></i>
+                <span>Setoran</span>
+            </a>
+            <a href="sales_akun.html" class="nav-item">
+                <i class="fa-solid fa-user"></i>
+                <span>Akun</span>
+            </a>
+        </nav>
+    </div>
+</body>
+</html>

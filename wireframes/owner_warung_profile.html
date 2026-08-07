@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Warung - @One</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="owner-layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-mug-hot text-primary"></i> @One
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="owner_dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="owner_master.html" class="active"><i class="fa-solid fa-database"></i> Master Data</a></li>
+                <li><a href="owner_operasional.html"><i class="fa-solid fa-truck-fast"></i> Operasional</a></li>
+                <li><a href="owner_laporan.html"><i class="fa-solid fa-file-invoice"></i> Laporan</a></li>
+                <li><a href="owner_pengaturan.html"><i class="fa-solid fa-gear"></i> Pengaturan</a></li>
+                <li class="mt-4"><a href="login.html" class="text-danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <a href="owner_master.html" class="btn btn-outline-secondary rounded-circle"><i class="fa-solid fa-arrow-left"></i></a>
+                <h2 class="fw-bold mb-0">Profil Warung</h2>
+            </div>
+
+            <div class="row g-4">
+                <!-- Kiri: Info Dasar -->
+                <div class="col-md-4">
+                    <div class="card-custom p-4 text-center mb-4">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-soft" style="width: 80px; height: 80px; font-size: 2rem;">
+                            <i class="fa-solid fa-store"></i>
+                        </div>
+                        <h4 class="fw-bold">Warung Ibu Siti</h4>
+                        <p class="text-muted mb-1"><i class="fa-solid fa-user me-2"></i> Ibu Siti</p>
+                        <p class="text-muted mb-3"><i class="fa-solid fa-phone me-2"></i> 0812-9988-7766</p>
+                        <div class="d-flex gap-2 justify-content-center mb-3">
+                            <span class="badge bg-primary">Senin</span>
+                            <span class="badge bg-primary">Rabu</span>
+                            <span class="badge bg-primary">Jumat</span>
+                        </div>
+                        <button class="btn btn-outline-primary w-100 rounded-xl"><i class="fa-solid fa-pen me-2"></i> Edit Profil</button>
+                    </div>
+
+                    <div class="card-custom p-4 mb-4">
+                        <h6 class="fw-bold mb-3">Lokasi (Maps)</h6>
+                        <p class="text-muted small mb-2"><i class="fa-solid fa-location-dot me-2"></i> Jl. Merdeka No. 10, Jakarta Selatan</p>
+                        <div class="bg-light rounded text-center d-flex align-items-center justify-content-center" style="height: 150px; border: 1px dashed #ccc;">
+                            <span class="text-muted"><i class="fa-solid fa-map-location-dot fa-2x mb-2 d-block"></i> Peta Maps Embed</span>
+                        </div>
+                    </div>
+
+                    <div class="card-custom p-4 bg-danger text-white">
+                        <h6 class="fw-bold mb-1 opacity-75">Outstanding Piutang</h6>
+                        <h2 class="fw-bold mb-0">Rp 120.000</h2>
+                        <small class="opacity-75">Dari 1 Faktur belum lunas</small>
+                    </div>
+                </div>
+
+                <!-- Kanan: Operasional -->
+                <div class="col-md-8">
+                    <div class="card-custom p-4 mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0">Target Display</h5>
+                            <button class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen"></i> Ubah Target</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Produk</th>
+                                        <th class="text-center">Target Qty</th>
+                                        <th class="text-end">Harga</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Teh Tarik Original</td>
+                                        <td class="text-center fw-bold">30 Cup</td>
+                                        <td class="text-end">Rp 5.000</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Teh Tarik Coklat</td>
+                                        <td class="text-center fw-bold">20 Cup</td>
+                                        <td class="text-end">Rp 6.000</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card-custom p-4 mb-4">
+                        <h5 class="fw-bold mb-4">Riwayat Visit Terakhir</h5>
+                        <div class="d-flex flex-column gap-3">
+                            <!-- Visit Item -->
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                <div>
+                                    <h6 class="fw-bold mb-1">Rabu, 14 Ags 2026 <span class="badge bg-success ms-2">Selesai</span></h6>
+                                    <small class="text-muted">Sales: Andi Surya | Terjual: 28 Cup</small>
+                                </div>
+                                <a href="#" class="btn btn-sm btn-outline-secondary">Detail</a>
+                            </div>
+                            <!-- Visit Item -->
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                <div>
+                                    <h6 class="fw-bold mb-1">Senin, 12 Ags 2026 <span class="badge bg-success ms-2">Selesai</span></h6>
+                                    <small class="text-muted">Sales: Andi Surya | Terjual: 25 Cup</small>
+                                </div>
+                                <a href="#" class="btn btn-sm btn-outline-secondary">Detail</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-custom p-4">
+                        <h5 class="fw-bold mb-4">Riwayat Pembayaran</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle text-muted">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Faktur</th>
+                                        <th>Metode</th>
+                                        <th class="text-end">Nominal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>14 Ags 2026</td>
+                                        <td>INV-2608-002</td>
+                                        <td><span class="badge bg-light text-dark">TUNAI</span></td>
+                                        <td class="text-end fw-bold text-dark">Rp 148.000</td>
+                                    </tr>
+                                    <tr>
+                                        <td>12 Ags 2026</td>
+                                        <td>INV-2608-001</td>
+                                        <td><span class="badge bg-info text-dark">TRANSFER</span></td>
+                                        <td class="text-end fw-bold text-dark">Rp 125.000</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
