@@ -30,10 +30,18 @@
 
 ## Sprint 11.2A — Warehouse ⇄ Sales Stock Transfer (over frozen 11.1A)
 - Branch: `feature/sprint-11.2A-warehouse-stock-transfer`
+- Commit: `dd09977` — *freeze: Sprint 11.2A - Warehouse ↔ Sales Stock Transfer*
+- Tag: `v11.2A` (annotated — *Sprint 11.2A - Warehouse ↔ Sales Stock Transfer (frozen over v11.1A)*)
 - Status: **FROZEN**
-- Definition of Done: **PASSED**
-- Regression Test: **PASSED**
+- Regression: **PASSED** (`npm test` 65 passing · `npm run test:integration` 57 passing)
+- DoD: **PASSED**
 - Note: `README.md` intentionally kept untracked (review on a separate commit)
+
+## Sprint 11.3A — Production Readiness & Deployment (over frozen 11.2A)
+- Branch: `feature/sprint-11.3A-production-readiness`
+- Status: **IN PROGRESS**
+- Note: `README.md` intentionally kept untracked (review on a separate commit)
+
 
 # Tasks: Sprint 10.3 (CQRS Read Model & Projection)
 
@@ -199,4 +207,39 @@
   - `[x]` `docs/architecture/adr/0002-warehouse-sales-stock-transfer.md`
   - [x] Freeze commit + tag `v11.2A`
 
+# Tasks: Sprint 11.3A (Production Readiness & Deployment)
 
+- `[x]` 1. Environment Validation
+  - `[x]` Update `src/config/env.js`: tambah `DIRECT_URL` (optional), `CORS_ORIGIN` (required di production — fail-fast), `BUILD_COMMIT`, `BUILD_DATE`
+- `[x]` 2. Structured Logging
+  - `[x]` Update `src/config/logger.js`: redact `password`, `token`, `authorization`, `jwt`, `DATABASE_URL`, `JWT_SECRET`, `cookie`, `set-cookie`, `refresh_token`, `access_token`; tambah error serializer
+- `[x]` 3. Request ID
+  - `[x]` Update `src/middleware/request-id.middleware.js`: honor `X-Request-ID` dari client; konsisten casing `X-Request-ID`
+- `[x]` 4. Error Handling
+  - `[x]` Update `src/middleware/error.middleware.js`: hapus `console.error`, tambah `requestId` ke response, map domain errors (`ValidationError`→422, `ConflictError`→409, `NotFoundError`→404, JWT→401)
+- `[x]` 5. Security Hardening
+  - `[x]` Update `src/middleware/rate-limiter.middleware.js`: tambah `apiRateLimiter` (100 req/15min) dengan `standardHeaders: true`
+  - `[x]` Update `src/app.js`: `trust proxy 1`, CORS dari `CORS_ORIGIN` env, body limit `10mb`, compression filter (skip image/video/zip), `apiRateLimiter` di apiRouter
+- `[x]` 6. Health / Ready / Version Endpoints
+  - `[x]` `GET /health` — liveness only (no DB), shape: `{status, version, environment, uptime, timestamp}`
+  - `[x]` `GET /ready` — readiness (DB ping), shape: `{status, database}` / 503
+  - `[x]` `GET /version` — `{version, commit, buildDate, node, environment}`
+- `[x]` 7. Observability
+  - `[x]` Update `src/server.js`: structured startup log `{event:'server_started', version, environment, port, pid, node}`, proper shutdown order (server.close → prisma.$disconnect → logger.flush → exit), structured event logs
+- `[x]` 8. Docker
+  - `[x]` `Dockerfile` (node:22-alpine, non-root user, HEALTHCHECK)
+  - `[x]` `.dockerignore`
+- `[x]` 9. CI/CD
+  - `[x]` `.github/workflows/backend.yml` (checkout → npm ci → prisma generate → npm test → integration test → docker build)
+- `[x]` 10. Documentation
+  - `[x]` `docs/production.md` (env vars, deployment, migration, rollback, backup/restore, health check, troubleshooting, security checklist)
+  - `[x]` `docs/deployment.md` (install, migration, start Node/PM2/Docker, update, rollback, verify)
+  - `[x]` `docs/release-checklist.md` (pre-release, deploy, post-deploy verification, monitoring, rollback plan, sign-off)
+- `[x]` 11. Testing
+  - `[x]` `tests/production-readiness.test.js` (21 tests: /health shape + liveness, /ready, /version, X-Request-ID, security headers, body limit, rate limiter, error shape)
+  - `[x]` `package.json`: tambah `test:infra`, `start`, `dev` scripts; include `production-readiness.test.js` di `npm test`
+  - `[x]` `npm test` (86 passing: 65 lama + 21 baru) — baseline 11.0C/11.0D/11.0E/11.1A/11.2A tetap hijau
+  - `[x]` `npm run test:integration` (57 passing) — regression verification
+- `[ ]` 12. Freeze
+  - `[ ]` Freeze commit: `Sprint 11.3A - Production Readiness (Freeze)`
+  - `[ ]` Annotated tag `v11.3A`
