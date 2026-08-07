@@ -14,6 +14,13 @@
 - Regression Test: **PASSED**
 - Note: `README.md` intentionally kept untracked (review on a separate commit)
 
+## Sprint 11.0E — Sales Visit (orchestrator over frozen 11.0D)
+- Branch: `feature/sprint-11.0E-sales-visit`
+- Status: **FROZEN**
+- Definition of Done: **PASSED**
+- Regression Test: **PASSED**
+- Note: `README.md` intentionally kept untracked (review on a separate commit)
+
 # Tasks: Sprint 10.3 (CQRS Read Model & Projection)
 
 - `[x]` 1. Read Model Schema & Database
@@ -93,5 +100,33 @@
     - [x] Ledger ordering tiebreaker `[{created_at:'desc'},{id:'desc'}]` added.
     - [x] Dead code removed (`sumByMovementType`, `upsertFromItems`, `projectionSnapshots`, unused `ledgerRow`); projector rewritten onto repository's `updateIfVersion`.
     - [x] Concurrency regression test made order-agnostic (chain integrity + `total_sales=8` + final stock in {2,3}) with `try/finally` cleanup.
+
+# Tasks: Sprint 11.0E (Sales Visit)
+
+- `[x]` 1. Database Migration
+  - `[x]` Migration `prisma/migrations/20260807170000_sprint_11_0e_sales_visit` (enum `SalesVisitStatus`, `SalesVisitActivityType` + tabel `SalesVisit`, `SalesVisitActivity`, `SalesVisitNote`, `SalesVisitPhoto`)
+  - `[x]` Back-relations `User`/`Warung`; `prisma validate` clean + `prisma generate`
+  - `[x]` Deploy clean via `migrate deploy` (workaround: Prisma CLI memakai session URL `:5432`, bukan pooler `:6543`; pre-existing `20260807114200_sprint_10_8a_2_final` di-resolve `--applied` dulu)
+- `[x]` 2. Domain Layer (`src/modules/sales-visit/domain`)
+  - `[x]` `VisitStatus` (lifecycle + `VisitTransitions` + terminal) & `VisitActivityType` (10 tipe)
+  - `[x]` Entity `SalesVisit` (PLANNED, normalisasi `visit_date` UTC, validasi)
+  - `[x]` `VisitValidationService` (state machine murni) & `VisitTimelineService` (kronologis + durasi)
+  - `[x]` Repositori `SalesVisit`/`Activity`/`Note`/`Photo` (`client || prisma`)
+  - `[x]` 8 domain events `SalesVisit{Planned,CheckedIn,StockCounted,OrderCreated,Delivered,CheckedOut,Completed,Cancelled}Event`
+- `[x]` 3. Application Layer
+  - `[x]` `SalesVisitService`: create / check-in (GPS + radius) / stock-count (delegasi public API 11.0D) / order / delivery (tanpa mutasi stok) / check-out (durasi) / complete / cancel / note / photo / queries (detail, list, timeline, inventory, sales-history)
+  - `[x]` Per-visit async mutex (`_withVisitLock`), ownership SALES (403), `SV-YYYYMMDD-####`, outbox events dalam transaksi
+  - `[x]` Fix `recordStockCount` dua transaksi (11.0D source of truth commit lalu status kunjungan) — return shape disusun setelah tx
+- `[x]` 4. Presentation
+  - `[x]` `SalesVisitController` + `routes/sales-visit.routes.js` (auth + role SALES/ADMIN/OWNER)
+  - `[x]` Register route di `src/app.js`; register 8 events di `EventRegistry`
+  - `[x]` Fix `getVisit` memuat activities/notes/photos (includeActivities true)
+- `[x]` 5. Verification
+  - `[x]` `tests/sales-visit.unit.test.js` (entity, state machine, timeline) — bagian `npm test`
+  - `[x]` `tests/sales-visit.test.js` (23 integrasi) — bagian `npm run test:integration`
+  - `[x]` `npm test` (46) + `npm run test:integration` (42) = 88 passing; baseline 11.0D & 11.0C tetap hijau
+- `[x]` 6. Docs & Freeze
+  - `[x]` `docs/architecture/sales-visit-domain.md` (posisi orchestrator, state machine, integrasi 11.0D, API)
+  - `[x]` Freeze commit + tag `v11.0E`
 
 

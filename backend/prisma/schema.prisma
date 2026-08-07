@@ -240,6 +240,10 @@ model User {
   sales_stock_projections SalesStockProjection[]
   stock_issue_histories  SalesStockIssueHistory[]
   outlet_stock_counts    OutletStockCount[]
+  sales_visits           SalesVisit[]
+  sales_visit_activities SalesVisitActivity[]
+  sales_visit_notes      SalesVisitNote[]
+  sales_visit_photos     SalesVisitPhoto[]
 
   @@index([role])
   @@index([is_active])
@@ -644,6 +648,7 @@ model Warung {
   outlet_stock_ledgers     OutletStockLedger[]
   outlet_stock_projections OutletStockProjection[]
   outlet_stock_counts      OutletStockCount[]
+  sales_visits             SalesVisit[]
 
   @@unique([assigned_sales_id, visit_day, visit_order])
   @@index([code])
@@ -1691,5 +1696,111 @@ model OutletStockCountItem {
 
   @@index([stock_count_id])
   @@index([product_id])
+}
+
+// ==========================================
+// SALES VISIT (SPRINT 11.0E)
+// ==========================================
+
+enum SalesVisitStatus {
+  PLANNED
+  CHECKED_IN
+  STOCK_COUNTED
+  ORDER_CREATED
+  DELIVERED
+  CHECKED_OUT
+  COMPLETED
+  CANCELLED
+}
+
+enum SalesVisitActivityType {
+  VISIT_CREATED
+  CHECK_IN
+  STOCK_COUNT
+  ORDER_CREATED
+  DELIVERED
+  CHECK_OUT
+  COMPLETED
+  NOTE_ADDED
+  PHOTO_ADDED
+  CANCELLED
+}
+
+model SalesVisit {
+  id                   Int               @id @default(autoincrement())
+  code                 String            @unique
+  sales_id             Int
+  warung_id            Int
+  status               SalesVisitStatus  @default(PLANNED)
+  visit_date           DateTime          @db.Date
+  planned_sequence     Int?
+  check_in_time        DateTime?
+  check_out_time       DateTime?
+  duration_seconds     Int?
+  check_in_latitude    Decimal?          @db.Decimal(10, 7)
+  check_in_longitude   Decimal?          @db.Decimal(10, 7)
+  check_out_latitude   Decimal?          @db.Decimal(10, 7)
+  check_out_longitude  Decimal?          @db.Decimal(10, 7)
+  distance_meter       Int?
+  opening_note         String?
+  closing_note         String?
+  created_at           DateTime          @default(now())
+  updated_at           DateTime          @updatedAt
+
+  sales      User                @relation(fields: [sales_id], references: [id], onDelete: Restrict)
+  warung     Warung              @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  activities SalesVisitActivity[]
+  notes      SalesVisitNote[]
+  photos     SalesVisitPhoto[]
+
+  @@unique([sales_id, warung_id, visit_date])
+  @@index([sales_id])
+  @@index([warung_id])
+  @@index([visit_date])
+  @@index([status])
+}
+
+model SalesVisitActivity {
+  id          Int                   @id @default(autoincrement())
+  visit_id    Int
+  type        SalesVisitActivityType
+  occurred_at DateTime              @default(now())
+  metadata    Json?
+  created_by  Int?
+
+  visit   SalesVisit @relation(fields: [visit_id], references: [id], onDelete: Cascade)
+  creator User?      @relation(fields: [created_by], references: [id], onDelete: SetNull)
+
+  @@index([visit_id])
+  @@index([type])
+}
+
+model SalesVisitNote {
+  id         Int      @id @default(autoincrement())
+  visit_id   Int
+  note       String
+  created_by Int
+  created_at DateTime @default(now())
+
+  visit   SalesVisit @relation(fields: [visit_id], references: [id], onDelete: Cascade)
+  creator User       @relation(fields: [created_by], references: [id], onDelete: Restrict)
+
+  @@index([visit_id])
+}
+
+model SalesVisitPhoto {
+  id          Int      @id @default(autoincrement())
+  visit_id    Int
+  filename    String
+  file_path   String
+  mime_type   String?
+  size_bytes  Int?
+  captured_at DateTime @default(now())
+  created_by  Int
+
+  visit   SalesVisit @relation(fields: [visit_id], references: [id], onDelete: Cascade)
+  creator User       @relation(fields: [created_by], references: [id], onDelete: Restrict)
+
+  @@index([visit_id])
 }
 

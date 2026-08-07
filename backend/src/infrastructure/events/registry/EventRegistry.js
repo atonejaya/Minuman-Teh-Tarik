@@ -11,6 +11,14 @@ const StockCountRecordedEvent = require('../../../modules/outlet-inventory/domai
 const SalesCalculatedEvent = require('../../../modules/outlet-inventory/domain/events/SalesCalculatedEvent');
 const RefillCalculatedEvent = require('../../../modules/outlet-inventory/domain/events/RefillCalculatedEvent');
 const OutletProjectionUpdatedEvent = require('../../../modules/outlet-inventory/domain/events/OutletProjectionUpdatedEvent');
+const SalesVisitPlannedEvent = require('../../../modules/sales-visit/domain/events/SalesVisitPlannedEvent');
+const SalesVisitCheckedInEvent = require('../../../modules/sales-visit/domain/events/SalesVisitCheckedInEvent');
+const SalesVisitStockCountedEvent = require('../../../modules/sales-visit/domain/events/SalesVisitStockCountedEvent');
+const SalesVisitOrderCreatedEvent = require('../../../modules/sales-visit/domain/events/SalesVisitOrderCreatedEvent');
+const SalesVisitDeliveredEvent = require('../../../modules/sales-visit/domain/events/SalesVisitDeliveredEvent');
+const SalesVisitCheckedOutEvent = require('../../../modules/sales-visit/domain/events/SalesVisitCheckedOutEvent');
+const SalesVisitCompletedEvent = require('../../../modules/sales-visit/domain/events/SalesVisitCompletedEvent');
+const SalesVisitCancelledEvent = require('../../../modules/sales-visit/domain/events/SalesVisitCancelledEvent');
 
 /**
  * Event Registry
@@ -29,7 +37,15 @@ const EventRegistry = {
   StockCountRecordedEvent,
   SalesCalculatedEvent,
   RefillCalculatedEvent,
-  OutletProjectionUpdatedEvent
+  OutletProjectionUpdatedEvent,
+  SalesVisitPlannedEvent,
+  SalesVisitCheckedInEvent,
+  SalesVisitStockCountedEvent,
+  SalesVisitOrderCreatedEvent,
+  SalesVisitDeliveredEvent,
+  SalesVisitCheckedOutEvent,
+  SalesVisitCompletedEvent,
+  SalesVisitCancelledEvent
 };
 
 module.exports = EventRegistry;
