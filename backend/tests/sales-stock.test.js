@@ -21,6 +21,8 @@ describe('Sprint 11.0C - Sales Stock Issue', () => {
   before(async () => {
     const existing = await prisma.user.findUnique({ where: { username: USERNAME } });
     if (existing) {
+      await prisma.salesStockProjection.deleteMany({ where: { sales_id: existing.id } });
+      await prisma.salesStockLedger.deleteMany({ where: { sales_id: existing.id } });
       await prisma.salesStockIssue.deleteMany({ where: { sales_id: existing.id } });
       await prisma.user.delete({ where: { id: existing.id } });
     }
@@ -55,7 +57,30 @@ describe('Sprint 11.0C - Sales Stock Issue', () => {
         where: { reference_document: { in: issues.map((i) => i.issue_number) } }
       });
       await prisma.outboxEvent.deleteMany({ where: { aggregate_type: 'SalesStockIssue' } });
-      await prisma.user.delete({ where: { id: user.id } });
+
+      // Handle async projection inserts that might be inflight from background workers
+      await new Promise(r => setTimeout(r, 800));
+
+      await prisma.salesStockProjection.deleteMany({ where: { sales_id: user.id } });
+      await prisma.salesStockLedger.deleteMany({ where: { sales_id: user.id } });
+
+      let deleted = false;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          await prisma.user.delete({ where: { id: user.id } });
+          deleted = true;
+          break;
+        } catch (e) {
+          if (e.code === 'P2003') {
+            await new Promise(r => setTimeout(r, 500));
+            await prisma.salesStockProjection.deleteMany({ where: { sales_id: user.id } });
+            await prisma.salesStockLedger.deleteMany({ where: { sales_id: user.id } });
+          } else {
+            throw e;
+          }
+        }
+      }
+      if (!deleted) throw new Error("Failed to clean up test user due to lingering relations");
     }
     await prisma.warehouseStock.update({
       where: {

@@ -1,73 +1,64 @@
-const DashboardService = require('../services/DashboardService');
-const dashboardValidator = require('../validators/dashboard.validator');
-const ResponseHelper = require('../../../helpers/response.helper');
+const DashboardOwnerService = require('../services/DashboardOwnerService');
+const DashboardSalesService = require('../services/DashboardSalesService');
 
 class DashboardController {
-  async getSummary(req, res, next) {
+  async getOwnerSummary(req, res, next) {
     try {
-      const { value, error } = dashboardValidator.summary.validate(req.query);
-      if (error) {
-        return ResponseHelper.badRequest(res, 'VALIDATION_ERROR', error.details[0].message);
-      }
-
-      const result = await DashboardService.getSummary(value);
-      return res.status(200).json(require('../dto/dashboard.dto').formatResponse(result, 'Success retrieving dashboard summary'));
+      const date = req.query.date ? new Date(req.query.date) : new Date();
+      const response = await DashboardOwnerService.getSummary(date);
+      res.json(response);
     } catch (error) {
       next(error);
     }
   }
 
-  async getSalesAnalytics(req, res, next) {
+  async getOwnerProducts(req, res, next) {
     try {
-      const { value, error } = dashboardValidator.salesAnalytics.validate(req.query);
-      if (error) {
-        return ResponseHelper.badRequest(res, 'VALIDATION_ERROR', error.details[0].message);
-      }
-
-      const result = await DashboardService.getSalesAnalytics(value);
-      return res.status(200).json(require('../dto/dashboard.dto').formatResponse(result, 'Success retrieving sales analytics'));
+      const date = req.query.date ? new Date(req.query.date) : new Date();
+      const response = await DashboardOwnerService.getProducts(date);
+      res.json(response);
     } catch (error) {
       next(error);
     }
   }
 
-  async getProductAnalytics(req, res, next) {
+  async getOwnerVisits(req, res, next) {
     try {
-      const { value, error } = dashboardValidator.productAnalytics.validate(req.query);
-      if (error) {
-        return ResponseHelper.badRequest(res, 'VALIDATION_ERROR', error.details[0].message);
-      }
-
-      const result = await DashboardService.getProductAnalytics(value);
-      return res.status(200).json(require('../dto/dashboard.dto').formatResponse(result, 'Success retrieving product analytics'));
+      const date = req.query.date ? new Date(req.query.date) : new Date();
+      const response = await DashboardOwnerService.getVisits(date);
+      res.json(response);
     } catch (error) {
       next(error);
     }
   }
 
-  async getCustomerAnalytics(req, res, next) {
+  async getSalesSummary(req, res, next) {
     try {
-      const { value, error } = dashboardValidator.customerAnalytics.validate(req.query);
-      if (error) {
-        return ResponseHelper.badRequest(res, 'VALIDATION_ERROR', error.details[0].message);
-      }
-
-      const result = await DashboardService.getCustomerAnalytics(value);
-      return res.status(200).json(require('../dto/dashboard.dto').formatResponse(result, 'Success retrieving customer analytics'));
+      const date = req.query.date ? new Date(req.query.date) : new Date();
+      const salesId = req.user.id;
+      const response = await DashboardSalesService.getSummary(salesId, date);
+      res.json(response);
     } catch (error) {
       next(error);
     }
   }
 
-  async getReceivableAnalytics(req, res, next) {
+  async getSalesVisits(req, res, next) {
     try {
-      const { value, error } = dashboardValidator.receivableAnalytics.validate(req.query);
-      if (error) {
-        return ResponseHelper.badRequest(res, 'VALIDATION_ERROR', error.details[0].message);
-      }
+      const date = req.query.date ? new Date(req.query.date) : new Date();
+      const salesId = req.user.id;
+      const response = await DashboardSalesService.getVisits(salesId, date);
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 
-      const result = await DashboardService.getReceivableAnalytics(value);
-      return res.status(200).json(require('../dto/dashboard.dto').formatResponse(result, 'Success retrieving receivable analytics'));
+  async getSalesInventory(req, res, next) {
+    try {
+      const salesId = req.user.id;
+      const response = await DashboardSalesService.getInventory(salesId);
+      res.json(response);
     } catch (error) {
       next(error);
     }
