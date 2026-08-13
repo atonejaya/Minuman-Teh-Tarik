@@ -15,8 +15,8 @@ const notFoundMiddleware = require('./middleware/not-found.middleware');
 const prisma = require('./config/database');
 const { apiRateLimiter } = require('./middleware/rate-limiter.middleware');
 
-// Read package.json once at startup for /version
-const pkg = JSON.parse(readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
+// Read package.json via require for Serverless compatibility
+const pkg = require('../package.json');
 
 const app = express();
 
