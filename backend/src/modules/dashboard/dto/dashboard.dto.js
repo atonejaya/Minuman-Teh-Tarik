@@ -1,66 +1,51 @@
 class DashboardDto {
-  static formatResponse(data, message = 'Success') {
+  static formatResponse(data, message = 'Success', generatedAt = new Date()) {
     return {
       success: true,
       message,
-      generated_at: new Date().toISOString(),
+      generated_at: generatedAt.toISOString(),
       data
     };
   }
 
-  static formatSummary(data) {
+  static formatOwnerSummary(data) {
     return {
-      omzet_hari_ini: Number(data.omzet_hari_ini || 0),
-      omzet_bulan_berjalan: Number(data.omzet_bulan_berjalan || 0),
-      total_invoice_hari_ini: Number(data.total_invoice_hari_ini || 0),
-      invoice_belum_lunas: Number(data.invoice_belum_lunas || 0),
-      total_piutang: Number(data.total_piutang || 0),
-      total_credit_note: Number(data.total_credit_note || 0),
-      customer_aktif: Number(data.customer_aktif || 0),
-      produk_terjual_hari_ini: Number(data.produk_terjual_hari_ini || 0),
-      top_selling_product: data.top_selling_product || null,
-      last_synchronization_time: data.last_synchronization_time || new Date().toISOString()
+      omzet: Number(data.omzet || 0),
+      kas_masuk: Number(data.kas_masuk || 0),
+      piutang: Number(data.piutang || 0),
+      nilai_persediaan: Number(data.nilai_persediaan || 0),
+      barang_direfill: Number(data.barang_direfill || 0)
     };
   }
 
-  static formatSalesAnalytics(data) {
+  static formatOwnerProducts(data) {
     return {
-      daily_sales_trend: data.daily_sales_trend || [],
-      weekly_sales_trend: data.weekly_sales_trend || [],
-      monthly_sales_trend: data.monthly_sales_trend || [],
-      invoice_trend: data.invoice_trend || [],
-      payment_trend: data.payment_trend || [],
-      average_transaction_value: Number(data.average_transaction_value || 0)
+      top_selling: data.top_selling || [],
+      slow_moving: data.slow_moving || [],
+      expiring_soon: data.expiring_soon || []
     };
   }
 
-  static formatProductAnalytics(data) {
+  static formatVisits(data) {
     return {
-      top_10_product: data.top_10_product || [],
-      slow_moving_product: data.slow_moving_product || [],
-      revenue_per_product: data.revenue_per_product || [],
-      qty_sold: Number(data.qty_sold || 0),
-      average_selling_price: Number(data.average_selling_price || 0)
+      completed: Number(data.completed || 0),
+      planned: Number(data.planned || 0),
+      total: Number(data.completed || 0) + Number(data.planned || 0)
     };
   }
 
-  static formatCustomerAnalytics(data) {
+  static formatSalesSummary(data) {
     return {
-      top_customer: data.top_customer || [],
-      outstanding_customer: data.outstanding_customer || [],
-      customer_purchase_frequency: data.customer_purchase_frequency || [],
-      new_customer: Number(data.new_customer || 0),
-      active_customer: Number(data.active_customer || 0)
+      omzet: Number(data.omzet || 0),
+      kas_masuk: Number(data.kas_masuk || 0),
+      barang_direfill: Number(data.barang_direfill || 0)
     };
   }
 
-  static formatReceivableAnalytics(data) {
+  static formatSalesInventory(data) {
     return {
-      total_outstanding: Number(data.total_outstanding || 0),
-      aging_receivable: data.aging_receivable || [],
-      collection_rate: Number(data.collection_rate || 0),
-      credit_note_summary: Number(data.credit_note_summary || 0),
-      outstanding_by_customer: data.outstanding_by_customer || []
+      items: data.items || [],
+      total_items: data.items ? data.items.length : 0
     };
   }
 }

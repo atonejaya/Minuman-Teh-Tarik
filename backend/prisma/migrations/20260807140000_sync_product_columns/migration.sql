@@ -9,6 +9,4 @@ ALTER TABLE "Product"
   ADD COLUMN IF NOT EXISTS "is_purchasable" BOOLEAN NOT NULL DEFAULT true,
   ADD COLUMN IF NOT EXISTS "is_consignment" BOOLEAN NOT NULL DEFAULT false;
 
-ALTER TABLE "Product" RENAME COLUMN "shelf_life" TO "shelf_life_days_legacy";
-
 CREATE UNIQUE INDEX IF NOT EXISTS "Product_sku_key" ON "Product"("sku");

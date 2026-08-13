@@ -11,8 +11,6 @@ enum UserRole {
   SALES
 }
 
-
-
 enum InvoiceStatus {
   LUNAS
   BELUM_LUNAS
@@ -152,6 +150,8 @@ enum MovementType {
   ISSUE_FROM_WAREHOUSE
   RETURN_TO_WAREHOUSE
   ADJUSTMENT
+  RECEIVED_FROM_WAREHOUSE
+  RESTOCK_OUTLET
 }
 
 enum InventoryLocationType {
@@ -169,6 +169,7 @@ enum ReferenceType {
   ADJUSTMENT
   OPENING
   SETTLEMENT
+  TRANSFER
 }
 
 enum SettlementStatus {
@@ -232,13 +233,24 @@ model User {
   created_settlements  WarehouseSettlement[] @relation("SettlementCreator")
   verified_settlements WarehouseSettlement[] @relation("SettlementVerifier")
 
-  sales_issues           SalesStockIssue[] @relation("SalesIssue")
-  issues_created         SalesStockIssue[] @relation("IssueCreator")
-  issues_confirmed       SalesStockIssue[] @relation("IssueConfirmer")
-  issues_closed          SalesStockIssue[] @relation("IssueCloser")
-  sales_stock_ledgers    SalesStockLedger[]
-  sales_stock_projections SalesStockProjection[]
-  stock_issue_histories  SalesStockIssueHistory[]
+  sales_issues              SalesStockIssue[]        @relation("SalesIssue")
+  issues_created            SalesStockIssue[]        @relation("IssueCreator")
+  issues_confirmed          SalesStockIssue[]        @relation("IssueConfirmer")
+  issues_closed             SalesStockIssue[]        @relation("IssueCloser")
+  sales_stock_ledgers       SalesStockLedger[]
+  sales_stock_projections   SalesStockProjection[]
+  stock_issue_histories     SalesStockIssueHistory[]
+  outlet_stock_counts       OutletStockCount[]
+  sales_visits              SalesVisit[]
+  sales_visit_activities    SalesVisitActivity[]
+  sales_visit_notes         SalesVisitNote[]
+  sales_visit_photos        SalesVisitPhoto[]
+  warehouse_ledgers         WarehouseLedger[]        @relation("WarehouseLedgerSales")
+  warehouse_ledgers_created WarehouseLedger[]        @relation("WarehouseLedgerCreator")
+  warehouse_transfers       WarehouseTransfer[]      @relation("WarehouseTransferSales")
+  transfers_created         WarehouseTransfer[]      @relation("WarehouseTransferCreator")
+  sales_days                SalesDay[]               @relation("SalesDaySales")
+  sales_days_closed         SalesDay[]               @relation("SalesDayCloser")
 
   @@index([role])
   @@index([is_active])
@@ -280,53 +292,57 @@ model AuditLog {
 }
 
 model ProductCategory {
-  id          Int       @id @default(autoincrement())
-  code        String    @unique
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
   name        String
   description String?
-  status      String    @default("ACTIVE")
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  status      String   @default("ACTIVE")
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
-  products    Product[]
+  products Product[]
+
   @@index([status])
 }
 
 model Brand {
-  id          Int       @id @default(autoincrement())
-  code        String    @unique
-  name        String
-  status      String    @default("ACTIVE")
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  id         Int      @id @default(autoincrement())
+  code       String   @unique
+  name       String
+  status     String   @default("ACTIVE")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  products    Product[]
+  products Product[]
+
   @@index([status])
 }
 
 model Packaging {
-  id          Int       @id @default(autoincrement())
-  code        String    @unique
-  name        String
-  status      String    @default("ACTIVE")
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  id         Int      @id @default(autoincrement())
+  code       String   @unique
+  name       String
+  status     String   @default("ACTIVE")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  products    Product[]
+  products Product[]
+
   @@index([status])
 }
 
 model Unit {
-  id          Int       @id @default(autoincrement())
-  code        String    @unique
-  name        String
-  symbol      String
-  status      String    @default("ACTIVE")
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  id         Int      @id @default(autoincrement())
+  code       String   @unique
+  name       String
+  symbol     String
+  status     String   @default("ACTIVE")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  products    Product[]
+  products          Product[]
   stock_issue_items SalesStockIssueItem[]
+
   @@index([status])
 }
 
@@ -376,20 +392,18 @@ model PriceLevel {
   @@index([status])
 }
 
-
-
 model ProductPrice {
-  id              Int        @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   product_id      Int
   price_level_id  Int
-  price           Decimal    @db.Decimal(18, 2)
+  price           Decimal   @db.Decimal(18, 2)
   effective_from  DateTime?
   effective_until DateTime?
-  status          String     @default("ACTIVE")
+  status          String    @default("ACTIVE")
   created_by      Int?
   updated_by      Int?
-  created_at      DateTime   @default(now())
-  updated_at      DateTime   @updatedAt
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
 
   product     Product    @relation(fields: [product_id], references: [id], onDelete: Cascade)
   price_level PriceLevel @relation(fields: [price_level_id], references: [id], onDelete: Restrict)
@@ -398,52 +412,52 @@ model ProductPrice {
 }
 
 model Product {
-  id                  Int      @id @default(autoincrement())
-  code                String   @unique
-  sku                 String?  @unique
-  barcode             String?  @unique
-  name                String
-  short_name          String?
-  display_name        String?
-  search_keywords     String?
-  description         String?
-  category_id         Int
-  brand_id            Int
-  packaging_id        Int
-  unit_id             Int
-  supplier_id         Int?
-  tax_id              Int?
-  warehouse_id        Int?
-  
-  cost_price          Decimal  @db.Decimal(18, 2)
-  average_cost        Decimal  @default(0) @db.Decimal(18, 2)
-  last_purchase_price Decimal  @default(0) @db.Decimal(18, 2)
-  
-  minimum_stock       Int      @default(0)
-  maximum_stock       Int?
-  reorder_level       Int      @default(0)
-  weight              Decimal? @db.Decimal(10, 2)
-  volume              Decimal? @db.Decimal(10, 2)
-  shelf_life_days     Int      @default(0)
-  display_order       Int      @default(0)
-  
-  is_sellable         Boolean  @default(true)
-  is_purchasable      Boolean  @default(true)
-  is_consignment      Boolean  @default(false)
-  is_active           Boolean  @default(true)
-  
-  created_at          DateTime @default(now())
-  updated_at          DateTime @updatedAt
+  id              Int     @id @default(autoincrement())
+  code            String  @unique
+  sku             String? @unique
+  barcode         String? @unique
+  name            String
+  short_name      String?
+  display_name    String?
+  search_keywords String?
+  description     String?
+  category_id     Int
+  brand_id        Int
+  packaging_id    Int
+  unit_id         Int
+  supplier_id     Int?
+  tax_id          Int?
+  warehouse_id    Int?
 
-  category             ProductCategory             @relation(fields: [category_id], references: [id])
-  brand                Brand                       @relation(fields: [brand_id], references: [id])
-  packaging            Packaging                   @relation(fields: [packaging_id], references: [id])
-  unit                 Unit                        @relation(fields: [unit_id], references: [id])
-  supplier             Supplier?                   @relation(fields: [supplier_id], references: [id])
-  tax                  Tax?                        @relation(fields: [tax_id], references: [id])
-  warehouse            Warehouse?                  @relation(fields: [warehouse_id], references: [id])
-  prices               ProductPrice[]
-  
+  cost_price          Decimal @db.Decimal(18, 2)
+  average_cost        Decimal @default(0) @db.Decimal(18, 2)
+  last_purchase_price Decimal @default(0) @db.Decimal(18, 2)
+
+  minimum_stock   Int      @default(0)
+  maximum_stock   Int?
+  reorder_level   Int      @default(0)
+  weight          Decimal? @db.Decimal(10, 2)
+  volume          Decimal? @db.Decimal(10, 2)
+  shelf_life_days Int      @default(0)
+  display_order   Int      @default(0)
+
+  is_sellable    Boolean @default(true)
+  is_purchasable Boolean @default(true)
+  is_consignment Boolean @default(false)
+  is_active      Boolean @default(true)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  category  ProductCategory @relation(fields: [category_id], references: [id])
+  brand     Brand           @relation(fields: [brand_id], references: [id])
+  packaging Packaging       @relation(fields: [packaging_id], references: [id])
+  unit      Unit            @relation(fields: [unit_id], references: [id])
+  supplier  Supplier?       @relation(fields: [supplier_id], references: [id])
+  tax       Tax?            @relation(fields: [tax_id], references: [id])
+  warehouse Warehouse?      @relation(fields: [warehouse_id], references: [id])
+  prices    ProductPrice[]
+
   load_items              LoadItem[]
   mobile_stocks           MobileStock[]
   batches                 ProductBatch[]
@@ -461,6 +475,15 @@ model Product {
   sales_stock_ledgers     SalesStockLedger[]
   sales_stock_projections SalesStockProjection[]
 
+  outlet_par_stocks        OutletParStock[]
+  outlet_stock_ledgers     OutletStockLedger[]
+  outlet_stock_projections OutletStockProjection[]
+  outlet_stock_count_items OutletStockCountItem[]
+  outlet_delivery_items    OutletDeliveryItem[]
+
+  warehouse_ledgers        WarehouseLedger[]
+  warehouse_transfer_items WarehouseTransferItem[]
+
   @@index([category_id])
   @@index([brand_id])
   @@index([supplier_id])
@@ -468,22 +491,22 @@ model Product {
 }
 
 model ProductDashboardProjection {
-  id                         Int       @id @default(autoincrement())
-  product_id                 Int       @unique
-  total_sales                Decimal   @default(0) @db.Decimal(18, 2)
-  total_revenue              Decimal   @default(0) @db.Decimal(18, 2)
-  total_cost                 Decimal   @default(0) @db.Decimal(18, 2)
-  total_qty_sold             Int       @default(0)
-  margin                     Decimal   @default(0) @db.Decimal(18, 2)
-  profit_percentage          Decimal   @default(0) @db.Decimal(5, 2)
-  average_selling_price      Decimal   @default(0) @db.Decimal(18, 2)
-  current_stock              Int       @default(0)
-  days_of_inventory          Decimal   @default(0) @db.Decimal(10, 2)
-  stock_turnover             Decimal   @default(0) @db.Decimal(10, 2)
-  last_sale_date             DateTime?
-  last_purchase_date         DateTime?
-  last_stock_movement_date   DateTime?
-  updated_at                 DateTime  @updatedAt
+  id                       Int       @id @default(autoincrement())
+  product_id               Int       @unique
+  total_sales              Decimal   @default(0) @db.Decimal(18, 2)
+  total_revenue            Decimal   @default(0) @db.Decimal(18, 2)
+  total_cost               Decimal   @default(0) @db.Decimal(18, 2)
+  total_qty_sold           Int       @default(0)
+  margin                   Decimal   @default(0) @db.Decimal(18, 2)
+  profit_percentage        Decimal   @default(0) @db.Decimal(5, 2)
+  average_selling_price    Decimal   @default(0) @db.Decimal(18, 2)
+  current_stock            Int       @default(0)
+  days_of_inventory        Decimal   @default(0) @db.Decimal(10, 2)
+  stock_turnover           Decimal   @default(0) @db.Decimal(10, 2)
+  last_sale_date           DateTime?
+  last_purchase_date       DateTime?
+  last_stock_movement_date DateTime?
+  updated_at               DateTime  @updatedAt
 
   product Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
 }
@@ -508,74 +531,74 @@ model ProductInventoryProjection {
 }
 
 model SalesDashboardProjection {
-  id                   Int      @id @default(autoincrement())
-  date                 DateTime @unique @db.Date
-  today_sales          Decimal  @default(0) @db.Decimal(18, 2)
-  monthly_sales        Decimal  @default(0) @db.Decimal(18, 2)
-  outstanding          Decimal  @default(0) @db.Decimal(18, 2)
-  paid                 Decimal  @default(0) @db.Decimal(18, 2)
-  average_transaction  Decimal  @default(0) @db.Decimal(18, 2)
-  top_customer_id      Int?
-  top_product_id       Int?
-  sales_count          Int      @default(0)
-  updated_at           DateTime @updatedAt
+  id                  Int      @id @default(autoincrement())
+  date                DateTime @unique @db.Date
+  today_sales         Decimal  @default(0) @db.Decimal(18, 2)
+  monthly_sales       Decimal  @default(0) @db.Decimal(18, 2)
+  outstanding         Decimal  @default(0) @db.Decimal(18, 2)
+  paid                Decimal  @default(0) @db.Decimal(18, 2)
+  average_transaction Decimal  @default(0) @db.Decimal(18, 2)
+  top_customer_id     Int?
+  top_product_id      Int?
+  sales_count         Int      @default(0)
+  updated_at          DateTime @updatedAt
 }
 
 model PiutangDashboardProjection {
-  id                   Int      @id @default(autoincrement())
-  date                 DateTime @unique @db.Date
-  
-  piutang_hari_ini     Decimal  @default(0) @db.Decimal(18, 2)
-  piutang_jatuh_tempo  Decimal  @default(0) @db.Decimal(18, 2)
-  
-  invoice_belum_lunas  Int      @default(0)
-  invoice_lewat_tempo  Int      @default(0)
-  
-  total_outstanding    Decimal  @default(0) @db.Decimal(18, 2)
-  
-  updated_at           DateTime @updatedAt
+  id   Int      @id @default(autoincrement())
+  date DateTime @unique @db.Date
+
+  piutang_hari_ini    Decimal @default(0) @db.Decimal(18, 2)
+  piutang_jatuh_tempo Decimal @default(0) @db.Decimal(18, 2)
+
+  invoice_belum_lunas Int @default(0)
+  invoice_lewat_tempo Int @default(0)
+
+  total_outstanding Decimal @default(0) @db.Decimal(18, 2)
+
+  updated_at DateTime @updatedAt
 }
 
 model AccountsReceivableProjection {
-  id                   Int      @id @default(autoincrement())
-  sales_transaction_id Int      @unique
-  invoice_number       String   @unique
+  id                   Int           @id @default(autoincrement())
+  sales_transaction_id Int           @unique
+  invoice_number       String        @unique
   customer_code        String
   customer_name        String
-  invoice_amount       Decimal  @default(0) @db.Decimal(18, 2)
-  paid_amount          Decimal  @default(0) @db.Decimal(18, 2)
-  outstanding_amount   Decimal  @default(0) @db.Decimal(18, 2)
-  due_date             DateTime? @db.Date
-  aging_days           Int      @default(0)
+  invoice_amount       Decimal       @default(0) @db.Decimal(18, 2)
+  paid_amount          Decimal       @default(0) @db.Decimal(18, 2)
+  outstanding_amount   Decimal       @default(0) @db.Decimal(18, 2)
+  due_date             DateTime?     @db.Date
+  aging_days           Int           @default(0)
   status               PaymentStatus @default(UNPAID)
-  
-  last_payment_date    DateTime? @db.Date
-  last_invoice_date    DateTime? @db.Date
-  last_visit_date      DateTime? @db.Date
-  credit_limit         Decimal  @default(0) @db.Decimal(18, 2)
-  available_credit     Decimal  @default(0) @db.Decimal(18, 2)
 
-  updated_at           DateTime @updatedAt
+  last_payment_date DateTime? @db.Date
+  last_invoice_date DateTime? @db.Date
+  last_visit_date   DateTime? @db.Date
+  credit_limit      Decimal   @default(0) @db.Decimal(18, 2)
+  available_credit  Decimal   @default(0) @db.Decimal(18, 2)
+
+  updated_at DateTime @updatedAt
 }
 
 model CustomerARProjection {
-  customer_code        String   @id
-  customer_name        String
-  
-  total_invoice        Int      @default(0)
-  total_outstanding    Decimal  @default(0) @db.Decimal(18, 2)
-  overdue_amount       Decimal  @default(0) @db.Decimal(18, 2)
-  credit_limit         Decimal  @default(0) @db.Decimal(18, 2)
-  available_credit     Decimal  @default(0) @db.Decimal(18, 2)
-  
-  last_payment_date    DateTime? @db.Date
-  last_visit_date      DateTime? @db.Date
-  
-  average_payment_delay Int     @default(0)
-  collection_success_rate Decimal @default(0) @db.Decimal(5, 2)
-  average_invoice      Decimal  @default(0) @db.Decimal(18, 2)
+  customer_code String @id
+  customer_name String
 
-  updated_at           DateTime @updatedAt
+  total_invoice     Int     @default(0)
+  total_outstanding Decimal @default(0) @db.Decimal(18, 2)
+  overdue_amount    Decimal @default(0) @db.Decimal(18, 2)
+  credit_limit      Decimal @default(0) @db.Decimal(18, 2)
+  available_credit  Decimal @default(0) @db.Decimal(18, 2)
+
+  last_payment_date DateTime? @db.Date
+  last_visit_date   DateTime? @db.Date
+
+  average_payment_delay   Int     @default(0)
+  collection_success_rate Decimal @default(0) @db.Decimal(5, 2)
+  average_invoice         Decimal @default(0) @db.Decimal(18, 2)
+
+  updated_at DateTime @updatedAt
 }
 
 model Setting {
@@ -596,7 +619,7 @@ model Warung {
   latitude              Decimal      @db.Decimal(10, 7)
   longitude             Decimal      @db.Decimal(10, 7)
   visit_day             DayOfWeek?
-  visit_order        Int?
+  visit_order           Int?
   target_cups           Int          @default(0)
   status                WarungStatus @default(ACTIVE)
   assigned_sales_id     Int?
@@ -633,6 +656,14 @@ model Warung {
   collections        Collection[]
   sales_returns      SalesReturn[]
   credit_notes       CreditNote[]
+
+  outlet_par_stocks        OutletParStock[]
+  outlet_stock_ledgers     OutletStockLedger[]
+  outlet_stock_projections OutletStockProjection[]
+  outlet_stock_counts      OutletStockCount[]
+  outlet_deliveries        OutletDelivery[]
+  sales_visits             SalesVisit[]
+  ar_ledger_entries        ARLedger[]
 
   @@unique([assigned_sales_id, visit_day, visit_order])
   @@index([code])
@@ -698,11 +729,13 @@ model Warehouse {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  stocks      WarehouseStock[]
-  loads       Load[]
-  settlements WarehouseSettlement[] @relation("WarehouseSettlements")
-  products    Product[]
+  stocks             WarehouseStock[]
+  loads              Load[]
+  settlements        WarehouseSettlement[] @relation("WarehouseSettlements")
+  products           Product[]
   sales_stock_issues SalesStockIssue[]
+  ledgers            WarehouseLedger[]
+  transfers          WarehouseTransfer[]
 
   @@index([code])
   @@index([is_active])
@@ -725,6 +758,9 @@ model ProductBatch {
   sales_return_items      SalesReturnItem[]
   settlement_items        WarehouseSettlementItem[]
   settlement_differences  SettlementDifference[]
+
+  outlet_stock_ledgers     OutletStockLedger[]
+  warehouse_transfer_items WarehouseTransferItem[]
 
   @@unique([product_id, batch_number])
   @@index([product_id])
@@ -856,58 +892,61 @@ model LoadItem {
 // ======================== SALES TRANSACTION ======================== //
 
 model SalesTransaction {
-  id                   Int                    @id @default(autoincrement())
-  code                 String                 @unique
-  visit_id             Int
-  sales_id             Int
-  warung_id            Int
-  
+  id        Int    @id @default(autoincrement())
+  code      String @unique
+  visit_id  Int
+  sales_id  Int
+  warung_id Int
+
   // Header Snapshots
-  customer_name        String
-  customer_code        String
+  customer_name         String
+  customer_code         String
   customer_display_name String?
-  customer_address     String?
-  customer_phone       String?
-  salesman_name        String
-  salesman_code        String?
-  warehouse_code       String?
-  warehouse_name       String?
-  payment_term         Int                    @default(0)
-  payment_term_name    String?
-  price_level_name     String?
-  tax_name             String?
-  tax_rate             Decimal                @default(0) @db.Decimal(5, 2)
-  due_date             DateTime?              @db.Date
+  customer_address      String?
+  customer_phone        String?
+  salesman_name         String
+  salesman_code         String?
+  warehouse_code        String?
+  warehouse_name        String?
+  payment_term          Int       @default(0)
+  payment_term_name     String?
+  price_level_name      String?
+  tax_name              String?
+  tax_rate              Decimal   @default(0) @db.Decimal(5, 2)
+  due_date              DateTime? @db.Date
 
-  payment_method       PaymentMethod
-  payment_status       PaymentStatus          @default(UNPAID)
-  status               SalesTransactionStatus @default(DRAFT)
-  
+  payment_method PaymentMethod
+  payment_status PaymentStatus          @default(UNPAID)
+  status         SalesTransactionStatus @default(DRAFT)
+
   // Totals
-  subtotal             Decimal                @db.Decimal(18, 2)
-  item_discount        Decimal                @db.Decimal(18, 2)
-  transaction_discount Decimal                @db.Decimal(18, 2)
-  header_discount_amount Decimal              @default(0) @db.Decimal(18, 2)
-  header_discount_percent Decimal             @default(0) @db.Decimal(5, 2)
-  tax                  Decimal                @db.Decimal(18, 2)
-  tax_total            Decimal                @default(0) @db.Decimal(18, 2)
-  grand_total          Decimal                @db.Decimal(18, 2)
-  paid_amount          Decimal                @default(0) @db.Decimal(18, 2)
-  paid_total           Decimal                @default(0) @db.Decimal(18, 2)
-  outstanding_amount   Decimal                @default(0) @db.Decimal(18, 2)
-  outstanding_total    Decimal                @default(0) @db.Decimal(18, 2)
-  credit_balance       Decimal                @default(0) @db.Decimal(18, 2)
-  notes                String?
-  created_at           DateTime               @default(now())
-  updated_at           DateTime               @updatedAt
+  subtotal                Decimal  @db.Decimal(18, 2)
+  item_discount           Decimal  @db.Decimal(18, 2)
+  transaction_discount    Decimal  @db.Decimal(18, 2)
+  header_discount_amount  Decimal  @default(0) @db.Decimal(18, 2)
+  header_discount_percent Decimal  @default(0) @db.Decimal(5, 2)
+  tax                     Decimal  @db.Decimal(18, 2)
+  tax_total               Decimal  @default(0) @db.Decimal(18, 2)
+  grand_total             Decimal  @db.Decimal(18, 2)
+  paid_amount             Decimal  @default(0) @db.Decimal(18, 2)
+  paid_total              Decimal  @default(0) @db.Decimal(18, 2)
+  outstanding_amount      Decimal  @default(0) @db.Decimal(18, 2)
+  outstanding_total       Decimal  @default(0) @db.Decimal(18, 2)
+  credit_balance          Decimal  @default(0) @db.Decimal(18, 2)
+  notes                   String?
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+  version                 Int      @default(1)
 
-  visit            Visit                  @relation(fields: [visit_id], references: [id], onDelete: Restrict)
-  sales            User                   @relation(fields: [sales_id], references: [id], onDelete: Restrict)
-  warung           Warung                 @relation(fields: [warung_id], references: [id], onDelete: Restrict)
-  items            SalesTransactionItem[]
-  payments         Payment[]
-  collection_items CollectionItem[]
-  sales_returns    SalesReturn[]
+  visit             Visit                  @relation(fields: [visit_id], references: [id], onDelete: Restrict)
+  sales             User                   @relation(fields: [sales_id], references: [id], onDelete: Restrict)
+  warung            Warung                 @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  items             SalesTransactionItem[]
+  payments          Payment[]
+  collection_items  CollectionItem[]
+  sales_returns     SalesReturn[]
+  allocations       PaymentAllocation[]
+  ar_ledger_entries ARLedger[]
 
   @@index([visit_id])
   @@index([sales_id])
@@ -918,67 +957,67 @@ model SalesTransaction {
 }
 
 model SalesTransactionItem {
-  id                   Int             @id @default(autoincrement())
+  id                   Int  @id @default(autoincrement())
   sales_transaction_id Int
   product_id           Int
   batch_id             Int?
-  
+
   // Ordering
-  line_number          Int             @default(1)
-  sort_order           Int             @default(1)
-  
-  qty                  Int
-  unit                 String
-  category_name        String
-  selling_price        Decimal         @db.Decimal(18, 2)
-  discount             Decimal         @db.Decimal(18, 2)
-  subtotal             Decimal         @db.Decimal(18, 2)
-  
+  line_number Int @default(1)
+  sort_order  Int @default(1)
+
+  qty           Int
+  unit          String
+  category_name String
+  selling_price Decimal @db.Decimal(18, 2)
+  discount      Decimal @db.Decimal(18, 2)
+  subtotal      Decimal @db.Decimal(18, 2)
+
   // Product Snapshot
-  product_code         String
-  product_name         String
-  display_name         String?
-  sku                  String?
-  barcode              String?
-  brand_name           String?
-  packaging_name       String?
-  unit_name            String?
-  
+  product_code   String
+  product_name   String
+  display_name   String?
+  sku            String?
+  barcode        String?
+  brand_name     String?
+  packaging_name String?
+  unit_name      String?
+
   // Extended Pricing Snapshot
-  unit_price           Decimal         @default(0) @db.Decimal(18, 2)
-  price_source         PriceSource     @default(RETAIL)
-  price_level_id       Int?
-  price_level_name     String?
-  
+  unit_price       Decimal     @default(0) @db.Decimal(18, 2)
+  price_source     PriceSource @default(RETAIL)
+  price_level_id   Int?
+  price_level_name String?
+
   // Discount Snapshot
-  line_discount_amount  Decimal        @default(0) @db.Decimal(18, 2)
-  line_discount_percent Decimal        @default(0) @db.Decimal(5, 2)
-  
+  line_discount_amount  Decimal @default(0) @db.Decimal(18, 2)
+  line_discount_percent Decimal @default(0) @db.Decimal(5, 2)
+
   // Tax Snapshot
-  tax_id               Int?
-  tax_code             String?
-  tax_name             String?
-  tax_rate             Decimal         @default(0) @db.Decimal(5, 2)
-  tax_amount           Decimal         @default(0) @db.Decimal(18, 2)
-  
+  tax_id     Int?
+  tax_code   String?
+  tax_name   String?
+  tax_rate   Decimal @default(0) @db.Decimal(5, 2)
+  tax_amount Decimal @default(0) @db.Decimal(18, 2)
+
   // Promotion Snapshot (Nullable)
-  promotion_id         Int?
-  promotion_code       String?
-  promotion_name       String?
-  promotion_type       String?
-  promotion_discount   Decimal?        @db.Decimal(18, 2)
-  
+  promotion_id       Int?
+  promotion_code     String?
+  promotion_name     String?
+  promotion_type     String?
+  promotion_discount Decimal? @db.Decimal(18, 2)
+
   // Manual Override
-  is_manual_price      Boolean         @default(false)
-  manual_price_reason  String?
-  approved_by          Int?
-  
+  is_manual_price     Boolean @default(false)
+  manual_price_reason String?
+  approved_by         Int?
+
   // Batch & Expiry
-  batch_number         String?
-  expiration_date      DateTime?       @db.Date
-  expired_at           DateTime?       @db.Date
-  
-  remarks              String?
+  batch_number    String?
+  expiration_date DateTime? @db.Date
+  expired_at      DateTime? @db.Date
+
+  remarks String?
 
   sales_transaction SalesTransaction @relation(fields: [sales_transaction_id], references: [id], onDelete: Cascade)
   product           Product          @relation(fields: [product_id], references: [id], onDelete: Restrict)
@@ -994,25 +1033,26 @@ model SalesTransactionItem {
 model Payment {
   id               Int           @id @default(autoincrement())
   code             String        @unique
-  transaction_id   Int
+  transaction_id   Int?
   payment_date     DateTime      @db.Date
   payment_method   PaymentMethod
   reference_number String?
   amount           Decimal       @db.Decimal(18, 2)
   notes            String?
   status           PaymentStatus @default(PAID)
-  
-  collected_by     Int?
-  transfer_bank    String?
-  receipt_number   String?
-  
-  created_by       Int
-  created_at       DateTime      @default(now())
-  collection_id    Int?
 
-  transaction SalesTransaction @relation(fields: [transaction_id], references: [id], onDelete: Restrict)
-  creator     User             @relation(fields: [created_by], references: [id], onDelete: Restrict)
-  collection  Collection?      @relation(fields: [collection_id], references: [id], onDelete: Restrict)
+  collected_by   Int?
+  transfer_bank  String?
+  receipt_number String?
+
+  created_by    Int
+  created_at    DateTime @default(now())
+  collection_id Int?
+
+  transaction SalesTransaction?   @relation(fields: [transaction_id], references: [id], onDelete: Restrict)
+  creator     User                @relation(fields: [created_by], references: [id], onDelete: Restrict)
+  collection  Collection?         @relation(fields: [collection_id], references: [id], onDelete: Restrict)
+  allocations PaymentAllocation[]
 
   @@index([transaction_id])
   @@index([created_by])
@@ -1068,20 +1108,20 @@ model CollectionItem {
 // ======================== RETURN & CREDIT NOTE ======================== //
 
 model SalesReturn {
-  id             Int          @id @default(autoincrement())
-  code           String       @unique
+  id             Int                      @id @default(autoincrement())
+  code           String                   @unique
   reference_type SalesReturnReferenceType @default(SALES)
   transaction_id Int?
   delivery_id    Int?
   visit_id       Int?
   sales_id       Int
   warung_id      Int
-  status         ReturnStatus @default(DRAFT)
-  return_date    DateTime     @db.Date
-  total_amount   Decimal      @db.Decimal(18, 2)
+  status         ReturnStatus             @default(DRAFT)
+  return_date    DateTime                 @db.Date
+  total_amount   Decimal                  @db.Decimal(18, 2)
   notes          String?
-  created_at     DateTime     @default(now())
-  updated_at     DateTime     @updatedAt
+  created_at     DateTime                 @default(now())
+  updated_at     DateTime                 @updatedAt
 
   visit       Visit?            @relation(fields: [visit_id], references: [id], onDelete: Restrict)
   sales       User              @relation(fields: [sales_id], references: [id], onDelete: Restrict)
@@ -1097,15 +1137,15 @@ model SalesReturn {
 }
 
 model SalesReturnItem {
-  id              Int             @id @default(autoincrement())
+  id              Int           @id @default(autoincrement())
   sales_return_id Int
   product_id      Int
   batch_id        Int
   qty             Int
   condition       ItemCondition
   reason          ReturnReason
-  item_price      Decimal         @db.Decimal(18, 2)
-  subtotal        Decimal         @db.Decimal(18, 2)
+  item_price      Decimal       @db.Decimal(18, 2)
+  subtotal        Decimal       @db.Decimal(18, 2)
   return_type     ReturnType
 
   sales_return SalesReturn  @relation(fields: [sales_return_id], references: [id], onDelete: Cascade)
@@ -1456,6 +1496,25 @@ enum SalesStockIssueStatus {
   CLOSED
 }
 
+// ==========================================
+// OUTLET INVENTORY (SPRINT 11.0D)
+// ==========================================
+
+enum OutletMovementType {
+  ISSUE_TO_OUTLET
+  REFILL
+  SALE
+  RETURN_GOOD
+  RETURN_BAD
+  ADJUSTMENT
+}
+
+enum OutletDeliveryStatus {
+  PENDING
+  POSTED
+  FAILED
+}
+
 model SalesStockIssue {
   id           Int                   @id @default(autoincrement())
   issue_number String                @unique
@@ -1474,13 +1533,13 @@ model SalesStockIssue {
   created_at   DateTime              @default(now())
   updated_at   DateTime              @updatedAt
 
-  warehouse     Warehouse                @relation(fields: [warehouse_id], references: [id], onDelete: Restrict)
-  sales         User                     @relation("SalesIssue", fields: [sales_id], references: [id], onDelete: Restrict)
-  creator       User?                    @relation("IssueCreator", fields: [created_by], references: [id], onDelete: SetNull)
-  confirmer     User?                    @relation("IssueConfirmer", fields: [confirmed_by], references: [id], onDelete: SetNull)
-  closer        User?                    @relation("IssueCloser", fields: [closed_by], references: [id], onDelete: SetNull)
-  items         SalesStockIssueItem[]
-  history       SalesStockIssueHistory[]
+  warehouse Warehouse                @relation(fields: [warehouse_id], references: [id], onDelete: Restrict)
+  sales     User                     @relation("SalesIssue", fields: [sales_id], references: [id], onDelete: Restrict)
+  creator   User?                    @relation("IssueCreator", fields: [created_by], references: [id], onDelete: SetNull)
+  confirmer User?                    @relation("IssueConfirmer", fields: [confirmed_by], references: [id], onDelete: SetNull)
+  closer    User?                    @relation("IssueCloser", fields: [closed_by], references: [id], onDelete: SetNull)
+  items     SalesStockIssueItem[]
+  history   SalesStockIssueHistory[]
 
   @@index([sales_id])
   @@index([warehouse_id])
@@ -1489,7 +1548,7 @@ model SalesStockIssue {
 }
 
 model SalesStockIssueItem {
-  id         Int    @id @default(autoincrement())
+  id         Int     @id @default(autoincrement())
   issue_id   Int
   product_id Int
   qty        Int
@@ -1505,16 +1564,16 @@ model SalesStockIssueItem {
 }
 
 model SalesStockIssueHistory {
-  id          Int                   @id @default(autoincrement())
+  id          Int                    @id @default(autoincrement())
   issue_id    Int
   status_from SalesStockIssueStatus?
   status_to   SalesStockIssueStatus
   changed_by  Int?
-  changed_at  DateTime              @default(now())
+  changed_at  DateTime               @default(now())
   remarks     String?
 
-  issue   SalesStockIssue @relation(fields: [issue_id], references: [id], onDelete: Cascade)
-  user    User?           @relation(fields: [changed_by], references: [id], onDelete: SetNull)
+  issue SalesStockIssue @relation(fields: [issue_id], references: [id], onDelete: Cascade)
+  user  User?           @relation(fields: [changed_by], references: [id], onDelete: SetNull)
 
   @@index([issue_id])
 }
@@ -1558,4 +1617,433 @@ model SalesStockProjection {
   @@unique([sales_id, product_id])
   @@index([sales_id])
   @@index([product_id])
+}
+
+// ==========================================
+// WAREHOUSE TRANSFER (SPRINT 11.2A)
+// ==========================================
+
+enum WarehouseMovementType {
+  ISSUE_TO_SALES
+  RETURN_FROM_SALES
+}
+
+enum WarehouseTransferType {
+  ISSUE
+  RETURN
+}
+
+enum WarehouseTransferStatus {
+  PENDING
+  POSTED
+  FAILED
+}
+
+enum SalesDayStatus {
+  OPEN
+  CLOSED
+}
+
+model WarehouseLedger {
+  id               Int                   @id @default(autoincrement())
+  warehouse_id     Int
+  sales_id         Int
+  product_id       Int
+  movement_type    WarehouseMovementType
+  qty              Int
+  balance          Int
+  reference_type   String
+  reference_id     String
+  notes            String?
+  created_by       Int?
+  transaction_date DateTime              @db.Date
+  created_at       DateTime              @default(now())
+
+  warehouse Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: Restrict)
+  sales     User      @relation("WarehouseLedgerSales", fields: [sales_id], references: [id], onDelete: Restrict)
+  product   Product   @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  creator   User?     @relation("WarehouseLedgerCreator", fields: [created_by], references: [id], onDelete: SetNull)
+
+  @@index([warehouse_id])
+  @@index([sales_id])
+  @@index([product_id])
+  @@index([transaction_date])
+}
+
+model WarehouseTransfer {
+  id               Int                     @id @default(autoincrement())
+  transfer_number  String                  @unique
+  type             WarehouseTransferType
+  warehouse_id     Int
+  sales_id         Int
+  transaction_date DateTime                @db.Date
+  status           WarehouseTransferStatus @default(PENDING)
+  reference_type   String
+  reference_id     String
+  notes            String?
+  created_by       Int?
+  posted_at        DateTime?
+  error_message    String?
+  created_at       DateTime                @default(now())
+  updated_at       DateTime                @updatedAt
+
+  warehouse Warehouse               @relation(fields: [warehouse_id], references: [id], onDelete: Restrict)
+  sales     User                    @relation("WarehouseTransferSales", fields: [sales_id], references: [id], onDelete: Restrict)
+  creator   User?                   @relation("WarehouseTransferCreator", fields: [created_by], references: [id], onDelete: SetNull)
+  items     WarehouseTransferItem[]
+
+  @@unique([type, reference_type, reference_id])
+  @@index([warehouse_id])
+  @@index([sales_id])
+  @@index([status])
+  @@index([transaction_date])
+}
+
+model WarehouseTransferItem {
+  id          Int  @id @default(autoincrement())
+  transfer_id Int
+  product_id  Int
+  qty         Int
+  batch_id    Int?
+
+  transfer WarehouseTransfer @relation(fields: [transfer_id], references: [id], onDelete: Cascade)
+  product  Product           @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  batch    ProductBatch?     @relation(fields: [batch_id], references: [id], onDelete: SetNull)
+
+  @@index([transfer_id])
+  @@index([product_id])
+}
+
+model SalesDay {
+  id         Int            @id @default(autoincrement())
+  sales_id   Int
+  sales_date DateTime       @db.Date
+  status     SalesDayStatus @default(OPEN)
+  summary    Json?
+  closed_by  Int?
+  closed_at  DateTime?
+  created_at DateTime       @default(now())
+  updated_at DateTime       @updatedAt
+
+  sales  User  @relation("SalesDaySales", fields: [sales_id], references: [id], onDelete: Restrict)
+  closer User? @relation("SalesDayCloser", fields: [closed_by], references: [id], onDelete: SetNull)
+
+  @@unique([sales_id, sales_date])
+  @@index([sales_id])
+  @@index([sales_date])
+}
+
+model OutletParStock {
+  id         Int      @id @default(autoincrement())
+  warung_id  Int
+  product_id Int
+  par_qty    Int
+  min_qty    Int      @default(0)
+  max_qty    Int?
+  priority   Int      @default(0)
+  is_active  Boolean  @default(true)
+  created_by Int?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  warung  Warung  @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  product Product @relation(fields: [product_id], references: [id], onDelete: Restrict)
+
+  @@unique([warung_id, product_id])
+  @@index([warung_id])
+  @@index([product_id])
+  @@index([is_active])
+}
+
+model OutletStockLedger {
+  id             Int                @id @default(autoincrement())
+  warung_id      Int
+  product_id     Int
+  batch_id       Int?
+  movement_type  OutletMovementType
+  qty_before     Int
+  qty_change     Int
+  qty_after      Int
+  reference_type String?
+  reference_id   Int?
+  visit_id       Int?
+  notes          String?
+  created_by     Int?
+  created_at     DateTime           @default(now())
+
+  warung  Warung        @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  product Product       @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  batch   ProductBatch? @relation(fields: [batch_id], references: [id], onDelete: SetNull)
+
+  @@index([warung_id])
+  @@index([product_id])
+  @@index([warung_id, product_id])
+  @@index([movement_type])
+  @@index([created_at])
+}
+
+model OutletStockProjection {
+  id                  Int       @id @default(autoincrement())
+  warung_id           Int
+  product_id          Int
+  current_stock       Int       @default(0)
+  par_qty             Int       @default(0)
+  opening_stock       Int       @default(0)
+  total_refill        Int       @default(0)
+  total_sales         Int       @default(0)
+  total_return        Int       @default(0)
+  calculated_sales    Int       @default(0)
+  required_refill     Int       @default(0)
+  average_daily_sales Decimal   @default(0) @db.Decimal(18, 2)
+  sell_through        Decimal   @default(0) @db.Decimal(5, 2)
+  last_visit_id       Int?
+  last_count_at       DateTime?
+  last_refill_at      DateTime?
+  version             BigInt    @default(1) @db.BigInt
+  updated_at          DateTime  @updatedAt
+
+  warung  Warung  @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  product Product @relation(fields: [product_id], references: [id], onDelete: Restrict)
+
+  @@unique([warung_id, product_id])
+  @@index([warung_id])
+  @@index([product_id])
+}
+
+model OutletStockCount {
+  id         Int      @id @default(autoincrement())
+  warung_id  Int
+  sales_id   Int
+  visit_id   Int?
+  counted_at DateTime @db.Date
+  created_by Int?
+  created_at DateTime @default(now())
+
+  warung Warung                 @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  sales  User                   @relation(fields: [sales_id], references: [id], onDelete: Restrict)
+  items  OutletStockCountItem[]
+
+  @@index([warung_id])
+  @@index([sales_id])
+  @@index([counted_at])
+}
+
+model OutletStockCountItem {
+  id             Int @id @default(autoincrement())
+  stock_count_id Int
+  product_id     Int
+  physical_qty   Int
+
+  stock_count OutletStockCount @relation(fields: [stock_count_id], references: [id], onDelete: Cascade)
+  product     Product          @relation(fields: [product_id], references: [id], onDelete: Restrict)
+
+  @@index([stock_count_id])
+  @@index([product_id])
+}
+
+// ==========================================
+// OUTLET DELIVERY (SPRINT 11.1A)
+// ==========================================
+
+model OutletDelivery {
+  id             Int                  @id @default(autoincrement())
+  warung_id      Int
+  delivery_date  DateTime             @db.Date
+  status         OutletDeliveryStatus @default(PENDING)
+  reference_type String
+  reference_id   String
+  notes          String?
+  performed_by   Int?
+  posted_at      DateTime?
+  error_message  String?
+  created_at     DateTime             @default(now())
+  updated_at     DateTime             @updatedAt
+
+  warung Warung               @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  items  OutletDeliveryItem[]
+
+  @@unique([reference_type, reference_id])
+  @@index([warung_id])
+  @@index([status])
+  @@index([delivery_date])
+}
+
+model OutletDeliveryItem {
+  id          Int @id @default(autoincrement())
+  delivery_id Int
+  product_id  Int
+  quantity    Int
+
+  delivery OutletDelivery @relation(fields: [delivery_id], references: [id], onDelete: Cascade)
+  product  Product        @relation(fields: [product_id], references: [id], onDelete: Restrict)
+
+  @@index([delivery_id])
+  @@index([product_id])
+}
+
+// ==========================================
+// SALES VISIT (SPRINT 11.0E)
+// ==========================================
+
+enum SalesVisitStatus {
+  PLANNED
+  CHECKED_IN
+  STOCK_COUNTED
+  ORDER_CREATED
+  DELIVERED
+  CHECKED_OUT
+  COMPLETED
+  CANCELLED
+}
+
+enum SalesVisitActivityType {
+  VISIT_CREATED
+  CHECK_IN
+  STOCK_COUNT
+  ORDER_CREATED
+  DELIVERED
+  CHECK_OUT
+  COMPLETED
+  NOTE_ADDED
+  PHOTO_ADDED
+  CANCELLED
+}
+
+model SalesVisit {
+  id                  Int              @id @default(autoincrement())
+  code                String           @unique
+  sales_id            Int
+  warung_id           Int
+  status              SalesVisitStatus @default(PLANNED)
+  visit_date          DateTime         @db.Date
+  planned_sequence    Int?
+  check_in_time       DateTime?
+  check_out_time      DateTime?
+  duration_seconds    Int?
+  check_in_latitude   Decimal?         @db.Decimal(10, 7)
+  check_in_longitude  Decimal?         @db.Decimal(10, 7)
+  check_out_latitude  Decimal?         @db.Decimal(10, 7)
+  check_out_longitude Decimal?         @db.Decimal(10, 7)
+  distance_meter      Int?
+  opening_note        String?
+  closing_note        String?
+  created_at          DateTime         @default(now())
+  updated_at          DateTime         @updatedAt
+
+  sales      User                 @relation(fields: [sales_id], references: [id], onDelete: Restrict)
+  warung     Warung               @relation(fields: [warung_id], references: [id], onDelete: Restrict)
+  activities SalesVisitActivity[]
+  notes      SalesVisitNote[]
+  photos     SalesVisitPhoto[]
+
+  @@unique([sales_id, warung_id, visit_date])
+  @@index([sales_id])
+  @@index([warung_id])
+  @@index([visit_date])
+  @@index([status])
+}
+
+model SalesVisitActivity {
+  id          Int                    @id @default(autoincrement())
+  visit_id    Int
+  type        SalesVisitActivityType
+  occurred_at DateTime               @default(now())
+  metadata    Json?
+  created_by  Int?
+
+  visit   SalesVisit @relation(fields: [visit_id], references: [id], onDelete: Cascade)
+  creator User?      @relation(fields: [created_by], references: [id], onDelete: SetNull)
+
+  @@index([visit_id])
+  @@index([type])
+}
+
+model SalesVisitNote {
+  id         Int      @id @default(autoincrement())
+  visit_id   Int
+  note       String
+  created_by Int
+  created_at DateTime @default(now())
+
+  visit   SalesVisit @relation(fields: [visit_id], references: [id], onDelete: Cascade)
+  creator User       @relation(fields: [created_by], references: [id], onDelete: Restrict)
+
+  @@index([visit_id])
+}
+
+model SalesVisitPhoto {
+  id          Int      @id @default(autoincrement())
+  visit_id    Int
+  filename    String
+  file_path   String
+  mime_type   String?
+  size_bytes  Int?
+  captured_at DateTime @default(now())
+  created_by  Int
+
+  visit   SalesVisit @relation(fields: [visit_id], references: [id], onDelete: Cascade)
+  creator User       @relation(fields: [created_by], references: [id], onDelete: Restrict)
+
+  @@index([visit_id])
+}
+
+// ======================== FINANCE CORE ======================== //
+
+model ARLedger {
+  id                   Int             @id @default(autoincrement())
+  customer_id          Int
+  sales_transaction_id Int?
+  entry_type           AREntryType
+  amount               Decimal         @db.Decimal(18, 2)
+  reference_type       ARReferenceType
+  reference_id         String
+  balance_after        Decimal         @db.Decimal(18, 2)
+  notes                String?
+  created_at           DateTime        @default(now())
+
+  customer    Warung            @relation(fields: [customer_id], references: [id], onDelete: Restrict)
+  transaction SalesTransaction? @relation(fields: [sales_transaction_id], references: [id], onDelete: Restrict)
+
+  @@index([customer_id])
+  @@index([sales_transaction_id])
+  @@index([created_at])
+}
+
+model PaymentAllocation {
+  id                   Int      @id @default(autoincrement())
+  payment_id           Int
+  sales_transaction_id Int
+  allocated_amount     Decimal  @db.Decimal(18, 2)
+  created_at           DateTime @default(now())
+
+  payment     Payment          @relation(fields: [payment_id], references: [id], onDelete: Restrict)
+  transaction SalesTransaction @relation(fields: [sales_transaction_id], references: [id], onDelete: Restrict)
+
+  @@index([payment_id])
+  @@index([sales_transaction_id])
+}
+
+model FinanceIdempotencyKey {
+  id             Int      @id @default(autoincrement())
+  key            String   @unique
+  request_method String
+  request_path   String
+  response_body  String?  @db.Text
+  response_code  Int?
+  created_at     DateTime @default(now())
+  expires_at     DateTime
+
+  @@index([key])
+}
+
+enum AREntryType {
+  DEBIT
+  CREDIT
+}
+
+enum ARReferenceType {
+  INVOICE
+  PAYMENT
+  CREDIT_NOTE
+  REVERSAL
 }

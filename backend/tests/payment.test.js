@@ -11,9 +11,10 @@ describe('Payment Integration Tests', () => {
 
   before(async () => {
     // 1. Create User
+    const ts = Date.now();
     testUser = await prisma.user.create({
       data: {
-        username: 'test_payment_sales',
+        username: `test_payment_sales_${ts}`,
         password_hash: 'hashed',
         name: 'Payment Sales',
         role: 'SALES',
@@ -23,7 +24,7 @@ describe('Payment Integration Tests', () => {
     // 2. Generate Token
     const authRes = await request(app)
       .post('/api/v1/auth/login')
-      .send({ username: 'test_payment_sales', password: 'password' });
+      .send({ username: `test_payment_sales_${ts}`, password: 'password' });
     // In our test environment, we might bypass real auth or just generate token manually.
     // Let's generate a token directly using jwt
     const jwt = require('jsonwebtoken');
@@ -32,7 +33,7 @@ describe('Payment Integration Tests', () => {
     // 3. Create Warung & Visit
     testWarung = await prisma.warung.create({
       data: {
-        code: 'WRG-PAY-001',
+        code: `WRG-PAY-${ts}`,
         name: 'Warung Payment',
         owner_name: 'Bapak Pay',
         latitude: 0,
@@ -42,7 +43,7 @@ describe('Payment Integration Tests', () => {
 
     const visit = await prisma.visit.create({
       data: {
-        code: 'VIS-PAY-001',
+        code: `VIS-PAY-${ts}`,
         sales_id: testUser.id,
         warung_id: testWarung.id,
         status: 'COMPLETED',
@@ -53,7 +54,7 @@ describe('Payment Integration Tests', () => {
     // 4. Create CONFIRMED SalesTransaction
     testTransaction = await prisma.salesTransaction.create({
       data: {
-        code: 'INV-PAY-001',
+        code: `INV-PAY-${ts}`,
         visit_id: visit.id,
         sales_id: testUser.id,
         warung_id: testWarung.id,
@@ -66,17 +67,21 @@ describe('Payment Integration Tests', () => {
         tax: 0,
         grand_total: 300000,
         paid_amount: 0,
-        outstanding_amount: 300000
+        outstanding_amount: 300000,
+        customer_name: 'Bapak Pay',
+        customer_code: `WRG-PAY-${ts}`,
+        salesman_name: 'Payment Sales'
       }
     });
   });
 
   after(async () => {
+    if (!testUser) return;
     await prisma.auditLog.deleteMany({ where: { user_id: testUser.id } });
     await prisma.payment.deleteMany({ where: { created_by: testUser.id } });
-    await prisma.salesTransaction.deleteMany({ where: { id: testTransaction.id } });
+    if (testTransaction) await prisma.salesTransaction.deleteMany({ where: { id: testTransaction.id } });
     await prisma.visit.deleteMany({ where: { sales_id: testUser.id } });
-    await prisma.warung.deleteMany({ where: { code: 'WRG-PAY-001' } });
+    if (testWarung) await prisma.warung.deleteMany({ where: { id: testWarung.id } });
     await prisma.user.deleteMany({ where: { id: testUser.id } });
   });
 

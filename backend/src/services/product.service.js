@@ -5,8 +5,14 @@ const DTOHelper = require('../helpers/dto.helper');
 const { ConflictError, NotFoundError, BadRequestError } = require('../exceptions/api-error');
 
 class ProductService {
+  resolveRetailPrice(prices) {
+    const retail = (prices || []).find(p => p.status === 'ACTIVE' && p.price_level?.code === 'PL-RETAIL');
+    return retail ? Number(retail.price) : null;
+  }
+
   async create(data, actorId) {
-    if (data.selling_price < data.cost_price) {
+    const retailPrice = this.resolveRetailPrice(data.prices);
+    if (retailPrice !== null && retailPrice < Number(data.cost_price)) {
       throw new BadRequestError('INVALID_PRICE', 'Selling price cannot be lower than cost price');
     }
 
@@ -39,10 +45,10 @@ class ProductService {
       throw new NotFoundError('PRODUCT_NOT_FOUND', `Product with ID ${id} not found`);
     }
 
-    const newSelling = data.selling_price !== undefined ? data.selling_price : existing.selling_price;
+    const newSelling = this.resolveRetailPrice(existing.prices) ?? (data.selling_price !== undefined ? Number(data.selling_price) : null);
     const newCost = data.cost_price !== undefined ? data.cost_price : existing.cost_price;
 
-    if (Number(newSelling) < Number(newCost)) {
+    if (newSelling !== null && Number(newSelling) < Number(newCost)) {
       throw new BadRequestError('INVALID_PRICE', 'Selling price cannot be lower than cost price');
     }
 

@@ -1,6 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const SalesReturnController = require('../controllers/SalesReturnController');
+const authMiddleware = require('../../../middleware/auth.middleware');
+const roleMiddleware = require('../../../middleware/role.middleware');
+
+const RETURN_ROLES = ['SALES', 'ADMIN', 'OWNER'];
+
+router.use(authMiddleware);
+router.use(roleMiddleware(RETURN_ROLES));
 
 router.post('/', SalesReturnController.createDraft);
 router.get('/', SalesReturnController.getAll);

@@ -25,7 +25,6 @@ ADD COLUMN "updated_by" INTEGER;
 -- AlterTable
 ALTER TABLE "Product" 
 ADD COLUMN "average_cost" DECIMAL(18,2) NOT NULL DEFAULT 0,
-ADD COLUMN "barcode" TEXT,
 ADD COLUMN "display_name" TEXT,
 ADD COLUMN "is_consignment" BOOLEAN NOT NULL DEFAULT false,
 ADD COLUMN "is_purchasable" BOOLEAN NOT NULL DEFAULT true,
@@ -38,7 +37,6 @@ ALTER TABLE "Product" RENAME COLUMN "shelf_life" TO "shelf_life_days";
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Product_sku_key" ON "Product"("sku");
-CREATE UNIQUE INDEX "Product_barcode_key" ON "Product"("barcode");
 
 -- AlterTable
 ALTER TABLE "ProductDashboardProjection" 

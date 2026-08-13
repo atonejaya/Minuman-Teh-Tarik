@@ -15,7 +15,7 @@ class VisitService {
     const visit = await VisitRepository.findById(id);
     if (!visit) throw new NotFoundError('VISIT_NOT_FOUND', 'Visit tidak ditemukan');
 
-    if (user.role === 'SALES' && visit.sales_id !== user.sub) {
+    if (user.role === 'SALES' && visit.sales_id !== user.id) {
       throw new ForbiddenError('VISIT_ACCESS_DENIED', 'Tidak berhak mengakses visit ini');
     }
 
@@ -70,7 +70,7 @@ class VisitService {
 
           await AuditLogService.log('GENERATE_VISIT_PLAN', 'Visit', visit.id, {
             warung_code: warung.code
-          }, user.sub, tx);
+          }, user.id, tx);
 
           generatedCount++;
         }
@@ -152,7 +152,7 @@ class VisitService {
       await AuditLogService.log('CHECK_IN', 'Visit', visit.id, {
         check_in_time: checkInTime,
         lat, lng
-      }, user.sub, tx);
+      }, user.id, tx);
 
       return updatedVisit;
     });
@@ -162,7 +162,7 @@ class VisitService {
     return prisma.$transaction(async (tx) => {
       const visit = await VisitRepository.findById(visitId, tx);
       if (!visit) throw new NotFoundError('VISIT_NOT_FOUND', 'Visit tidak ditemukan');
-      if (visit.sales_id !== user.sub && user.role !== 'OWNER') {
+      if (visit.sales_id !== user.id && user.role !== 'OWNER') {
         throw new ForbiddenError('VISIT_ACCESS_DENIED', 'Bukan pemilik visit');
       }
 
@@ -174,7 +174,7 @@ class VisitService {
         status: 'SELLING'
       }, tx);
 
-      await AuditLogService.log('START_SELLING', 'Visit', visit.id, null, user.sub, tx);
+      await AuditLogService.log('START_SELLING', 'Visit', visit.id, null, user.id, tx);
       return updated;
     });
   }
@@ -185,7 +185,7 @@ class VisitService {
     return prisma.$transaction(async (tx) => {
       const visit = await VisitRepository.findById(visitId, tx);
       if (!visit) throw new NotFoundError('VISIT_NOT_FOUND', 'Visit tidak ditemukan');
-      if (visit.sales_id !== user.sub && user.role !== 'OWNER') {
+      if (visit.sales_id !== user.id && user.role !== 'OWNER') {
         throw new ForbiddenError('VISIT_ACCESS_DENIED', 'Bukan pemilik visit');
       }
 
@@ -206,7 +206,7 @@ class VisitService {
       await AuditLogService.log('CHECK_OUT', 'Visit', visit.id, {
         check_out_time: checkOutTime,
         lat, lng
-      }, user.sub, tx);
+      }, user.id, tx);
 
       return updated;
     });
@@ -225,7 +225,7 @@ class VisitService {
         status: 'COMPLETED'
       }, tx);
 
-      await AuditLogService.log('COMPLETE', 'Visit', visit.id, null, user.sub, tx);
+      await AuditLogService.log('COMPLETE', 'Visit', visit.id, null, user.id, tx);
       return updated;
     });
   }
@@ -244,7 +244,7 @@ class VisitService {
         notes: reason || visit.notes
       }, tx);
 
-      await AuditLogService.log('CANCEL', 'Visit', visit.id, { reason }, user.sub, tx);
+      await AuditLogService.log('CANCEL', 'Visit', visit.id, { reason }, user.id, tx);
       return updated;
     });
   }

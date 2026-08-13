@@ -14,7 +14,8 @@ class ProductRepository {
 
   async findById(id, tx = prisma) {
     return tx.product.findUnique({
-      where: { id }
+      where: { id },
+      include: { prices: { include: { price_level: true } } }
     });
   }
 

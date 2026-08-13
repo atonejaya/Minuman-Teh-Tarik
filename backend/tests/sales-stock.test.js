@@ -21,6 +21,8 @@ describe('Sprint 11.0C - Sales Stock Issue', () => {
   before(async () => {
     const existing = await prisma.user.findUnique({ where: { username: USERNAME } });
     if (existing) {
+      await prisma.salesStockProjection.deleteMany({ where: { sales_id: existing.id } });
+      await prisma.salesStockLedger.deleteMany({ where: { sales_id: existing.id } });
       await prisma.salesStockIssue.deleteMany({ where: { sales_id: existing.id } });
       await prisma.user.delete({ where: { id: existing.id } });
     }
@@ -39,6 +41,25 @@ describe('Sprint 11.0C - Sales Stock Issue', () => {
     token = loginRes.body.data.token;
     expect(token, 'login should return token').to.exist;
     auth = { Authorization: `Bearer ${token}` };
+
+    await prisma.warehouseStock.upsert({
+      where: {
+        warehouse_id_product_id_batch_id_condition: {
+          warehouse_id: WAREHOUSE_ID,
+          product_id: PRODUCT_ID,
+          batch_id: BATCH_ID,
+          condition: 'GOOD'
+        }
+      },
+      update: { qty_available: 1000 },
+      create: {
+        warehouse_id: WAREHOUSE_ID,
+        product_id: PRODUCT_ID,
+        batch_id: BATCH_ID,
+        condition: 'GOOD',
+        qty_available: 1000
+      }
+    });
   });
 
   after(async () => {
@@ -55,16 +76,37 @@ describe('Sprint 11.0C - Sales Stock Issue', () => {
         where: { reference_document: { in: issues.map((i) => i.issue_number) } }
       });
       await prisma.outboxEvent.deleteMany({ where: { aggregate_type: 'SalesStockIssue' } });
-      await prisma.user.delete({ where: { id: user.id } });
-    }
-    await prisma.warehouseStock.update({
-      where: {
-        warehouse_id_product_id_batch_id_condition: {
-          warehouse_id: WAREHOUSE_ID,
-          product_id: PRODUCT_ID,
-          batch_id: BATCH_ID,
-          condition: 'GOOD'
+
+      // Handle async projection inserts that might be inflight from background workers
+      await new Promise(r => setTimeout(r, 800));
+
+      await prisma.salesStockProjection.deleteMany({ where: { sales_id: user.id } });
+      await prisma.salesStockLedger.deleteMany({ where: { sales_id: user.id } });
+
+      let deleted = false;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          await prisma.user.delete({ where: { id: user.id } });
+          deleted = true;
+          break;
+        } catch (e) {
+          if (e.code === 'P2003') {
+            await new Promise(r => setTimeout(r, 500));
+            await prisma.salesStockProjection.deleteMany({ where: { sales_id: user.id } });
+            await prisma.salesStockLedger.deleteMany({ where: { sales_id: user.id } });
+          } else {
+            throw e;
+          }
         }
+      }
+      if (!deleted) throw new Error("Failed to clean up test user due to lingering relations");
+    }
+    await prisma.warehouseStock.updateMany({
+      where: {
+        warehouse_id: WAREHOUSE_ID,
+        product_id: PRODUCT_ID,
+        batch_id: BATCH_ID,
+        condition: 'GOOD'
       },
       data: { qty_available: 1000 }
     });

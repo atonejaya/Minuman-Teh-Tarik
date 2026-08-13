@@ -47,7 +47,22 @@ describe('Sales Transaction Integration Tests', function() {
     });
 
     product = await prisma.product.create({
-      data: { code: 'PRD-TX-001', name: 'Product TX', category: 'MINUMAN', unit: 'PCS', cost_price: 3000, selling_price: 5000, shelf_life: 30, is_active: true }
+      data: { 
+        code: 'PRD-TX-001', 
+        name: 'Product TX', 
+        category: { connectOrCreate: { where: { code: 'CAT-TX-001' }, create: { code: 'CAT-TX-001', name: 'MINUMAN' } } }, 
+        unit: { connectOrCreate: { where: { code: 'UNT-TX-001' }, create: { code: 'UNT-TX-001', name: 'PCS', symbol: 'pcs' } } }, 
+        cost_price: 3000, 
+        shelf_life_days: 30, 
+        is_active: true, 
+        brand: { connectOrCreate: { where: { code: 'BRD-TX-001' }, create: { code: 'BRD-TX-001', name: 'Brand TX' } } },
+        packaging: { connectOrCreate: { where: { code: 'PKG-TX-001' }, create: { code: 'PKG-TX-001', name: 'Bottle' } } }
+      }
+    });
+
+    const retailLevel = await prisma.priceLevel.findFirst({ where: { code: 'PL-RETAIL' } });
+    await prisma.productPrice.create({
+      data: { product_id: product.id, price_level_id: retailLevel.id, price: 5000, status: 'ACTIVE' }
     });
 
     batch = await prisma.productBatch.create({
@@ -116,6 +131,8 @@ describe('Sales Transaction Integration Tests', function() {
 
     const item = body.data.items[0];
     assert.strictEqual(item.selling_price, '5000');
+    assert.strictEqual(item.unit_price, '5000');
+    assert.strictEqual(item.price_source, 'RETAIL');
     assert.strictEqual(item.product_name, 'Product TX');
     assert.strictEqual(item.batch_number, null);
 
