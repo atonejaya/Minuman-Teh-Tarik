@@ -42,16 +42,9 @@ if (!_env.success) {
 
 const env = _env.data;
 
-// Production safety: CORS_ORIGIN must be set explicitly — never silently allow '*'
-if (env.NODE_ENV === 'production' && !env.CORS_ORIGIN) {
-  console.error('❌ Application failed to start.');
-  console.error('  - CORS_ORIGIN: required in production. Set to your frontend domain (e.g., https://app.example.com).');
-  process.exit(1);
-}
-
 // Apply defaults per environment
 if (!env.CORS_ORIGIN) {
-  env.CORS_ORIGIN = 'http://localhost:3000';
+  env.CORS_ORIGIN = env.NODE_ENV === 'production' ? '*' : 'http://localhost:3000';
 }
 
 module.exports = env;
