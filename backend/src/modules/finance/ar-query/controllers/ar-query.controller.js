@@ -1,5 +1,5 @@
 const arQueryService = require('../services/ar-query.service');
-const ApiError = require('../../../../utils/ApiError');
+const ApiError = require('../../../../exceptions/api-error');
 
 class ARQueryController {
   async getSalesOutletAR(req, res, next) {

@@ -1,5 +1,5 @@
 const prisma = require('../../../../config/database');
-const ApiError = require('../../../../utils/ApiError');
+const ApiError = require('../../../../exceptions/api-error');
 
 const getAgingBucketStr = (maxAgingDays) => {
   if (maxAgingDays <= 0) return 'CURRENT';
