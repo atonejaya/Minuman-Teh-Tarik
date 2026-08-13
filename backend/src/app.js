@@ -146,6 +146,7 @@ const warehouseTransferRoutes = require('./modules/warehouse/presentation/routes
 const reportRoutes = require('./modules/reporting/routes/reporting.routes');
 const dashboardRoutes = require('./modules/dashboard/routes/dashboard.routes');
 const financePaymentRoutes = require('./modules/finance/payment/routes/payment.routes');
+const arQueryRoutes = require('./modules/finance/ar-query/routes/ar-query.routes');
 
 // Master Data Routes
 const categoryRoutes = require('./modules/master/category/routes/category.routes');
@@ -199,6 +200,7 @@ apiRouter.use('/warehouse/transfers', warehouseTransferRoutes);
 apiRouter.use('/reports', reportRoutes);
 apiRouter.use('/dashboard', dashboardRoutes);
 apiRouter.use('/finance/payments', financePaymentRoutes);
+apiRouter.use(arQueryRoutes);
 
 app.use(apiConfig.PREFIX, apiRouter);
 
