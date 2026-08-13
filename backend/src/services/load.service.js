@@ -70,10 +70,10 @@ class LoadService {
 
       for (const item of load.items) {
         // 1. Decrease Warehouse Stock
-        const whSnapshot = await inventoryService.decreaseWarehouseStock(load.warehouse_id, item.product_id, item.batch_id, item.qty, tx);
+        const whSnapshot = await inventoryService.decreaseWarehouseStock(load.warehouse_id, item.product_id, item.batch_id, item.qty, 'GOOD', tx);
         
         // 2. Increase Mobile Stock
-        const msSnapshot = await inventoryService.increaseMobileStock(load.sales_id, item.product_id, item.batch_id, item.qty, tx);
+        const msSnapshot = await inventoryService.increaseMobileStock(load.sales_id, item.product_id, item.batch_id, item.qty, 'GOOD', tx);
 
         // 3. Create LOAD_OUT Movement for Warehouse
         await inventoryService.createInventoryMovement({

@@ -24,6 +24,29 @@ const SalesReturnApprovedEvent = require('../../../modules/sales/domain/events/S
 const WarehouseTransferPostedEvent = require('../../../modules/warehouse/domain/events/WarehouseTransferPostedEvent');
 const WarehouseReturnReceivedEvent = require('../../../modules/warehouse/domain/events/WarehouseReturnReceivedEvent');
 const SalesDayClosedEvent = require('../../../modules/warehouse/domain/events/SalesDayClosedEvent');
+const PaymentReceivedEvent = require('../../../modules/sales/domain/events/PaymentReceivedEvent');
+const PaymentCompletedEvent = require('../../../modules/finance/payment/domain/events/PaymentCompletedEvent');
+
+// Master Customer Events
+const CustomerAreaChangedEvent = require('../../../modules/master/customer/domain/events/CustomerAreaChangedEvent');
+const CustomerCategoryChangedEvent = require('../../../modules/master/customer/domain/events/CustomerCategoryChangedEvent');
+const CustomerCreatedEvent = require('../../../modules/master/customer/domain/events/CustomerCreatedEvent');
+const CustomerStatusChangedEvent = require('../../../modules/master/customer/domain/events/CustomerStatusChangedEvent');
+const CustomerTransferredEvent = require('../../../modules/master/customer/domain/events/CustomerTransferredEvent');
+const CustomerUpdatedEvent = require('../../../modules/master/customer/domain/events/CustomerUpdatedEvent');
+
+// Master Product Events
+const PriceActivatedEvent = require('../../../modules/master/product/domain/events/PriceActivatedEvent');
+const PriceCreatedEvent = require('../../../modules/master/product/domain/events/PriceCreatedEvent');
+const PriceExpiredEvent = require('../../../modules/master/product/domain/events/PriceExpiredEvent');
+const PriceStatusUpdatedEvent = require('../../../modules/master/product/domain/events/PriceStatusUpdatedEvent');
+const PriceUpdatedEvent = require('../../../modules/master/product/domain/events/PriceUpdatedEvent');
+const ProductActivatedEvent = require('../../../modules/master/product/domain/events/ProductActivatedEvent');
+const ProductCategoryChangedEvent = require('../../../modules/master/product/domain/events/ProductCategoryChangedEvent');
+const ProductCostPriceChangedEvent = require('../../../modules/master/product/domain/events/ProductCostPriceChangedEvent');
+const ProductCreatedEvent = require('../../../modules/master/product/domain/events/ProductCreatedEvent');
+const ProductDeactivatedEvent = require('../../../modules/master/product/domain/events/ProductDeactivatedEvent');
+const ProductUpdatedEvent = require('../../../modules/master/product/domain/events/ProductUpdatedEvent');
 
 /**
  * Event Registry
@@ -55,7 +78,40 @@ const EventRegistry = {
   SalesReturnApprovedEvent,
   WarehouseTransferPostedEvent,
   WarehouseReturnReceivedEvent,
-  SalesDayClosedEvent
+  SalesDayClosedEvent,
+
+  // Master Customer Events
+  CustomerAreaChangedEvent,
+  CustomerCategoryChangedEvent,
+  CustomerCreatedEvent,
+  CustomerStatusChangedEvent,
+  CustomerTransferredEvent,
+  CustomerUpdatedEvent,
+
+  // Master Product Events
+  PriceActivatedEvent,
+  PriceCreatedEvent,
+  PriceExpiredEvent,
+  PriceStatusUpdatedEvent,
+  PriceUpdatedEvent,
+  ProductActivatedEvent,
+  ProductCategoryChangedEvent,
+  ProductCostPriceChangedEvent,
+  ProductCreatedEvent,
+  ProductDeactivatedEvent,
+  ProductUpdatedEvent,
+
+  // Legacy Aliases for pre-existing outbox rows that used non-standard names
+  ProductCreated: ProductCreatedEvent,
+  ProductUpdated: ProductUpdatedEvent,
+  ProductActivated: ProductActivatedEvent,
+  ProductDeactivated: ProductDeactivatedEvent,
+  ProductCostPriceChanged: ProductCostPriceChangedEvent,
+  ProductCategoryChanged: ProductCategoryChangedEvent,
+  PriceCreated: PriceCreatedEvent,
+  PriceUpdated: PriceUpdatedEvent,
+  PaymentReceived: PaymentReceivedEvent,
+  PAYMENT_COMPLETED: PaymentCompletedEvent,
 };
 
 module.exports = EventRegistry;

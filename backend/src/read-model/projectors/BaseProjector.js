@@ -1,6 +1,8 @@
 const EventSubscriber = require('../../infrastructure/events/subscribers/EventSubscriber');
 const prisma = require('../../config/database');
 
+const crypto = require('crypto');
+
 /**
  * Base class for all CQRS Projectors.
  * Provides built-in idempotency by tracking processed events.
@@ -53,6 +55,12 @@ class BaseProjector extends EventSubscriber {
       });
       console.log(`[${projectorName}] Successfully processed event ${event.eventId}`);
     } catch (error) {
+      if (error.code === 'P2002') {
+        // Atomic fallback: if concurrent workers bypassed the check, the create() will throw P2002.
+        // We catch it gracefully here, knowing the transaction has safely rolled back.
+        console.log(`[${projectorName}] Event ${event.eventId} already processed concurrently (P2002 caught). Skipping.`);
+        return;
+      }
       console.error(`[${projectorName}] Failed to process event ${event.eventId}:`, error);
       throw error; // Rethrow to let the caller (Worker/Bus) handle it
     }

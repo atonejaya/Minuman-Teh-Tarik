@@ -59,7 +59,7 @@ describe('CQRS Read Model & Projection (Sprint 10.3)', () => {
     await eventBus.publish(event);
 
     // Wait for async projectors to finish since EventEmitter.emit doesn't await promises
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     
     // Check DailySalesSummary
@@ -101,7 +101,7 @@ describe('CQRS Read Model & Projection (Sprint 10.3)', () => {
 
     // First process
     await eventBus.publish(event);
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Let's get the state after first process
     const dailySalesBefore = await prisma.dailySalesSummary.findFirst({ where: { sales_id: 1 }});
@@ -109,14 +109,14 @@ describe('CQRS Read Model & Projection (Sprint 10.3)', () => {
 
     // Duplicate process
     await eventBus.publish(event);
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Get state after duplicate
     const dailySalesAfter = await prisma.dailySalesSummary.findFirst({ where: { sales_id: 1 }});
     expect(Number(dailySalesAfter.sales_amount)).to.equal(expectedSalesAmount); // No change!
 
     // Verify ProcessedEvent has 4 entries (4 projectors)
-    const processedEvents = await prisma.processedEvent.findMany({ where: { event_id: aggregateId }});
+    const processedEvents = await prisma.processedEvent.findMany({ where: { event_id: event.eventId }});
     expect(processedEvents.length).to.equal(4);
   });
 
@@ -133,6 +133,7 @@ describe('CQRS Read Model & Projection (Sprint 10.3)', () => {
     });
 
     await eventBus.publish(event);
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Check DailySalesSummary
     const dailySales = await prisma.dailySalesSummary.findFirst({
@@ -149,5 +150,38 @@ describe('CQRS Read Model & Projection (Sprint 10.3)', () => {
     });
     expect(Number(ledger.paid)).to.equal(200000);
     expect(Number(ledger.receivable)).to.equal(400000); // 600000 - 200000
+  });
+
+  it('should handle concurrent duplicate events gracefully without throwing P2002', async () => {
+    const aggregateId = crypto.randomUUID();
+    const event = new InvoiceConfirmedEvent(aggregateId, {
+      code: 'INV-CONCURRENT',
+      sales_id: 1,
+      warung_id: 100,
+      warehouse_id: 10,
+      grand_total: 300000,
+      items: []
+    });
+
+    // Fire multiple duplicates concurrently
+    // Limit to 2 to prevent Prisma connection pool starvation (P2028)
+    const promises = [];
+    for (let i = 0; i < 2; i++) {
+      promises.push(eventBus.publish(event));
+    }
+
+    // Wait for all to finish, expecting no uncaught P2002 errors
+    await Promise.all(promises);
+    await new Promise(resolve => setTimeout(resolve, 2500));
+
+    // Verify exactly 4 entries were created (1 for each projector)
+    // because duplicate concurrency logic should skip insertion for the rest
+    const processedEvents = await prisma.processedEvent.findMany({ where: { event_id: event.eventId } });
+    expect(processedEvents.length).to.equal(4);
+
+    // Verify Sales performance only increased by 300000 once
+    // Before this test, total_sales was 500000 + 100000 = 600000. Now it should be 900000.
+    const performance = await prisma.salesPerformanceSummary.findUnique({ where: { sales_id: 1 }});
+    expect(Number(performance.total_sales)).to.equal(900000);
   });
 });

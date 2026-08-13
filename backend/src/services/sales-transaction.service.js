@@ -126,7 +126,7 @@ class SalesTransactionService {
 
         for (const batch of reservedBatches) {
           // 2. Reduce Mobile Stock
-          const snapshot = await InventoryService.decreaseMobileStock(salesTx.sales_id, item.product_id, batch.batch_id, batch.qty, tx);
+          const snapshot = await InventoryService.decreaseMobileStock(salesTx.sales_id, item.product_id, batch.batch_id, batch.qty, 'GOOD', tx);
           
           // 3. Inventory Ledger (SALE)
           await InventoryService.createInventoryMovement({
