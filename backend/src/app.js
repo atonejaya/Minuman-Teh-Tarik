@@ -239,8 +239,8 @@ eventBus.register(new OutletInventoryProjector());
 // Export the eventBus so that other parts of the application can publish events (mostly workers now)
 app.set('eventBus', eventBus);
 
-// Start the Outbox Relay Worker (skipped in test env so suites share one quiet DB)
-if (process.env.NODE_ENV !== 'test') {
+// Start the Outbox Relay Worker (skipped in test env and Vercel Serverless)
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   const outboxWorker = new OutboxRelayWorker(eventBus);
   outboxWorker.start();
 }
