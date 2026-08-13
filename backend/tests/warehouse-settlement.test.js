@@ -10,31 +10,39 @@ describe('Sprint 9.7 - Warehouse Settlement', () => {
   let productA, productB;
   let batchA1, batchA2, batchB1;
   let warehouseId;
+  let ts;
+  let stockSnapshot = [];
+
+  async function captureStock() {
+    const rows = await prisma.warehouseStock.findMany({
+      where: { warehouse_id: warehouseId, batch_id: { in: [batchA1?.id, batchA2?.id, batchB1?.id].filter(Boolean) } }
+    });
+    stockSnapshot = rows.map((r) => ({ batch_id: r.batch_id, condition: r.condition, qty_available: Number(r.qty_available) }));
+  }
+
+  async function restoreStock() {
+    for (const s of stockSnapshot) {
+      await prisma.warehouseStock.updateMany({
+        where: { warehouse_id: warehouseId, batch_id: s.batch_id, condition: s.condition },
+        data: { qty_available: s.qty_available }
+      });
+    }
+  }
 
   before(async () => {
-    // 1. Clear database
-    await prisma.settlementDifference.deleteMany({});
-    await prisma.warehouseSettlementItem.deleteMany({});
-    await prisma.warehouseSettlement.deleteMany({});
-    await prisma.creditNote.deleteMany({});
-    await prisma.salesReturnItem.deleteMany({});
-    await prisma.salesReturn.deleteMany({});
-    await prisma.collection.deleteMany({});
-    await prisma.payment.deleteMany({});
-    await prisma.salesTransactionItem.deleteMany({});
-    await prisma.salesTransaction.deleteMany({});
-    await prisma.inventoryMovement.deleteMany({});
-    await prisma.mobileStock.deleteMany({});
-    await prisma.visit.deleteMany({});
-
-    // 2. Prepare Users
-    salesUser = await prisma.user.findFirst({ where: { role: 'SALES' } });
-    warehouseUser = await prisma.user.findFirst({ where: { role: 'OWNER' } });
-    supervisorUser = await prisma.user.findFirst({ where: { role: 'OWNER' } });
+    // Dedicated fixtures per run (no global teardown of shared tables)
+    ts = Date.now();
+    salesUser = await prisma.user.create({ data: { username: `wst_sales_${ts}`, password_hash: 'x', name: 'WST Sales', role: 'SALES', is_active: true } });
+    warehouseUser = await prisma.user.create({ data: { username: `wst_wh_${ts}`, password_hash: 'x', name: 'WST WH', role: 'OWNER', is_active: true } });
+    supervisorUser = await prisma.user.create({ data: { username: `wst_sup_${ts}`, password_hash: 'x', name: 'WST Sup', role: 'OWNER', is_active: true } });
 
     salesToken = jwt.sign({ sub: salesUser.id, role: 'SALES' }, process.env.JWT_SECRET || 'secret');
     warehouseToken = jwt.sign({ sub: warehouseUser.id, role: 'OWNER' }, process.env.JWT_SECRET || 'secret');
     supervisorToken = jwt.sign({ sub: supervisorUser.id, role: 'OWNER' }, process.env.JWT_SECRET || 'secret');
+
+    const warung = await prisma.warung.create({
+      data: { code: `WRG-WST-${ts}`, name: 'Warung WST', owner_name: 'WST', latitude: 0, longitude: 0, assigned_sales_id: salesUser.id }
+    });
 
     // 3. Prepare Products & Batches
     productA = await prisma.product.findFirst({ skip: 0 });
@@ -46,7 +54,7 @@ describe('Sprint 9.7 - Warehouse Settlement', () => {
       batchA2 = batchesA[1];
     } else {
       batchA2 = await prisma.productBatch.create({
-        data: { product_id: productA.id, batch_number: 'BCH-TEST-2', production_date: new Date(), expired_at: new Date(new Date().setFullYear(new Date().getFullYear() + 1)) }
+        data: { product_id: productA.id, batch_number: `BCH-WST-${ts}`, production_date: new Date(), expired_at: new Date(new Date().setFullYear(new Date().getFullYear() + 1)) }
       });
     }
 
@@ -69,9 +77,9 @@ describe('Sprint 9.7 - Warehouse Settlement', () => {
     // Total Invoice = 15,000, Total Payment = 10,000
     const visit = await prisma.visit.create({
       data: {
-        code: 'VST-TEST-SETTLE',
+        code: `VST-WST-${ts}`,
         sales_id: salesUser.id,
-        warung_id: (await prisma.warung.findFirst()).id,
+        warung_id: warung.id,
         status: 'CHECKED_OUT',
         visit_date: new Date()
       }
@@ -79,7 +87,7 @@ describe('Sprint 9.7 - Warehouse Settlement', () => {
 
     const st = await prisma.salesTransaction.create({
       data: {
-        code: 'INV-TEST-SETTLE',
+        code: `INV-WST-${ts}`,
         visit_id: visit.id,
         sales_id: salesUser.id,
         warung_id: visit.warung_id,
@@ -93,14 +101,17 @@ describe('Sprint 9.7 - Warehouse Settlement', () => {
         paid_amount: 10000,
         outstanding_amount: 5000,
         items: {
-          create: [{ product_id: productA.id, product_code: productA.code, product_name: productA.name, batch_id: batchA1.id, batch_number: batchA1.batch_number, expired_at: batchA1.expired_at, qty: 1, unit: productA.unit, category: productA.category, selling_price: productA.selling_price, discount: 0, subtotal: 15000 }]
-        }
+          create: [{ product_id: productA.id, product_code: productA.code, product_name: productA.name, batch_id: batchA1.id, batch_number: batchA1.batch_number, expired_at: batchA1.expired_at, qty: 1, unit: 'PCS', category_name: 'MINUMAN', selling_price: 15000, discount: 0, subtotal: 15000 }]
+        },
+        customer_name: 'Bapak TX',
+        customer_code: 'WRG-TX-001',
+        salesman_name: 'Salesman TX'
       }
     });
 
     await prisma.payment.create({
       data: {
-        code: 'PAY-TEST-SETTLE',
+        code: `PAY-WST-${ts}`,
         transaction_id: st.id,
         created_by: salesUser.id,
         payment_method: 'CASH',
@@ -108,14 +119,54 @@ describe('Sprint 9.7 - Warehouse Settlement', () => {
         payment_date: new Date()
       }
     });
+
+    await captureStock();
   });
 
   afterEach(async () => {
-    // Clear pending blockers if any test created them and didn't clean up
-    await prisma.visit.deleteMany({ where: { status: 'SELLING' } });
-    await prisma.salesTransaction.deleteMany({ where: { status: 'DRAFT' } });
-    await prisma.salesReturn.deleteMany({ where: { status: 'DRAFT' } });
-    await prisma.collection.deleteMany({ where: { status: 'PENDING' } });
+    // Clear pending blockers created by this suite (scoped to own sales user)
+    await prisma.visit.deleteMany({ where: { sales_id: salesUser?.id, status: 'SELLING' } });
+    await prisma.salesTransaction.deleteMany({ where: { sales_id: salesUser?.id, status: 'DRAFT' } });
+    await prisma.salesReturn.deleteMany({ where: { sales_id: salesUser?.id, status: 'DRAFT' } });
+    await prisma.collection.deleteMany({ where: { sales_id: salesUser?.id, status: 'PENDING' } });
+  });
+
+  after(async () => {
+    // Scoped teardown of this suite's fixtures (FK-ordered)
+    const ownSettlements = await prisma.warehouseSettlement.findMany({ where: { sales_id: salesUser?.id }, select: { id: true, code: true } });
+    const settlementIds = ownSettlements.map((s) => s.id);
+    const settlementCodes = ownSettlements.map((s) => s.code);
+    if (settlementIds.length > 0) {
+      await prisma.settlementDifference.deleteMany({ where: { warehouse_settlement_id: { in: settlementIds } } });
+      await prisma.warehouseSettlementItem.deleteMany({ where: { warehouse_settlement_id: { in: settlementIds } } });
+      await prisma.outboxEvent.deleteMany({ where: { aggregate_id: { in: settlementIds.map(String) } } });
+      await prisma.warehouseSettlement.deleteMany({ where: { id: { in: settlementIds } } });
+    }
+    if (settlementCodes.length > 0) {
+      await prisma.inventoryMovement.deleteMany({ where: { reference_document: { in: settlementCodes } } });
+    }
+    const ownTxIds = (await prisma.salesTransaction.findMany({ where: { sales_id: salesUser?.id }, select: { id: true } })).map((t) => t.id);
+    if (ownTxIds.length > 0) {
+      const ownPaymentIds = (await prisma.payment.findMany({ where: { transaction_id: { in: ownTxIds } }, select: { id: true } })).map((p) => p.id);
+      if (ownPaymentIds.length > 0) {
+        await prisma.paymentAllocation.deleteMany({ where: { payment_id: { in: ownPaymentIds } } });
+        await prisma.payment.deleteMany({ where: { id: { in: ownPaymentIds } } });
+      }
+      await prisma.salesTransactionItem.deleteMany({ where: { sales_transaction_id: { in: ownTxIds } } });
+      await prisma.salesTransaction.deleteMany({ where: { id: { in: ownTxIds } } });
+    }
+    await prisma.mobileStock.deleteMany({ where: { sales_id: salesUser?.id } });
+    await prisma.visit.deleteMany({ where: { sales_id: salesUser?.id } });
+    await prisma.auditLog.deleteMany({ where: { user_id: { in: [salesUser?.id, warehouseUser?.id, supervisorUser?.id].filter(Boolean) } } });
+    await prisma.warung.deleteMany({ where: { code: `WRG-WST-${ts}` } });
+    if (batchA2 && batchA2.batch_number === `BCH-WST-${ts}`) {
+      await prisma.warehouseStock.deleteMany({ where: { batch_id: batchA2.id } });
+      await prisma.mobileStock.deleteMany({ where: { batch_id: batchA2.id } });
+      await prisma.productBatch.deleteMany({ where: { id: batchA2.id } });
+    }
+    await prisma.user.deleteMany({ where: { id: { in: [salesUser?.id, warehouseUser?.id, supervisorUser?.id].filter(Boolean) } } });
+    await restoreStock();
+    await prisma.$disconnect();
   });
 
   describe('Validation (Blockers)', () => {
@@ -135,7 +186,7 @@ describe('Sprint 9.7 - Warehouse Settlement', () => {
       // Create SELLING visit
       const visit = await prisma.visit.create({
         data: {
-          code: 'VST-TEST-BLOCK',
+          code: `VST-BLOCK-${ts}`,
           sales_id: salesUser.id,
           warung_id: (await prisma.warung.findFirst()).id,
           status: 'SELLING',
@@ -149,8 +200,9 @@ describe('Sprint 9.7 - Warehouse Settlement', () => {
       expect(res.body.message).to.include('open transactions');
 
       await prisma.visit.delete({ where: { id: visit.id } });
-      await prisma.warehouseSettlementItem.deleteMany({});
-      await prisma.warehouseSettlement.deleteMany({});
+      await prisma.settlementDifference.deleteMany({ where: { warehouse_settlement_id: settlementId } });
+      await prisma.warehouseSettlementItem.deleteMany({ where: { warehouse_settlement_id: settlementId } });
+      await prisma.warehouseSettlement.deleteMany({ where: { id: settlementId } });
     });
   });
 

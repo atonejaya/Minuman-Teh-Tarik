@@ -29,9 +29,9 @@ class AuthController {
 
   static async getMeDashboard(req, res, next) {
     try {
-      const { sub } = req.user;
+      const { id } = req.user;
       
-      const data = await AuthService.getProfileDashboard(sub);
+      const data = await AuthService.getProfileDashboard(id);
 
       return ResponseHelper.success(res, data, null, 'Dashboard retrieved');
     } catch (error) {

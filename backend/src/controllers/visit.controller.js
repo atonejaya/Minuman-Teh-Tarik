@@ -7,7 +7,7 @@ class VisitController {
   static async getTodayVisits(req, res, next) {
     try {
       const date = new Date();
-      const visits = await VisitService.getVisitsBySales(req.user.sub, date);
+      const visits = await VisitService.getVisitsBySales(req.user.id, date);
       
       const dtos = visits.map(v => {
         const { ...safe } = v;
@@ -45,7 +45,7 @@ class VisitController {
       }
 
       const dateStr = parsed.data.date || new Date().toISOString();
-      const result = await VisitService.generateVisitPlan(req.user.sub, dateStr, req.user);
+      const result = await VisitService.generateVisitPlan(req.user.id, dateStr, req.user);
       
       return ResponseHelper.success(res, result, null, `Visit plan generated (${result.generated} visits)`);
     } catch (error) {
@@ -64,7 +64,7 @@ class VisitController {
       const targetDate = date || new Date().toISOString();
 
       const visit = await VisitService.checkIn(
-        req.user.sub,
+        req.user.id,
         warung_id,
         latitude,
         longitude,

@@ -1,12 +1,17 @@
 const assert = require('assert');
+const jwt = require('jsonwebtoken');
 const prisma = require('../src/config/database');
 const app = require('../src/app');
+const jwtConfig = require('../src/config/jwt');
 
 describe('Visit Management Integration Tests', function () {
   this.timeout(10000);
 
   let ownerToken;
   let salesToken;
+  let sales2Token;
+  let sales2Id;
+  let otherVisitId;
   let warungId;
   let server;
   const PORT = 3004;
@@ -45,7 +50,7 @@ describe('Visit Management Integration Tests', function () {
               longitude: 106.816666,
               status: 'ACTIVE',
               visit_day: ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'][new Date().getDay()],
-              assigned_sales_id: 2
+              assigned_sales_id: (await prisma.user.findUnique({ where: { username: 'andi' } })).id
             })
           });
           const warungBody = await warungRes.json();
@@ -54,6 +59,28 @@ describe('Visit Management Integration Tests', function () {
             return reject(new Error('Warung creation failed'));
           }
           warungId = warungBody.data.id;
+
+          // 3. G3: second SALES user + a visit owned by them (ownership/IDOR regression)
+          const sales2 = await prisma.user.create({
+            data: {
+              username: `g3sales_${Date.now()}`,
+              password_hash: 'not-used',
+              name: 'G3 Sales 2',
+              role: 'SALES'
+            }
+          });
+          sales2Id = sales2.id;
+          sales2Token = jwt.sign({ sub: sales2.id, username: sales2.username, role: 'SALES' }, jwtConfig.SECRET, { expiresIn: '1h' });
+          const otherVisit = await prisma.visit.create({
+            data: {
+              code: `VIS-G3-${Date.now()}`,
+              sales_id: sales2.id,
+              warung_id: warungId,
+              visit_date: new Date(),
+              status: 'CHECKED_IN'
+            }
+          });
+          otherVisitId = otherVisit.id;
           resolve();
         } catch (error) {
           reject(error);
@@ -65,9 +92,15 @@ describe('Visit Management Integration Tests', function () {
   after(async () => {
     // Cleanup the visits generated
     await prisma.auditLog.deleteMany({ where: { entity: 'Visit' } });
+    if (otherVisitId) {
+      await prisma.visit.deleteMany({ where: { id: otherVisitId } });
+    }
     if (warungId) {
       await prisma.visit.deleteMany({ where: { warung_id: warungId } });
       await prisma.warung.deleteMany({ where: { id: warungId } });
+    }
+    if (sales2Id) {
+      await prisma.user.deleteMany({ where: { id: sales2Id } });
     }
     server.close();
   });
@@ -201,5 +234,33 @@ describe('Visit Management Integration Tests', function () {
     const body = await res.json();
     assert.strictEqual(res.status, 200);
     assert.strictEqual(body.data.status, 'COMPLETED');
+  });
+
+  it('SALES can access their own visit (req.user.id contract)', async () => {
+    const res = await fetch(`${baseUrl}/visits/${otherVisitId}`, {
+      headers: { 'Authorization': `Bearer ${sales2Token}` }
+    });
+    const body = await res.json();
+    if (res.status !== 200) console.error('own-visit:', body);
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(body.data.id, otherVisitId);
+  });
+
+  it('SALES cannot access another SALES visit (403)', async () => {
+    const res = await fetch(`${baseUrl}/visits/${otherVisitId}`, {
+      headers: { 'Authorization': `Bearer ${salesToken}` }
+    });
+    const body = await res.json();
+    if (res.status !== 403) console.error('other-sales-visit:', body);
+    assert.strictEqual(res.status, 403);
+  });
+
+  it('OWNER can access any SALES visit', async () => {
+    const res = await fetch(`${baseUrl}/visits/${otherVisitId}`, {
+      headers: { 'Authorization': `Bearer ${ownerToken}` }
+    });
+    const body = await res.json();
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(body.data.id, otherVisitId);
   });
 });

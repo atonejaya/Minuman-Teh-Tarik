@@ -76,6 +76,7 @@ CREATE TABLE "SalesDay" (
 );
 
 -- Unique & Indexes
+CREATE UNIQUE INDEX "WarehouseTransfer_transfer_number_key" ON "WarehouseTransfer"("transfer_number");
 CREATE UNIQUE INDEX "WarehouseTransfer_type_reference_type_reference_id_key" ON "WarehouseTransfer"("type", "reference_type", "reference_id");
 CREATE UNIQUE INDEX "SalesDay_sales_id_sales_date_key" ON "SalesDay"("sales_id", "sales_date");
 

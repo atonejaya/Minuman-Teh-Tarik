@@ -47,14 +47,12 @@ describe('Sprint 11.2A - Warehouse <-> Sales Stock Transfer', () => {
 
   async function restoreStock() {
     if (initialStock === undefined) return;
-    await prisma.warehouseStock.update({
+    await prisma.warehouseStock.updateMany({
       where: {
-        warehouse_id_product_id_batch_id_condition: {
-          warehouse_id: WAREHOUSE_ID,
-          product_id: PRODUCT_ID,
-          batch_id: BATCH_ID,
-          condition: 'GOOD'
-        }
+        warehouse_id: WAREHOUSE_ID,
+        product_id: PRODUCT_ID,
+        batch_id: BATCH_ID,
+        condition: 'GOOD'
       },
       data: { qty_available: initialStock }
     });
@@ -101,7 +99,7 @@ describe('Sprint 11.2A - Warehouse <-> Sales Stock Transfer', () => {
         }
       }
     });
-    return Number(stock.qty_available);
+    return stock ? Number(stock.qty_available) : 0;
   }
 
   async function salesQty() {
@@ -130,17 +128,22 @@ describe('Sprint 11.2A - Warehouse <-> Sales Stock Transfer', () => {
     expect(token, 'login should return token').to.exist;
     auth = { Authorization: `Bearer ${token}` };
 
-    const stock = await prisma.warehouseStock.findUnique({
-      where: {
-        warehouse_id_product_id_batch_id_condition: {
-          warehouse_id: WAREHOUSE_ID,
-          product_id: PRODUCT_ID,
-          batch_id: BATCH_ID,
-          condition: 'GOOD'
-        }
-      }
+    const stockCondition = {
+      warehouse_id: WAREHOUSE_ID,
+      product_id: PRODUCT_ID,
+      batch_id: BATCH_ID,
+      condition: 'GOOD'
+    };
+    const existingStock = await prisma.warehouseStock.findUnique({
+      where: { warehouse_id_product_id_batch_id_condition: stockCondition }
     });
-    initialStock = Number(stock.qty_available);
+    initialStock = existingStock ? Number(existingStock.qty_available) : 0;
+
+    await prisma.warehouseStock.upsert({
+      where: { warehouse_id_product_id_batch_id_condition: stockCondition },
+      update: { qty_available: initialStock + 1000 },
+      create: { ...stockCondition, qty_available: 1000 }
+    });
 
     const aggregate = await prisma.warehouseStock.aggregate({
       where: { warehouse_id: WAREHOUSE_ID, product_id: PRODUCT_ID },

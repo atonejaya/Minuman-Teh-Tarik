@@ -3,6 +3,7 @@ const warehouseSettlementRepository = require('../repositories/warehouse-settlem
 const inventoryService = require('./inventory.service');
 const NumberGeneratorService = require('./number-generator.service');
 const outboxRepository = require('../repositories/outbox.repository');
+const PricingAccessor = require('./pricing-accessor.service');
 const SettlementCompletedEvent = require('../domain/events/SettlementCompletedEvent');
 const { ConflictError, NotFoundError, BadRequestError } = require('../exceptions/api-error');
 const dayjs = require('dayjs');
@@ -60,19 +61,26 @@ class WarehouseSettlementService {
 
       const settlementCode = await NumberGeneratorService.generateCode('STL', new Date(), tx);
 
-      const itemsData = mobileStocks.map(stock => ({
-        product_id: stock.product_id,
-        batch_id: stock.batch_id,
-        product_code: stock.product.code,
-        product_name: stock.product.name,
-        batch_number: stock.batch.batch_number,
-        unit_price: stock.product.selling_price,
-        inventory_value: stock.product.selling_price * stock.qty_available,
-        condition: stock.condition,
-        qty_expected: stock.qty_available,
-        qty_actual: 0,
-        qty_difference: 0
-      }));
+      const itemsData = [];
+      for (const stock of mobileStocks) {
+        const unitPrice = await PricingAccessor.resolveRetailUnitPrice(tx, stock.product_id);
+        if (unitPrice === null) {
+          throw new BadRequestError('PRICE_NOT_FOUND', `Product ${stock.product.code} has no active RETAIL price`);
+        }
+        itemsData.push({
+          product_id: stock.product_id,
+          batch_id: stock.batch_id,
+          product_code: stock.product.code,
+          product_name: stock.product.name,
+          batch_number: stock.batch.batch_number,
+          unit_price: unitPrice,
+          inventory_value: Number((unitPrice * stock.qty_available).toFixed(2)),
+          condition: stock.condition,
+          qty_expected: stock.qty_available,
+          qty_actual: 0,
+          qty_difference: 0
+        });
+      }
 
       const settlementData = {
         code: settlementCode,

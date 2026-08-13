@@ -289,8 +289,3 @@ ALTER TABLE "SalesTransactionItem" ADD CONSTRAINT "SalesTransactionItem_batch_id
 CREATE UNIQUE INDEX "LoadItem_load_id_product_id_batch_id_key" ON "LoadItem"("load_id", "product_id", "batch_id");
 -- CreateIndex
 CREATE UNIQUE INDEX "MobileStock_sales_id_product_id_batch_id_key" ON "MobileStock"("sales_id", "product_id", "batch_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "LoadItem_load_id_product_id_batch_id_key" ON "LoadItem"("load_id", "product_id", "batch_id");
--- CreateIndex
-CREATE UNIQUE INDEX "MobileStock_sales_id_product_id_batch_id_key" ON "MobileStock"("sales_id", "product_id", "batch_id");

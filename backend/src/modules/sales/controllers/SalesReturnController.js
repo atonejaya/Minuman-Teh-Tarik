@@ -5,8 +5,7 @@ class SalesReturnController {
   async createDraft(req, res, next) {
     try {
       const data = req.body;
-      const userId = req.user?.id || 1; // Fallback
-      const result = await SalesReturnService.createDraft(data, userId);
+      const result = await SalesReturnService.createDraft(data, req.user);
       return ResponseHelper.created(res, result, 'Sales Return Draft Created');
     } catch (error) {
       next(error);
@@ -16,7 +15,7 @@ class SalesReturnController {
   async checkReturn(req, res, next) {
     try {
       const { id } = req.params;
-      const result = await SalesReturnService.checkReturn(id);
+      const result = await SalesReturnService.checkReturn(id, req.user);
       return ResponseHelper.success(res, result, null, 'Sales Return Checked');
     } catch (error) {
       next(error);
@@ -26,7 +25,7 @@ class SalesReturnController {
   async approveReturn(req, res, next) {
     try {
       const { id } = req.params;
-      const result = await SalesReturnService.approveReturn(id);
+      const result = await SalesReturnService.approveReturn(id, req.user);
       return ResponseHelper.success(res, result, null, 'Sales Return Approved');
     } catch (error) {
       next(error);
@@ -36,7 +35,7 @@ class SalesReturnController {
   async completeReturn(req, res, next) {
     try {
       const { id } = req.params;
-      const result = await SalesReturnService.completeReturn(id);
+      const result = await SalesReturnService.completeReturn(id, req.user);
       return ResponseHelper.success(res, result, null, 'Sales Return Completed');
     } catch (error) {
       next(error);
@@ -46,7 +45,7 @@ class SalesReturnController {
   async cancelReturn(req, res, next) {
     try {
       const { id } = req.params;
-      const result = await SalesReturnService.cancelReturn(id);
+      const result = await SalesReturnService.cancelReturn(id, req.user);
       return ResponseHelper.success(res, result, null, 'Sales Return Cancelled');
     } catch (error) {
       next(error);

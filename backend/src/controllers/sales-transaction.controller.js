@@ -7,7 +7,7 @@ class SalesTransactionController {
   async create(req, res, next) {
     try {
       const validatedData = createSalesTransactionSchema.parse(req.body);
-      const transaction = await SalesTransactionService.createSalesTransaction(validatedData, req.user.sub);
+      const transaction = await SalesTransactionService.createSalesTransaction(validatedData, req.user.id);
       
       return ResponseHelper.created(res, DTOHelper.toSalesTransaction(transaction), 'Sales Transaction created successfully');
     } catch (error) {
@@ -18,7 +18,7 @@ class SalesTransactionController {
   async confirm(req, res, next) {
     try {
       const transactionId = Number(req.params.id);
-      const transaction = await SalesTransactionService.confirmTransaction(transactionId, req.user.sub);
+      const transaction = await SalesTransactionService.confirmTransaction(transactionId, req.user.id);
       
       return ResponseHelper.success(res, DTOHelper.toSalesTransaction(transaction), 'Sales Transaction confirmed successfully');
     } catch (error) {
@@ -29,7 +29,7 @@ class SalesTransactionController {
   async cancel(req, res, next) {
     try {
       const transactionId = Number(req.params.id);
-      const transaction = await SalesTransactionService.cancelTransaction(transactionId, req.user.sub);
+      const transaction = await SalesTransactionService.cancelTransaction(transactionId, req.user.id);
       
       return ResponseHelper.success(res, DTOHelper.toSalesTransaction(transaction), 'Sales Transaction cancelled successfully');
     } catch (error) {

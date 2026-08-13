@@ -30,7 +30,7 @@ class SalesReturnController {
   async createReturn(req, res, next) {
     try {
       const data = createReturnSchema.parse(req.body);
-      const sr = await salesReturnService.createReturn(data, req.user.userId);
+      const sr = await salesReturnService.createReturn(data, req.user.id);
       return ResponseHelper.created(res, DTOHelper.toSalesReturn(sr), 'Sales Return created successfully');
     } catch (error) {
       next(error);
@@ -41,7 +41,7 @@ class SalesReturnController {
     try {
       const id = parseInt(req.params.id, 10);
       const data = addReturnItemSchema.parse(req.body);
-      const item = await salesReturnService.addReturnItem(id, data, req.user.userId);
+      const item = await salesReturnService.addReturnItem(id, data, req.user.id);
       return ResponseHelper.created(res, DTOHelper.toSalesReturnItem(item), 'Sales Return Item added successfully');
     } catch (error) {
       next(error);
@@ -51,7 +51,7 @@ class SalesReturnController {
   async confirmReturn(req, res, next) {
     try {
       const id = parseInt(req.params.id, 10);
-      const sr = await salesReturnService.confirmReturn(id, req.user.userId);
+      const sr = await salesReturnService.confirmReturn(id, req.user.id);
       return ResponseHelper.success(res, DTOHelper.toSalesReturn(sr), null, 'Sales Return confirmed successfully');
     } catch (error) {
       next(error);

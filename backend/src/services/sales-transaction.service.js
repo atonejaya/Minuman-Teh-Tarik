@@ -25,6 +25,13 @@ class SalesTransactionService {
       });
       if (warung.status !== 'ACTIVE') throw new ConflictError('WARUNG_INACTIVE', 'Warung tidak aktif');
 
+      // 2b. Snapshot Salesman (customer context untuk header snapshot)
+      const salesman = await tx.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true }
+      });
+      if (!salesman) throw new NotFoundError('USER_NOT_FOUND', 'Sales tidak ditemukan');
+
       // 3. Generate Kode Invoice
       const code = await NumberGeneratorService.generateCode('INV', new Date(), tx);
 
@@ -35,12 +42,16 @@ class SalesTransactionService {
 
       for (const item of data.items) {
         const product = await tx.product.findUnique({
-          where: { id: item.product_id }
+          where: { id: item.product_id },
+          include: { unit: true, category: true, prices: { include: { price_level: true } } }
         });
         if (!product || !product.is_active) throw new ConflictError('PRODUCT_UNAVAILABLE', `Product ID ${item.product_id} tidak aktif atau tidak ditemukan`);
         if (item.qty <= 0) throw new ConflictError('INVALID_QTY', 'Quantity harus lebih dari 0');
 
-        const itemSubtotal = Number(product.selling_price) * item.qty;
+        const retailPriceObj = product.prices.find(p => p.status === 'ACTIVE' && p.price_level?.code === 'PL-RETAIL') || product.prices[0];
+        const sellingPrice = retailPriceObj ? Number(retailPriceObj.price) : 0;
+
+        const itemSubtotal = Number(sellingPrice) * item.qty;
         const discountAmt = item.discount || 0;
         const finalSubtotal = itemSubtotal - discountAmt;
 
@@ -51,9 +62,13 @@ class SalesTransactionService {
           product_id: product.id,
           batch_id: item.batch_id || null, // akan divalidasi nanti atau FEFO
           qty: item.qty,
-          unit: product.unit,
-          category: product.category,
-          selling_price: product.selling_price,
+          unit: product.unit?.name || 'PCS',
+          category_name: product.category?.name || 'GENERAL',
+          selling_price: sellingPrice,
+          unit_price: sellingPrice,
+          price_source: 'RETAIL',
+          price_level_id: retailPriceObj?.price_level_id ?? null,
+          price_level_name: retailPriceObj?.price_level?.name ?? null,
           discount: discountAmt,
           subtotal: finalSubtotal,
           product_code: product.code,
@@ -73,6 +88,9 @@ class SalesTransactionService {
         visit_id: visit.id,
         sales_id: userId,
         warung_id: visit.warung_id,
+        customer_name: warung.name,
+        customer_code: warung.code,
+        salesman_name: salesman.name,
         payment_method: data.payment_method,
         payment_status: 'UNPAID',
         status: 'DRAFT',

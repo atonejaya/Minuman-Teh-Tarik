@@ -7,7 +7,7 @@ class PaymentController {
   async create(req, res, next) {
     try {
       const validatedData = createPaymentSchema.parse(req.body);
-      const payment = await paymentService.createPayment(validatedData, req.user.sub);
+      const payment = await paymentService.createPayment(validatedData, req.user.id);
       
       return ResponseHelper.created(res, DTOHelper.toPayment(payment), 'Pembayaran berhasil dicatat');
     } catch (error) {

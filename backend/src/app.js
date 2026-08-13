@@ -145,6 +145,7 @@ const warehouseSettlementRoutes = require('./routes/warehouse-settlement.routes'
 const warehouseTransferRoutes = require('./modules/warehouse/presentation/routes/warehouse-transfer.routes');
 const reportRoutes = require('./modules/reporting/routes/reporting.routes');
 const dashboardRoutes = require('./modules/dashboard/routes/dashboard.routes');
+const financePaymentRoutes = require('./modules/finance/payment/routes/payment.routes');
 
 // Master Data Routes
 const categoryRoutes = require('./modules/master/category/routes/category.routes');
@@ -197,6 +198,7 @@ apiRouter.use('/settlements', warehouseSettlementRoutes);
 apiRouter.use('/warehouse/transfers', warehouseTransferRoutes);
 apiRouter.use('/reports', reportRoutes);
 apiRouter.use('/dashboard', dashboardRoutes);
+apiRouter.use('/finance/payments', financePaymentRoutes);
 
 app.use(apiConfig.PREFIX, apiRouter);
 
@@ -235,8 +237,10 @@ eventBus.register(new OutletInventoryProjector());
 // Export the eventBus so that other parts of the application can publish events (mostly workers now)
 app.set('eventBus', eventBus);
 
-// Start the Outbox Relay Worker
-const outboxWorker = new OutboxRelayWorker(eventBus);
-outboxWorker.start();
+// Start the Outbox Relay Worker (skipped in test env so suites share one quiet DB)
+if (process.env.NODE_ENV !== 'test') {
+  const outboxWorker = new OutboxRelayWorker(eventBus);
+  outboxWorker.start();
+}
 
 module.exports = app;

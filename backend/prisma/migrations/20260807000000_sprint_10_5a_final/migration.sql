@@ -5,15 +5,6 @@ CREATE TYPE "TransferType" AS ENUM ('AUTO', 'MANUAL');
 ALTER TYPE "WarungStatus" ADD VALUE 'CLOSED';
 
 -- AlterTable
-ALTER TABLE "SalesPerformanceSummary" ADD COLUMN     "assigned_customer" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "collection_customer" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "invoice_customer" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "lost_customer" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "new_customer" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "productive_customer" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "visited_customer" INTEGER NOT NULL DEFAULT 0;
-
--- AlterTable
 ALTER TABLE "User" ADD COLUMN     "area_id" INTEGER;
 
 -- AlterTable
