@@ -19,6 +19,9 @@
 -- Role of the authenticated app user (map auth.uid() -> User.role).
 -- SECURITY DEFINER so it bypasses RLS on "User" (avoids recursion in policies).
 -- ADMIN is treated as OWNER-equivalent for authorization (owner-level back office).
+-- NOTE: role column is a UserRole enum that may not contain 'ADMIN'; compare via
+-- text cast to avoid enum-coercion errors (22P02). To actually create ADMIN
+-- accounts, run first (once, standalone):  alter type public."UserRole" add value if not exists 'ADMIN';
 create or replace function public.current_user_role()
 returns text
 language sql
@@ -26,7 +29,7 @@ stable
 security definer
 set search_path = public, pg_temp
 as $$
-  select case when u.role = 'ADMIN' then 'OWNER'::text else u.role::text end
+  select case when u.role::text = 'ADMIN' then 'OWNER'::text else u.role::text end
   from public."User" u
   where u.auth_id = auth.uid()
   limit 1;
