@@ -1,7 +1,7 @@
 import React from 'react';
 import './LoadingState.css';
 
-const LoadingState = ({ title = 'Loading...', message = 'Please wait while we fetch the data.' }) => {
+const LoadingState = ({ title = 'Memuat...', message = 'Mohon tunggu sebentar sementara kami memuat data.' }) => {
   return (
     <div className="shared-state-container loading-state">
       <div className="state-icon loading-spinner"></div>

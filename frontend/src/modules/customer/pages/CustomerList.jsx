@@ -5,9 +5,11 @@ import CustomerRepository from '../repositories/CustomerRepository';
 import CustomerTable from '../components/CustomerTable';
 import CustomerFilters from '../components/CustomerFilters';
 import EntityListPage from '../../../components/entity/EntityListPage';
+import { useToast } from '../../../components/toast/ToastContext';
 
 const CustomerList = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [filters, setFilters] = useState({});
   const { data, loading, error, refetch, setParams } = useCustomers(filters);
 
@@ -24,22 +26,23 @@ const CustomerList = () => {
       if (action === 'ACTIVE' || action === 'INACTIVE') {
         await Promise.all(selectedIds.map(id => CustomerRepository.update(id, { status: action })));
         refetch();
+        toast.success('Status pelanggan berhasil diperbarui');
       } else {
-        alert(`Bulk action ${action} is mocked for Sprint 10.7`);
+        toast.info(`Aksi massal "${action}" belum tersedia`);
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to execute bulk action');
+      toast.error('Gagal menjalankan aksi massal');
     }
   };
 
   return (
     <EntityListPage
       headerProps={{
-        title: "Customers",
-        description: "Manage warung and store data",
+        title: "Pelanggan",
+        description: "Kelola data warung dan toko",
         onAdd: () => navigate('/customers/new'),
-        addButtonLabel: "+ Add Customer"
+        addButtonLabel: "+ Tambah Pelanggan"
       }}
       error={error}
       filterProps={<CustomerFilters filters={filters} setFilters={setFilters} />}

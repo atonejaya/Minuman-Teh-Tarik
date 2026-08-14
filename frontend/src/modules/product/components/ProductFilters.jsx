@@ -1,114 +1,50 @@
 import React from 'react';
-import './ProductFilters.css';
+import { useMasterLookupContext } from '../../../contexts/MasterLookupContext';
 
-const ProductFilters = ({ filters, onFilterChange }) => {
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    onFilterChange(name, type === 'checkbox' ? checked : value);
-  };
+const ProductFilters = ({ filters, setFilters }) => {
+  const { lookups } = useMasterLookupContext();
+  const categories = lookups?.categories || [];
+  const brands = lookups?.brands || [];
+
+  const set = (name, value) => setFilters((prev) => ({ ...prev, [name]: value }));
 
   return (
-    <div className="filters-container">
-      <div className="search-bar">
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', alignItems: 'end' }}>
+      <div>
+        <label className="field-label">Cari</label>
         <input
           type="text"
-          name="search"
-          className="search-input"
-          placeholder="Search products by name or SKU..."
+          className="wizard-input"
+          placeholder="Nama / SKU / Code"
           value={filters.search || ''}
-          onChange={handleChange}
+          onChange={(e) => set('search', e.target.value)}
         />
       </div>
-
-      <div className="dropdowns-grid">
-        <div className="dropdown-group">
-          <label>Category</label>
-          <select name="category" className="dropdown-select" value={filters.category || ''} onChange={handleChange}>
-            <option value="">All Categories</option>
-            <option value="beverages">Beverages</option>
-            <option value="snacks">Snacks</option>
-            <option value="ingredients">Ingredients</option>
-          </select>
-        </div>
-
-        <div className="dropdown-group">
-          <label>Brand</label>
-          <select name="brand" className="dropdown-select" value={filters.brand || ''} onChange={handleChange}>
-            <option value="">All Brands</option>
-            <option value="brand_a">Brand A</option>
-            <option value="brand_b">Brand B</option>
-          </select>
-        </div>
-
-        <div className="dropdown-group">
-          <label>Supplier</label>
-          <select name="supplier" className="dropdown-select" value={filters.supplier || ''} onChange={handleChange}>
-            <option value="">All Suppliers</option>
-            <option value="sup_1">Supplier 1</option>
-            <option value="sup_2">Supplier 2</option>
-          </select>
-        </div>
-
-        <div className="dropdown-group">
-          <label>Warehouse</label>
-          <select name="warehouse" className="dropdown-select" value={filters.warehouse || ''} onChange={handleChange}>
-            <option value="">All Warehouses</option>
-            <option value="main">Main Warehouse</option>
-            <option value="secondary">Secondary Warehouse</option>
-          </select>
-        </div>
-
-        <div className="dropdown-group">
-          <label>Status</label>
-          <select name="status" className="dropdown-select" value={filters.status || ''} onChange={handleChange}>
-            <option value="">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
+      <div>
+        <label className="field-label">Kategori</label>
+        <select className="wizard-input" value={filters.categoryId || ''} onChange={(e) => set('categoryId', e.target.value)}>
+          <option value="">Semua Kategori</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
       </div>
-
-      <div className="checkboxes-group">
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            name="lowStock"
-            className="checkbox-input"
-            checked={filters.lowStock || false}
-            onChange={handleChange}
-          />
-          Low Stock
-        </label>
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            name="outOfStock"
-            className="checkbox-input"
-            checked={filters.outOfStock || false}
-            onChange={handleChange}
-          />
-          Out of Stock
-        </label>
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            name="consignmentOnly"
-            className="checkbox-input"
-            checked={filters.consignmentOnly || false}
-            onChange={handleChange}
-          />
-          Consignment Only
-        </label>
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            name="sellableOnly"
-            className="checkbox-input"
-            checked={filters.sellableOnly || false}
-            onChange={handleChange}
-          />
-          Sellable Only
-        </label>
+      <div>
+        <label className="field-label">Merek</label>
+        <select className="wizard-input" value={filters.brandId || ''} onChange={(e) => set('brandId', e.target.value)}>
+          <option value="">Semua Merek</option>
+          {brands.map((b) => (
+            <option key={b.id} value={b.id}>{b.name}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="field-label">Status</label>
+        <select className="wizard-input" value={filters.status || 'all'} onChange={(e) => set('status', e.target.value)}>
+          <option value="all">Semua</option>
+          <option value="active">Aktif</option>
+          <option value="inactive">Nonaktif</option>
+        </select>
       </div>
     </div>
   );

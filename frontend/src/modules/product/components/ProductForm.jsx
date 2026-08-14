@@ -1,235 +1,232 @@
 import React, { useState, useEffect } from 'react';
-import './ProductForm.css';
 
-const ProductForm = ({ initialData, lookups, onSubmit, onCancel, isSubmitting }) => {
+const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--surface)', color: 'var(--text-main)', fontSize: '14px' };
+const labelStyle = { display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '13px', color: 'var(--text-main)' };
+
+const ProductForm = ({ initialData, lookups, onSubmit, onCancel, isSubmitting, submitError }) => {
   const [formData, setFormData] = useState({
-    // General
     name: '',
+    code: '',
     sku: '',
     barcode: '',
     description: '',
-    // Classification
-    categoryId: '',
-    brandId: '',
-    // Supplier
-    supplierId: '',
-    // Pricing
-    defaultCost: '',
-    retailPrice: '',
-    taxId: '',
-    // Inventory
-    minLimit: '',
-    maxLimit: '',
-    packagingId: '',
-    unitId: '',
-    // Warehouse
-    warehouseId: '',
-    // Additional Info
-    notes: '',
-    isActive: true
+    category_id: '',
+    brand_id: '',
+    unit_id: '',
+    supplier_id: '',
+    packaging_id: '',
+    tax_id: '',
+    warehouse_id: '',
+    cost_price: '',
+    minimum_stock: '',
+    maximum_stock: '',
+    reorder_level: '',
+    shelf_life_days: '',
+    volume: '',
+    weight: '',
+    is_consignment: true,
+    is_sellable: true,
+    is_purchasable: true,
+    is_active: true,
   });
 
   useEffect(() => {
     if (initialData) {
-      setFormData(prev => ({ ...prev, ...initialData }));
+      setFormData((prev) => ({
+        ...prev,
+        name: initialData.name || '',
+        code: initialData.code || '',
+        sku: initialData.sku || '',
+        barcode: initialData.barcode || '',
+        description: initialData.description || '',
+        category_id: initialData.category_id || '',
+        brand_id: initialData.brand_id || '',
+        unit_id: initialData.unit_id || '',
+        supplier_id: initialData.supplier_id || '',
+        packaging_id: initialData.packaging_id || '',
+        tax_id: initialData.tax_id || '',
+        warehouse_id: initialData.warehouse_id || '',
+        cost_price: initialData.cost_price ?? '',
+        minimum_stock: initialData.minimum_stock ?? '',
+        maximum_stock: initialData.maximum_stock ?? '',
+        reorder_level: initialData.reorder_level ?? '',
+        shelf_life_days: initialData.shelf_life_days ?? '',
+        volume: initialData.volume ?? '',
+        weight: initialData.weight ?? '',
+        is_consignment: initialData.is_consignment !== false,
+        is_sellable: initialData.is_sellable !== false,
+        is_purchasable: initialData.is_purchasable !== false,
+        is_active: initialData.is_active !== false,
+      }));
     }
   }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : type === 'number' ? (value === '' ? '' : Number(value)) : value,
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const payload = { ...formData };
+    ['cost_price', 'minimum_stock', 'maximum_stock', 'reorder_level', 'shelf_life_days', 'volume', 'weight'].forEach((k) => {
+      if (payload[k] === '') payload[k] = null;
+    });
+    ['category_id', 'brand_id', 'unit_id', 'supplier_id', 'packaging_id', 'tax_id', 'warehouse_id'].forEach((k) => {
+      if (!payload[k]) delete payload[k];
+    });
+    onSubmit(payload);
   };
 
-  // Safe fallback for lookups in case they are undefined or missing properties
-  const safeLookups = lookups || {};
-  const categories = safeLookups.categories || [];
-  const brands = safeLookups.brands || [];
-  const suppliers = safeLookups.suppliers || [];
-  const warehouses = safeLookups.warehouses || [];
-  const taxes = safeLookups.taxes || [];
-  const packagings = safeLookups.packagings || [];
-  const units = safeLookups.units || [];
+  const categories = lookups.categories || [];
+  const brands = lookups.brands || [];
+  const units = lookups.units || [];
+  const suppliers = lookups.suppliers || [];
+  const packagings = lookups.packagings || [];
+  const taxes = lookups.taxes || [];
+  const warehouses = lookups.warehouses || [];
+
+  const Section = ({ title, children }) => (
+    <section className="card" style={{ padding: '20px', marginBottom: '16px' }}>
+      <h3 style={{ marginBottom: '14px', fontSize: '16px' }}>{title}</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+        {children}
+      </div>
+    </section>
+  );
+
+  const Group = ({ label, name, required, children }) => (
+    <div className="form-group" style={{ marginBottom: '10px' }}>
+      <label style={labelStyle}>
+        {label} {required && <span style={{ color: 'var(--danger)' }}>*</span>}
+      </label>
+      {children}
+    </div>
+  );
 
   return (
-    <form onSubmit={handleSubmit} className="product-form">
-      {/* General Section */}
-      <div className="form-section">
-        <h3><span className="section-icon">📦</span> General Information</h3>
-        <div className="form-grid">
-          <div className="form-group">
-            <label className="form-label">Product Name <span className="required-asterisk">*</span></label>
-            <input type="text" name="name" className="form-input" value={formData.name} onChange={handleChange} required placeholder="e.g. Premium Teh Tarik" />
-          </div>
-          <div className="form-group">
-            <label className="form-label">SKU <span className="required-asterisk">*</span></label>
-            <input type="text" name="sku" className="form-input" value={formData.sku} onChange={handleChange} required placeholder="e.g. TT-PRM-001" />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Barcode</label>
-            <input type="text" name="barcode" className="form-input" value={formData.barcode} onChange={handleChange} placeholder="Scan or enter barcode" />
-          </div>
-          <div className="form-group full-width">
-            <label className="form-label">Description</label>
-            <textarea name="description" className="form-textarea" value={formData.description} onChange={handleChange} placeholder="Detailed product description..."></textarea>
-          </div>
-        </div>
-      </div>
+    <form onSubmit={handleSubmit}>
+      {submitError && <div className="alert-error" style={{ marginBottom: '16px' }}>{submitError}</div>}
 
-      {/* Classification Section */}
-      <div className="form-section">
-        <h3><span className="section-icon">🏷️</span> Classification</h3>
-        <div className="form-grid">
-          <div className="form-group">
-            <label className="form-label">Category</label>
-            <select name="categoryId" className="form-select" value={formData.categoryId} onChange={handleChange}>
-              <option value="">Select Category</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Brand</label>
-            <select name="brandId" className="form-select" value={formData.brandId} onChange={handleChange}>
-              <option value="">Select Brand</option>
-              {brands.map(brand => (
-                <option key={brand.id} value={brand.id}>{brand.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
+      <Section title="Informasi Umum">
+        <Group label="Nama Produk" required>
+          <input style={inputStyle} name="name" value={formData.name} onChange={handleChange} required placeholder="contoh: Thai Tea" />
+        </Group>
+        <Group label="Kode">
+          <input style={inputStyle} name="code" value={formData.code} onChange={handleChange} placeholder="Otomatis jika kosong" />
+        </Group>
+        <Group label="SKU">
+          <input style={inputStyle} name="sku" value={formData.sku} onChange={handleChange} placeholder="contoh: TT-PRM-001" />
+        </Group>
+        <Group label="Barcode">
+          <input style={inputStyle} name="barcode" value={formData.barcode} onChange={handleChange} />
+        </Group>
+        <Group label="Deskripsi">
+          <textarea style={inputStyle} name="description" rows="2" value={formData.description} onChange={handleChange} />
+        </Group>
+      </Section>
 
-      {/* Supplier Section */}
-      <div className="form-section">
-        <h3><span className="section-icon">🏢</span> Supplier</h3>
-        <div className="form-grid">
-          <div className="form-group full-width">
-            <label className="form-label">Primary Supplier</label>
-            <select name="supplierId" className="form-select" value={formData.supplierId} onChange={handleChange}>
-              <option value="">Select Supplier</option>
-              {suppliers.map(sup => (
-                <option key={sup.id} value={sup.id}>{sup.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
+      <Section title="Klasifikasi & Pemasok">
+        <Group label="Kategori">
+          <select style={inputStyle} name="category_id" value={formData.category_id} onChange={handleChange}>
+            <option value="">Pilih Kategori</option>
+            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </Group>
+        <Group label="Merek">
+          <select style={inputStyle} name="brand_id" value={formData.brand_id} onChange={handleChange}>
+            <option value="">Pilih Merek</option>
+            {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </select>
+        </Group>
+        <Group label="Satuan">
+          <select style={inputStyle} name="unit_id" value={formData.unit_id} onChange={handleChange}>
+            <option value="">Pilih Satuan</option>
+            {units.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+          </select>
+        </Group>
+        <Group label="Kemasan">
+          <select style={inputStyle} name="packaging_id" value={formData.packaging_id} onChange={handleChange}>
+            <option value="">Pilih Kemasan</option>
+            {packagings.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </Group>
+        <Group label="Pemasok">
+          <select style={inputStyle} name="supplier_id" value={formData.supplier_id} onChange={handleChange}>
+            <option value="">Pilih Pemasok</option>
+            {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </Group>
+        <Group label="Pajak">
+          <select style={inputStyle} name="tax_id" value={formData.tax_id} onChange={handleChange}>
+            <option value="">Pilih Pajak</option>
+            {taxes.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+        </Group>
+        <Group label="Gudang">
+          <select style={inputStyle} name="warehouse_id" value={formData.warehouse_id} onChange={handleChange}>
+            <option value="">Pilih Gudang</option>
+            {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+          </select>
+        </Group>
+      </Section>
 
-      {/* Pricing Section */}
-      <div className="form-section">
-        <h3><span className="section-icon">💰</span> Pricing (Default)</h3>
-        <div className="form-grid">
-          <div className="form-group">
-            <label className="form-label">Default Cost</label>
-            <input type="number" step="0.01" name="defaultCost" className="form-input" value={formData.defaultCost} onChange={handleChange} placeholder="0.00" />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Retail Price</label>
-            <input type="number" step="0.01" name="retailPrice" className="form-input" value={formData.retailPrice} onChange={handleChange} placeholder="0.00" />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Tax Profile</label>
-            <select name="taxId" className="form-select" value={formData.taxId} onChange={handleChange}>
-              <option value="">Select Tax Profile</option>
-              {taxes.map(tax => (
-                <option key={tax.id} value={tax.id}>{tax.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
+      <Section title="Harga & Stok">
+        <Group label="Harga Modal">
+          <input style={inputStyle} type="number" step="any" name="cost_price" value={formData.cost_price} onChange={handleChange} placeholder="0" />
+        </Group>
+        <Group label="Stok Minimum">
+          <input style={inputStyle} type="number" name="minimum_stock" value={formData.minimum_stock} onChange={handleChange} placeholder="0" />
+        </Group>
+        <Group label="Stok Maksimum">
+          <input style={inputStyle} type="number" name="maximum_stock" value={formData.maximum_stock} onChange={handleChange} placeholder="0" />
+        </Group>
+        <Group label="Level Restok">
+          <input style={inputStyle} type="number" name="reorder_level" value={formData.reorder_level} onChange={handleChange} placeholder="0" />
+        </Group>
+        <Group label="Masa Simpan (hari)">
+          <input style={inputStyle} type="number" name="shelf_life_days" value={formData.shelf_life_days} onChange={handleChange} placeholder="0" />
+        </Group>
+        <Group label="Volume">
+          <input style={inputStyle} type="number" step="any" name="volume" value={formData.volume} onChange={handleChange} placeholder="ml / pcs" />
+        </Group>
+        <Group label="Berat (gram)">
+          <input style={inputStyle} type="number" step="any" name="weight" value={formData.weight} onChange={handleChange} placeholder="0" />
+        </Group>
+      </Section>
 
-      {/* Inventory Section */}
-      <div className="form-section">
-        <h3><span className="section-icon">📊</span> Inventory Limits & Units</h3>
-        <div className="form-grid">
-          <div className="form-group">
-            <label className="form-label">Minimum Limit</label>
-            <input type="number" name="minLimit" className="form-input" value={formData.minLimit} onChange={handleChange} placeholder="0" />
+      <Section title="Aktivasi">
+        <Group label="Konsinyasi">
+          <div style={{ paddingTop: '8px' }}>
+            <input type="checkbox" name="is_consignment" checked={formData.is_consignment} onChange={handleChange} /> <span style={{ fontSize: '13px' }}>Produk konsinyasi (titipan par stock)</span>
           </div>
-          <div className="form-group">
-            <label className="form-label">Maximum Limit</label>
-            <input type="number" name="maxLimit" className="form-input" value={formData.maxLimit} onChange={handleChange} placeholder="0" />
+        </Group>
+        <Group label="Dapat Dijual">
+          <div style={{ paddingTop: '8px' }}>
+            <input type="checkbox" name="is_sellable" checked={formData.is_sellable} onChange={handleChange} /> <span style={{ fontSize: '13px' }}>Bisa dijual ke outlet</span>
           </div>
-          <div className="form-group">
-            <label className="form-label">Packaging Type</label>
-            <select name="packagingId" className="form-select" value={formData.packagingId} onChange={handleChange}>
-              <option value="">Select Packaging</option>
-              {packagings.map(pkg => (
-                <option key={pkg.id} value={pkg.id}>{pkg.name}</option>
-              ))}
-            </select>
+        </Group>
+        <Group label="Dapat Dibeli">
+          <div style={{ paddingTop: '8px' }}>
+            <input type="checkbox" name="is_purchasable" checked={formData.is_purchasable} onChange={handleChange} /> <span style={{ fontSize: '13px' }}>Bisa dibeli dari pemasok</span>
           </div>
-          <div className="form-group">
-            <label className="form-label">Unit of Measure</label>
-            <select name="unitId" className="form-select" value={formData.unitId} onChange={handleChange}>
-              <option value="">Select Unit</option>
-              {units.map(unit => (
-                <option key={unit.id} value={unit.id}>{unit.name}</option>
-              ))}
-            </select>
+        </Group>
+        <Group label="Aktif">
+          <div style={{ paddingTop: '8px' }}>
+            <input type="checkbox" name="is_active" checked={formData.is_active} onChange={handleChange} /> <span style={{ fontSize: '13px' }}>Produk aktif</span>
           </div>
-        </div>
-      </div>
+        </Group>
+      </Section>
 
-      {/* Warehouse Section */}
-      <div className="form-section">
-        <h3><span className="section-icon">🏭</span> Warehouse</h3>
-        <div className="form-grid">
-          <div className="form-group full-width">
-            <label className="form-label">Default Warehouse</label>
-            <select name="warehouseId" className="form-select" value={formData.warehouseId} onChange={handleChange}>
-              <option value="">Select Warehouse</option>
-              {warehouses.map(wh => (
-                <option key={wh.id} value={wh.id}>{wh.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Additional Info Section */}
-      <div className="form-section">
-        <h3><span className="section-icon">📝</span> Additional Info</h3>
-        <div className="form-grid">
-          <div className="form-group full-width">
-            <label className="form-label">Internal Notes</label>
-            <textarea name="notes" className="form-textarea" value={formData.notes} onChange={handleChange} placeholder="Any internal notes or remarks..."></textarea>
-          </div>
-          <div className="form-group full-width">
-            <div className="checkbox-wrapper">
-              <input type="checkbox" name="isActive" id="isActive" checked={formData.isActive} onChange={handleChange} />
-              <label htmlFor="isActive">Active Product (Available for transactions)</label>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="form-actions">
-        <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={isSubmitting}>
-          Cancel
+      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
+        <button type="button" className="btn" style={{ padding: '8px 16px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }} onClick={onCancel} disabled={isSubmitting}>
+          Batal
         </button>
         <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? (
-            <>
-              <span className="spinner" style={{ width: '20px', height: '20px', margin: 0, borderWidth: '3px', borderTopColor: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}></span>
-              Saving...
-            </>
-          ) : (
-            <>
-              <span style={{ fontSize: '1.2rem' }}>💾</span>
-              Save Product
-            </>
-          )}
+          {isSubmitting ? 'Menyimpan...' : 'Simpan Produk'}
         </button>
       </div>
     </form>

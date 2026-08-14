@@ -1,0 +1,24 @@
+import React from 'react';
+import MasterListPage from '../components/MasterListPage';
+import MasterDataRepository from '../repositories/MasterDataRepository';
+
+const columns = [
+  { key: 'code', label: 'Kode' },
+  { key: 'name', label: 'Nama' },
+  { key: 'area_id', label: 'Area', render: (r) => r.area?.name || '-' },
+  { key: 'is_active', label: 'Status', render: (r) => (r.is_active ? 'Aktif' : 'Nonaktif') },
+];
+
+const RouteList = () => (
+  <MasterListPage
+    title="Rute"
+    description="Rute pengiriman yang dikelompokkan berdasarkan area"
+    addPath="/routes"
+    columns={columns}
+    fetchList={(params) => MasterDataRepository.list('Route', { ...params, select: '*, area:Area(name)' })}
+    onToggleActive={(row) => MasterDataRepository.update('Route', row.id, { is_active: !row.is_active })}
+    getActive={(row) => row.is_active}
+  />
+);
+
+export default RouteList;

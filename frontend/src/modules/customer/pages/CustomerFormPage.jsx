@@ -4,12 +4,14 @@ import { useCustomer } from '../hooks/useCustomer';
 import CustomerRepository from '../repositories/CustomerRepository';
 import CustomerForm from '../components/CustomerForm';
 import EntityFormPage from '../../../components/entity/EntityFormPage';
+import { useToast } from '../../../components/toast/ToastContext';
 
 const CustomerFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const isEdit = Boolean(id);
-  
+
   const { data: initialData, loading: isLoadingData, error: loadError } = useCustomer(id);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -23,27 +25,40 @@ const CustomerFormPage = () => {
       } else {
         await CustomerRepository.create(formData);
       }
+      toast.success('Data pelanggan berhasil disimpan');
       navigate('/customers');
     } catch (err) {
-      setError(err.message || 'Failed to save customer');
+      setError(err.message || 'Gagal menyimpan pelanggan');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
   return (
     <EntityFormPage
-      headerProps={{
-        title: isEdit ? 'Edit Customer' : 'Create New Customer',
-        description: isEdit ? 'Update warung information and settings' : 'Add a new warung to the system'
+      title={isEdit ? 'Ubah Pelanggan' : 'Buat Pelanggan Baru'}
+      form={({ onCancel }) => {
+        if (isEdit && isLoadingData) {
+          return <p className="empty-hint">Memuat...</p>;
+        }
+        if (loadError) {
+          return <div className="alert-error">{loadError}</div>;
+        }
+        return (
+          <CustomerForm
+            initialData={initialData || {}}
+            onSubmit={handleSubmit}
+            onCancel={onCancel || handleCancel}
+            isSubmitting={isSubmitting}
+            submitError={error}
+          />
+        );
       }}
-      loading={isEdit && isLoadingData}
-      error={error || loadError}
-      formComponent={
-        (!isEdit || initialData) && (
-          <CustomerForm initialData={initialData || {}} onSubmit={handleSubmit} isSubmitting={isSubmitting} />
-        )
-      }
+      onCancel={handleCancel}
     />
   );
 };

@@ -5,8 +5,8 @@ const DeleteDialog = ({ isOpen, entityName, onConfirm, onCancel }) => {
   return (
     <ConfirmDialog 
       isOpen={isOpen}
-      title="Delete Confirmation"
-      message={`Are you sure you want to delete this ${entityName || 'item'}? This action cannot be undone.`}
+      title="Konfirmasi Penghapusan"
+      message={`Apakah Anda yakin ingin menghapus ${entityName || 'item'} ini? Tindakan ini tidak dapat dibatalkan.`}
       onConfirm={onConfirm}
       onCancel={onCancel}
     />

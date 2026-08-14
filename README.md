@@ -164,7 +164,7 @@ Status: `Draft -> Confirmed -> Closed`
 
 ---
 
-## 🚧 Sprint 11.0D
+## ✅ Sprint 11.0D
 
 ### Outlet Inventory Management
 
@@ -191,7 +191,7 @@ Menghasilkan kebutuhan refill.
 
 ---
 
-## 🚧 Sprint 11.0E
+## ✅ Sprint 11.0E
 
 ### Sales Visit
 Sales Visit merupakan Aggregate Root seluruh aktivitas lapangan.
@@ -207,6 +207,20 @@ Dalam satu Sales Visit sistem menghasilkan:
 - Foto
 - GPS
 - Audit Log
+
+---
+
+## ✅ Sprint 11.0E2
+
+### Setoran Kas
+Sales melakukan setoran harian. Owner memverifikasi.
+- Status: `PENDING -> COMPLETED / FAILED`
+- Result: `FULL / PARTIAL / NONE`
+
+### Sales Return Lifecycle
+Retur divalidasi dan diverifikasi Owner sebelum mempengaruhi stok.
+- Lifecycle: `DRAFT -> APPROVED -> COMPLETED`
+- Mutasi stok diposting saat `COMPLETED` (RETURN_GOOD / RETURN_BAD).
 
 ---
 
@@ -257,9 +271,42 @@ Sales Visit
 ---
 
 # Teknologi
-- **Backend**: Node.js, Express, PostgreSQL, Prisma ORM
-- **Architecture**: Domain Driven Design (DDD), CQRS, Event Driven, Outbox Pattern, Eventual Consistency
-- **Frontend**: React (Vite), Context API, Vanilla CSS
+- **Database & Backend Logic**: Supabase (PostgreSQL, PostgREST, Row Level Security, RPC untuk business logic)
+- **Auth**: Supabase Auth (email/password)
+- **Frontend**: React (Vite), Context API, Vanilla CSS, chart.js
+- **Hosting**: Cloudflare Pages (static SPA, deploy dari `frontend/dist`)
+- **Arsitektur**: Ledger sebagai source of truth, Projection sebagai read model, RPC security definer untuk transaksi
+
+---
+
+# Setup Lokal
+
+1. Jalankan seluruh migrasi di `supabase/migrations/` secara berurutan di **Supabase SQL Editor** (urutan: `001_foundation` → `002_stock` → `003_visit` → `004_setoran` → `005_return`).
+2. Buat akun auth di Supabase untuk setiap user (OWNER & SALES) dan isi `auth_id` pada tabel `User`.
+3. Salin `frontend/.env.example` menjadi `frontend/.env` lalu isi:
+   ```
+   VITE_SUPABASE_URL=https://<project>.supabase.co
+   VITE_SUPABASE_ANON_KEY=<anon-key>
+   ```
+
+# Menjalankan
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+# Build & Deploy ke Cloudflare Workers
+
+```bash
+cd frontend
+npm run build
+npm run lint
+npx wrangler deploy
+```
+
+Deploy melalui Worker `operasional` (konfigurasi di `frontend/wrangler.toml` dengan static assets + SPA fallback ke `index.html`). URL: `https://operasional.atonejaya.workers.dev`. Storage foto visit disimpan di bucket Supabase `visit-photos` (private, terproteksi RLS).
 
 ---
 

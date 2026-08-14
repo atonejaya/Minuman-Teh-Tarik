@@ -1,39 +1,53 @@
-import { normalizeApiResponse } from '../utils/apiUtils';
+import { supabase } from '../utils/supabase';
 
 class SalesTransactionRepositoryClass {
   async fetchAll(params) {
-    const response = await fetch('/api/sales-transactions?' + new URLSearchParams(params));
-    return normalizeApiResponse(await response.json());
+    let query = supabase
+      .from('SalesTransaction')
+      .select('*, warung:Warung(name, code), salesman:User(name)', { count: 'exact' });
+    if (params?.status) query = query.eq('status', params.status);
+    if (params?.payment_status) query = query.eq('payment_status', params.payment_status);
+    if (params?.search) query = query.ilike('code', `%${params.search}%`);
+    query = query.order('created_at', { ascending: false });
+
+    if (params?.page) {
+      const page = params.page || 1;
+      const pageSize = params.pageSize || 20;
+      query = query.range((page - 1) * pageSize, page * pageSize - 1);
+    }
+
+    const { data, error, count } = await query;
+    if (error) throw error;
+    const pageSize = params?.pageSize || 20;
+    return { success: true, data, meta: { total: count, totalPages: count ? Math.ceil(count / pageSize) : 1 } };
   }
 
   async fetchById(id) {
-    const response = await fetch(`/api/sales-transactions/${id}`);
-    return normalizeApiResponse(await response.json());
+    const { data, error } = await supabase
+      .from('SalesTransaction')
+      .select('*, items:SalesTransactionItem(*, product:Product(*)), warung:Warung(*), salesman:User(name), payments:Payment(*)')
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+    return { success: true, data };
   }
 
-  async create(data) {
-    const response = await fetch('/api/sales-transactions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    return normalizeApiResponse(await response.json());
+  async create(payload) {
+    const { data, error } = await supabase.rpc('create_sales_transaction', { p_payload: payload });
+    if (error) throw error;
+    return { success: true, data };
   }
 
-  async update(id, data) {
-    const response = await fetch(`/api/sales-transactions/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    return normalizeApiResponse(await response.json());
+  async update(id, payload) {
+    const { data, error } = await supabase.from('SalesTransaction').update(payload).eq('id', id).select();
+    if (error) throw error;
+    return { success: true, data };
   }
 
   async delete(id) {
-    const response = await fetch(`/api/sales-transactions/${id}`, {
-      method: 'DELETE'
-    });
-    return normalizeApiResponse(await response.json());
+    const { error } = await supabase.from('SalesTransaction').delete().eq('id', id);
+    if (error) throw error;
+    return { success: true };
   }
 }
 

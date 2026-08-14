@@ -53,7 +53,7 @@ export const MasterLookupProvider = ({ children }) => {
         }
       } catch (err) {
         if (mounted) {
-          setError([{ message: err.message || 'Failed to fetch lookups' }]);
+          setError([{ message: err.message || 'Gagal memuat data referensi' }]);
         }
       } finally {
         if (mounted) {

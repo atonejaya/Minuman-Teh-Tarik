@@ -1,49 +1,136 @@
-import React from 'react';
-import { EntityListPage } from '../../../components/EntityListPage';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import EntityListPage from '../../../components/entity/EntityListPage';
 import { SalesReturnRepository } from '../../../repositories/SalesReturnRepository';
-import { StatusBadge } from '../../../components/StatusBadge';
+import { useAuth } from '../../../contexts/AuthContext.jsx';
+import StatusBadge from '../../../components/shared/StatusBadge';
+import { useToast } from '../../../components/toast/ToastContext';
 
-const columns = [
-  { key: 'code', label: 'Code' },
-  { key: 'date', label: 'Date' },
-  { 
-    key: 'reference', 
-    label: 'Reference (Invoice/Delivery)',
-    render: (item) => `${item.referenceType || ''} ${item.referenceNumber || ''}`.trim() || item.reference || '-'
-  },
-  { 
-    key: 'type', 
-    label: 'Type',
-    render: (item) => {
-      const type = (item.type || '').toUpperCase();
-      return (
-        <span style={{ 
-          color: type === 'GOOD' ? 'green' : (type === 'BAD' ? 'red' : 'inherit'), 
-          fontWeight: 'bold' 
-        }}>
-          {type}
-        </span>
-      );
-    }
-  },
-  { key: 'totalAmount', label: 'Total Amount' },
-  { 
-    key: 'status', 
-    label: 'Status',
-    render: (item) => <StatusBadge status={item.status} />
+const cell = { padding: '12px 16px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
+
+const REFERENCE_TYPE_LABELS = {
+  SALES_TRANSACTION: 'Transaksi Penjualan', SALES_INVOICE: 'Faktur Penjualan',
+  CREDIT_NOTE: 'Nota Kredit', MANUAL: 'Manual',
+};
+
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  }).format(value || 0);
+};
+
+const SalesReturnTable = ({ data, loading, onView, onApprove, onReceive }) => {
+  if (loading) {
+    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat...</p>;
   }
-];
 
-export const SalesReturnList = () => {
+  if (!data || data.length === 0) {
+    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Tidak ada retur penjualan.</p>;
+  }
+
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+        <thead style={{ backgroundColor: 'var(--background)' }}>
+          <tr>
+            <th style={cell}>Kode Retur</th>
+            <th style={cell}>Tanggal</th>
+            <th style={cell}>Warung</th>
+            <th style={cell}>Referensi</th>
+            <th style={cell}>Total</th>
+            <th style={cell}>Status</th>
+            <th style={cell}>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((item) => (
+            <tr key={item.id}>
+              <td style={{ ...cell, fontWeight: '500' }}>{item.code}</td>
+              <td style={cell}>{new Date(item.return_date).toLocaleDateString('id-ID')}</td>
+              <td style={cell}>{item.warung?.name || '-'}</td>
+              <td style={cell}>{REFERENCE_TYPE_LABELS[item.reference_type] || item.reference_type || '-'}</td>
+              <td style={{ ...cell, fontWeight: '600' }}>{formatCurrency(item.total_amount)}</td>
+              <td style={cell}><StatusBadge status={item.status} /></td>
+              <td style={cell}>
+                <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: '12px' }} onClick={() => onView(item.id)}>
+                  Lihat
+                </button>
+                {item.status === 'DRAFT' && onApprove && (
+                  <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginLeft: '6px', backgroundColor: 'var(--secondary)', color: '#fff' }} onClick={() => onApprove(item.id)}>
+                    Setujui
+                  </button>
+                )}
+                {['DRAFT', 'APPROVED'].includes(item.status) && onReceive && (
+                  <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginLeft: '6px', backgroundColor: 'var(--success)', color: '#fff' }} onClick={() => onReceive(item.id)}>
+                    Terima
+                  </button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const SalesReturnList = () => {
+  const navigate = useNavigate();
+  const toast = useToast();
+  const { user } = useAuth();
+  const isOwner = user?.role === 'OWNER';
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchReturns = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await SalesReturnRepository.fetchAll({ page, pageSize: 20 });
+      setData(result.data || []);
+      setTotalPages(result.meta?.totalPages || 1);
+    } catch (error) {
+      console.error('Failed to fetch sales returns', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [page]);
+
+  useEffect(() => {
+    fetchReturns();
+  }, [fetchReturns]);
+
+  const runAction = async (id, fn, successMessage) => {
+    try {
+      await fn(id);
+      toast.success(successMessage);
+      await fetchReturns();
+    } catch (error) {
+      toast.error(error.message || 'Gagal memproses retur');
+    }
+  };
+
   return (
     <EntityListPage
-      title="Sales Returns"
-      entityName="Sales Return"
-      repository={SalesReturnRepository}
-      columns={columns}
-      createPath="/sales/returns/new"
-      editPath={(id) => `/sales/returns/${id}/edit`}
-      detailPath={(id) => `/sales/returns/${id}`}
+      title="Retur Penjualan"
+      actions={{
+        left: [{ label: '+ Tambah Retur Penjualan', variant: 'primary', onClick: () => navigate('/sales/returns/new') }]
+      }}
+      table={(props) => (
+        <SalesReturnTable
+          {...props}
+          loading={loading}
+          onView={(id) => navigate(`/sales/returns/${id}`)}
+          onApprove={isOwner ? (id) => runAction(id, SalesReturnRepository.approve, 'Retur penjualan berhasil disetujui.') : undefined}
+          onReceive={isOwner ? (id) => runAction(id, SalesReturnRepository.receive, 'Retur penjualan berhasil diterima.') : undefined}
+        />
+      )}
+      data={data}
+      pagination={{ currentPage: page, totalPages }}
+      onPageChange={setPage}
     />
   );
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import './ServiceUnavailableState.css';
 
-const ServiceUnavailableState = ({ title = 'Service Unavailable', message = 'The service is temporarily down or undergoing maintenance. Please try again later.' }) => {
+const ServiceUnavailableState = ({ title = 'Layanan Tidak Tersedia', message = 'Layanan sedang tidak tersedia atau sedang dalam pemeliharaan. Silakan coba lagi nanti.' }) => {
   return (
     <div className="shared-state-container service-unavailable-state">
       <div className="state-icon">🚧</div>

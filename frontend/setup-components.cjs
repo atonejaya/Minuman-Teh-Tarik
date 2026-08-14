@@ -121,11 +121,12 @@ for (const [relativePath, content] of Object.entries(files)) {
 const indexCssPath = path.join(__dirname, 'src', 'index.css');
 let indexCss = fs.readFileSync(indexCssPath, 'utf8');
 if (!indexCss.includes('@keyframes pulse')) {
-  indexCss += \`\n@keyframes pulse {
+  indexCss += `\n@keyframes pulse {
   0% { opacity: 1; }
   50% { opacity: 0.5; }
   100% { opacity: 1; }
-}\n\`;
+}
+`;
   fs.writeFileSync(indexCssPath, indexCss);
 }
 

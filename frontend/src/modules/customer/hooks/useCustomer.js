@@ -14,7 +14,7 @@ export const useCustomer = (id) => {
       const result = await CustomerApiService.getCustomerById(id);
       setData(result.data);
     } catch (err) {
-      setError(err.message || 'Failed to fetch customer');
+      setError(err.message || 'Gagal memuat data pelanggan');
     } finally {
       setLoading(false);
     }

@@ -13,20 +13,20 @@ const CustomerSummary = ({ data }) => {
       boxShadow: 'var(--shadow-sm)'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-md)' }}>
-        <h3 style={{ margin: 0, color: 'var(--color-text-primary)', fontSize: 'var(--text-lg)', fontWeight: '600' }}>Customer Summary</h3>
+        <h3 style={{ margin: 0, color: 'var(--color-text-primary)', fontSize: 'var(--text-lg)', fontWeight: '600' }}>Ringkasan Pelanggan</h3>
         <CustomerStatusBadge status={data.status || 'ACTIVE'} />
       </div>
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-md)' }}>
-        <SummaryItem label="Customer Code" value={data.code} />
-        <SummaryItem label="Store Name" value={data.name} />
-        <SummaryItem label="Owner" value={data.owner_name} />
-        <SummaryItem label="Phone" value={data.phone} />
-        <SummaryItem label="Sales Rep" value={data.assignedSales?.name || '-'} />
+        <SummaryItem label="Kode Pelanggan" value={data.code} />
+        <SummaryItem label="Nama Toko" value={data.name} />
+        <SummaryItem label="Pemilik" value={data.owner_name} />
+        <SummaryItem label="No. HP" value={data.phone} />
+        <SummaryItem label="Sales" value={data.assignedSales?.name || '-'} />
         <SummaryItem label="Area" value={data.area?.name || '-'} />
-        <SummaryItem label="Route" value={data.route?.name || '-'} />
-        <SummaryItem label="Credit Limit" value={`Rp ${Number(data.credit_limit || 0).toLocaleString('id-ID')}`} />
-        <SummaryItem label="Payment Term" value={`${data.payment_term || 0} Days`} />
+        <SummaryItem label="Rute" value={data.route?.name || '-'} />
+        <SummaryItem label="Limit Kredit" value={`Rp ${Number(data.credit_limit || 0).toLocaleString('id-ID')}`} />
+        <SummaryItem label="Syarat Pembayaran" value={`${data.payment_term || 0} Hari`} />
       </div>
     </div>
   );

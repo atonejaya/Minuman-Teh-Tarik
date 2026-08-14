@@ -7,6 +7,8 @@ const STATUS_COLORS = {
   SUSPENDED: '#fd7e14'
 };
 
+const STATUS_LABELS = { ACTIVE: 'Aktif', INACTIVE: 'Nonaktif', BLACKLIST: 'Blacklist', SUSPENDED: 'Ditangguhkan' };
+
 const CustomerStatusBadge = ({ status }) => {
   const color = STATUS_COLORS[(status || '').toUpperCase()] || '#6c757d';
   return (
@@ -19,7 +21,7 @@ const CustomerStatusBadge = ({ status }) => {
       color: '#fff',
       backgroundColor: color
     }}>
-      {status}
+      {STATUS_LABELS[(status || '').toUpperCase()] || status}
     </span>
   );
 };

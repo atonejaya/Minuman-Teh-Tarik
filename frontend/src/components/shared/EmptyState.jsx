@@ -1,7 +1,7 @@
 import React from 'react';
 import './EmptyState.css';
 
-const EmptyState = ({ title = 'No Data Found', message = 'There is nothing to display here at the moment.', icon = '📭' }) => {
+const EmptyState = ({ title = 'Tidak Ada Data', message = 'Saat ini tidak ada data yang dapat ditampilkan.', icon = '📭' }) => {
   return (
     <div className="shared-state-container empty-state">
       <div className="state-icon">{icon}</div>

@@ -7,6 +7,8 @@ import CustomerFinancialTab from '../components/tabs/CustomerFinancialTab';
 import CustomerTransactionsTab from '../components/tabs/CustomerTransactionsTab';
 import CustomerActivityTab from '../components/tabs/CustomerActivityTab';
 
+const STATUS_LABELS = { ACTIVE: 'Aktif', INACTIVE: 'Nonaktif', BLACKLIST: 'Blacklist', SUSPENDED: 'Ditangguhkan' };
+
 const CustomerDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -14,28 +16,34 @@ const CustomerDetail = () => {
 
   const { data: profile, loading, error } = useCustomer(id);
 
-  if (loading) return <div style={{ padding: 'var(--spacing-xl)' }}>Loading customer data...</div>;
-  if (!profile) return <div style={{ padding: 'var(--spacing-xl)' }}>Customer Not Found</div>;
+  if (loading) return <p className="empty-hint">Memuat data pelanggan...</p>;
+  if (error) return <div className="alert-error">{error}</div>;
+  if (!profile) return <p className="empty-hint">Pelanggan tidak ditemukan</p>;
 
   const tabs = [
-    { id: 'overview', label: 'Overview', component: <CustomerOverviewTab customer={profile} /> },
-    { id: 'financial', label: 'Financial', component: <CustomerFinancialTab customer={profile} /> },
-    { id: 'transactions', label: 'Transactions', component: <CustomerTransactionsTab customer={profile} /> },
-    { id: 'activity', label: 'Activity', component: <CustomerActivityTab customer={profile} /> }
+    { id: 'overview', label: 'Ringkasan', component: <CustomerOverviewTab customer={profile} /> },
+    { id: 'financial', label: 'Keuangan', component: <CustomerFinancialTab customer={profile} /> },
+    { id: 'transactions', label: 'Transaksi', component: <CustomerTransactionsTab customer={profile} /> },
+    { id: 'activity', label: 'Aktivitas', component: <CustomerActivityTab customer={profile} /> }
   ];
 
   return (
     <EntityDetailPage
-      headerProps={{
-        title: profile.name,
-        subtitle: `${profile.address}, ${profile.city}`,
-        badge: profile.code,
-        onEdit: () => navigate(`/customers/${id}/edit`)
-      }}
+      title={profile.name}
+      summary={
+        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+          <span><strong>Kode:</strong> {profile.code || '-'}</span>
+          <span><strong>Area:</strong> {profile.area?.name || '-'}</span>
+          <span><strong>Rute:</strong> {profile.route?.name || '-'}</span>
+          <span><strong>Status:</strong> <span className="badge badge-success">{STATUS_LABELS[(profile.status || 'ACTIVE').toUpperCase()] || profile.status || 'Aktif'}</span></span>
+        </div>
+      }
       tabs={tabs}
       activeTab={activeTab}
       onTabChange={setActiveTab}
-      error={error}
+      actions={{
+        left: [{ label: 'Ubah', variant: 'primary', onClick: () => navigate(`/customers/${id}/edit`) }],
+      }}
     />
   );
 };

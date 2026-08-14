@@ -1,41 +1,71 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api.js';
+import { supabase } from '../utils/supabase';
 
 const AuthContext = createContext();
+
+const translateAuthError = (message) => {
+  const msg = message || '';
+  if (/invalid login credentials|invalid credentials/i.test(msg)) return 'Username atau password salah';
+  if (/not authenticated/i.test(msg)) return 'Tidak terautentikasi';
+  if (/email not confirmed/i.test(msg)) return 'Email belum dikonfirmasi';
+  if (/too many requests/i.test(msg)) return 'Terlalu banyak percobaan. Silakan coba lagi nanti.';
+  return msg;
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        fetchProfile(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        fetchProfile(session.user.id);
+      } else {
+        setUser(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (username, password) => {
-    const { data } = await api.post('/auth/login', { username, password });
-    if (data.success && data.data.token) {
-      localStorage.setItem('token', data.data.token);
-      localStorage.setItem('user', JSON.stringify(data.data.user));
-      setUser(data.data.user);
-      return true;
+  const fetchProfile = async (authId) => {
+    const { data } = await supabase.from('User').select('*').eq('auth_id', authId).single();
+    if (data) {
+      setUser(data);
     }
-    return false;
+    setLoading(false);
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
+  const login = async (username, password) => {
+    const email = username.includes('@') ? username : `${username}@tehtarik.local`;
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
+    if (error) {
+      error.message = translateAuthError(error.message);
+      throw error;
+    }
+    return true;
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
   };
 
   return (
     <AuthContext.Provider value={{ user, login, logout, loading }}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

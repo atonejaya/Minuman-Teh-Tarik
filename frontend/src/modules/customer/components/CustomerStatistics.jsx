@@ -5,12 +5,12 @@ const CustomerStatistics = ({ data }) => {
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)' }}>
-      <StatCard label="Outstanding" value={`Rp ${Number(data.outstanding || 0).toLocaleString('id-ID')}`} color="var(--color-danger)" />
-      <StatCard label="Lifetime Value" value={`Rp ${Number(data.lifetime_value || 0).toLocaleString('id-ID')}`} color="var(--color-primary)" />
-      <StatCard label="Total Invoices" value={data.total_invoice || 0} />
-      <StatCard label="Total Payment" value={`Rp ${Number(data.total_payment || 0).toLocaleString('id-ID')}`} />
-      <StatCard label="Total Return" value={`Rp ${Number(data.total_return || 0).toLocaleString('id-ID')}`} />
-      <StatCard label="Avg. Invoice" value={`Rp ${Number(data.average_invoice || 0).toLocaleString('id-ID')}`} />
+      <StatCard label="Sisa" value={`Rp ${Number(data.outstanding || 0).toLocaleString('id-ID')}`} color="var(--color-danger)" />
+      <StatCard label="Nilai Kumulatif" value={`Rp ${Number(data.lifetime_value || 0).toLocaleString('id-ID')}`} color="var(--color-primary)" />
+      <StatCard label="Total Faktur" value={data.total_invoice || 0} />
+      <StatCard label="Total Pembayaran" value={`Rp ${Number(data.total_payment || 0).toLocaleString('id-ID')}`} />
+      <StatCard label="Total Retur" value={`Rp ${Number(data.total_return || 0).toLocaleString('id-ID')}`} />
+      <StatCard label="Rata-rata Faktur" value={`Rp ${Number(data.average_invoice || 0).toLocaleString('id-ID')}`} />
     </div>
   );
 };

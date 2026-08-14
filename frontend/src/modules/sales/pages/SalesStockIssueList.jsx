@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EntityListPage from '../../../components/entity/EntityListPage';
 import SalesStockIssueRepository from '../../../repositories/SalesStockIssueRepository';
+import { useToast } from '../../../components/toast/ToastContext';
 
 const STATUS_COLORS = {
   DRAFT: '#6c757d',
@@ -9,15 +10,21 @@ const STATUS_COLORS = {
   CLOSED: '#198754'
 };
 
+const STATUS_LABELS = {
+  DRAFT: 'Draft',
+  CONFIRMED: 'Terkonfirmasi',
+  CLOSED: 'Ditutup'
+};
+
 const cell = { padding: '12px 16px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
 
 const SalesStockIssueTable = ({ data, loading, onView, onConfirm, onClose }) => {
   if (loading) {
-    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</p>;
+    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat...</p>;
   }
 
   if (!data || data.length === 0) {
-    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>No sales stock issues found.</p>;
+    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Tidak ada mutasi stok.</p>;
   }
 
   return (
@@ -25,13 +32,13 @@ const SalesStockIssueTable = ({ data, loading, onView, onConfirm, onClose }) => 
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
         <thead style={{ backgroundColor: 'var(--background)' }}>
           <tr>
-            <th style={cell}>Issue Number</th>
-            <th style={cell}>Date</th>
+            <th style={cell}>No. Mutasi</th>
+            <th style={cell}>Tanggal</th>
             <th style={cell}>Sales</th>
-            <th style={cell}>Warehouse</th>
+            <th style={cell}>Gudang</th>
             <th style={cell}>Total Qty</th>
             <th style={cell}>Status</th>
-            <th style={cell}>Actions</th>
+            <th style={cell}>Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -52,21 +59,21 @@ const SalesStockIssueTable = ({ data, loading, onView, onConfirm, onClose }) => 
                   color: '#fff',
                   backgroundColor: STATUS_COLORS[item.status] || '#6c757d'
                 }}>
-                  {item.status}
+                  {STATUS_LABELS[item.status] || item.status}
                 </span>
               </td>
               <td style={cell}>
                 <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px' }} onClick={() => onView(item.id)}>
-                  View
+                  Lihat
                 </button>
                 {item.status === 'DRAFT' && (
                   <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--success)', color: '#fff' }} onClick={() => onConfirm(item.id)}>
-                    Confirm
+                    Konfirmasi
                   </button>
                 )}
                 {item.status === 'CONFIRMED' && (
                   <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', backgroundColor: 'var(--secondary)', color: '#fff' }} onClick={() => onClose(item.id)}>
-                    Close
+                    Tutup
                   </button>
                 )}
               </td>
@@ -80,6 +87,7 @@ const SalesStockIssueTable = ({ data, loading, onView, onConfirm, onClose }) => 
 
 const SalesStockIssueList = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -105,26 +113,28 @@ const SalesStockIssueList = () => {
   const handleConfirm = async (id) => {
     try {
       await SalesStockIssueRepository.confirmSalesStockIssue(id);
+      toast.success('Mutasi stok berhasil dikonfirmasi.');
       fetchIssues();
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to confirm sales stock issue');
+      toast.error(error.message || 'Gagal mengonfirmasi mutasi stok');
     }
   };
 
   const handleClose = async (id) => {
     try {
       await SalesStockIssueRepository.closeSalesStockIssue(id);
+      toast.success('Mutasi stok berhasil ditutup.');
       fetchIssues();
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to close sales stock issue');
+      toast.error(error.message || 'Gagal menutup mutasi stok');
     }
   };
 
   return (
     <EntityListPage
-      title="Sales Stock Issues"
+      title="Mutasi Stok"
       actions={{
-        left: [{ label: '+ New Sales Stock Issue', variant: 'primary', onClick: () => navigate('/sales/stock-issues/new') }]
+        left: [{ label: '+ Tambah Mutasi Stok', variant: 'primary', onClick: () => navigate('/sales/stock-issues/new') }]
       }}
       table={(props) => (
         <SalesStockIssueTable

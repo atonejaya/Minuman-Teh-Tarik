@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import Skeleton from './Skeleton.jsx';
 
-export default function DataTable({ columns, data, loading, emptyMessage = 'No data available' }) {
+export default function DataTable({ columns, data, loading, emptyMessage = 'Tidak ada data' }) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const limit = 10;
@@ -24,7 +24,7 @@ export default function DataTable({ columns, data, loading, emptyMessage = 'No d
           <input 
             className="form-input" 
             style={{ paddingLeft: '36px', height: '36px' }}
-            placeholder="Search..." 
+            placeholder="Cari..." 
             value={search} 
             onChange={e => { setSearch(e.target.value); setPage(1); }}
           />
@@ -76,7 +76,7 @@ export default function DataTable({ columns, data, loading, emptyMessage = 'No d
       
       <div style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--background)' }}>
         <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-          Showing {filteredData.length === 0 ? 0 : (page - 1) * limit + 1} to {Math.min(page * limit, filteredData.length)} of {filteredData.length} entries
+          Menampilkan {filteredData.length === 0 ? 0 : (page - 1) * limit + 1} sampai {Math.min(page * limit, filteredData.length)} dari {filteredData.length} entri
         </span>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button className="btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '4px 8px', background: 'var(--surface)', border: '1px solid var(--border)' }}>

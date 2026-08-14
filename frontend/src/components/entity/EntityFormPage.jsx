@@ -4,7 +4,7 @@ const EntityFormPage = ({ title, form: FormComponent, onSubmit, onCancel, initia
   return (
     <div className="entity-form-page">
       <div className="page-header mb-4">
-        <h2>{title || 'Entity Form'}</h2>
+        <h2>{title || 'Form Entitas'}</h2>
       </div>
       
       <div className="form-container card">
@@ -12,7 +12,7 @@ const EntityFormPage = ({ title, form: FormComponent, onSubmit, onCancel, initia
           {FormComponent ? (
             <FormComponent initialData={initialData} onSubmit={onSubmit} onCancel={onCancel} />
           ) : (
-            <p className="text-muted">No form component provided.</p>
+            <p className="text-muted">Komponen form tidak tersedia.</p>
           )}
         </div>
       </div>

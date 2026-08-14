@@ -1,45 +1,38 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useProduct } from '../hooks/useProduct';
+import { useMasterLookupContext } from '../../../contexts/MasterLookupContext';
 import ProductForm from '../components/ProductForm';
 import EntityFormPage from '../../../components/entity/EntityFormPage';
-import { useProduct } from '../hooks/useProduct';
-import { useMasterLookups } from '../hooks/useMasterLookups';
+import { useToast } from '../../../components/toast/ToastContext';
 
 const ProductFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const isEditMode = Boolean(id);
 
-  const { 
-    product, 
-    isLoading: productLoading, 
-    error: productError, 
-    createProduct, 
-    updateProduct 
-  } = useProduct(id);
-  
-  const { 
-    lookups, 
-    isLoading: lookupsLoading, 
-    error: lookupsError 
-  } = useMasterLookups();
+  const { data: initialData, loading: dataLoading, error: loadError, createProduct, updateProduct } = useProduct(id);
+  const { lookups, loading: lookupsLoading } = useMasterLookupContext();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
-  const isLoading = (isEditMode && productLoading) || lookupsLoading;
-  const error = productError || lookupsError;
+  const isLoading = (isEditMode && dataLoading) || lookupsLoading;
 
   const handleSubmit = async (formData) => {
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       if (isEditMode) {
         await updateProduct(id, formData);
       } else {
         await createProduct(formData);
       }
+      toast.success('Data produk berhasil disimpan');
       navigate('/products');
     } catch (err) {
-      console.error('Failed to save product:', err);
+      setSubmitError(err.message || 'Gagal menyimpan produk');
     } finally {
       setIsSubmitting(false);
     }
@@ -51,23 +44,26 @@ const ProductFormPage = () => {
 
   return (
     <EntityFormPage
-      headerProps={{
-        title: isEditMode ? 'Edit Product' : 'Create New Product',
-        description: isEditMode 
-            ? 'Update the details and configurations of your existing product.' 
-            : 'Fill in the details to add a new product to your inventory system.'
+      title={isEditMode ? 'Ubah Produk' : 'Buat Produk Baru'}
+      form={({ onCancel }) => {
+        if (isLoading) {
+          return <p className="empty-hint">Memuat...</p>;
+        }
+        if (loadError) {
+          return <div className="alert-error">{loadError}</div>;
+        }
+        return (
+          <ProductForm
+            initialData={isEditMode ? initialData : null}
+            lookups={lookups || {}}
+            onSubmit={handleSubmit}
+            onCancel={onCancel || handleCancel}
+            isSubmitting={isSubmitting}
+            submitError={submitError}
+          />
+        );
       }}
-      loading={isLoading}
-      error={error}
-      formComponent={
-        <ProductForm
-          initialData={isEditMode ? product : null}
-          lookups={lookups}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          isSubmitting={isSubmitting}
-        />
-      }
+      onCancel={handleCancel}
     />
   );
 };

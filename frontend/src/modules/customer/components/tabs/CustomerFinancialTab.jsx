@@ -6,7 +6,7 @@ import { useCustomerDashboard } from '../../hooks/useCustomerDashboard';
 const CustomerFinancialTab = ({ customer }) => {
   const { data: dashboard, loading } = useCustomerDashboard(customer?.id);
 
-  if (loading) return <div>Loading dashboard...</div>;
+  if (loading) return <div>Memuat dashboard...</div>;
 
   return (
     <div>

@@ -1,85 +1,158 @@
-import React, { useState, useEffect } from 'react';
-import './ProductDetail.css';
-import ProductProfileTab from '../components/ProductProfileTab';
-import ProductInventoryTab from '../components/ProductInventoryTab';
-import ProductPricingTab from '../components/ProductPricingTab';
-import ProductDashboardTab from '../components/ProductDashboardTab';
-import ProductActivityTab from '../components/ProductActivityTab';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useProduct } from '../hooks/useProduct';
 import EntityDetailPage from '../../../components/entity/EntityDetailPage';
+import { supabase } from '../../../utils/supabase';
+import { formatRupiah, formatDate } from '../../../utils/format';
 
-// Mock hook for useProduct - replace with actual hook later
-const useProduct = (productId) => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const CELL = { padding: '10px 12px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
+const TH = { ...CELL, fontSize: '13px', color: 'var(--text-muted)' };
+const PAYMENT_LABELS = { PAID: 'Lunas', PARTIAL: 'Sebagian', UNPAID: 'Belum Lunas', COMPLETED: 'Selesai', CANCELLED: 'Dibatalkan' };
 
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setData({
-        id: productId,
-        name: 'Teh Tarik Premium',
-        status: 'Active',
-        sku: 'TT-PR-001',
-        barcode: '8991234567890',
-        category: 'Beverage',
-        brand: 'Teh Tarik',
-        supplier: 'PT Minuman Segar',
-        inventory: {
-          current_stock: 450,
-          available: 400,
-          reserved: 50,
-          incoming: 100,
-          outgoing: 20,
-          damaged: 5,
-          returned: 2
-        },
-        dashboard: {
-          revenue: 15000000,
-          cost: 8000000,
-          margin: 7000000,
-          profit_percent: 46.67,
-          turnover: 12
-        },
-        activities: [
-          { id: 1, type: 'Stock Adjusted', date: '2026-08-01T10:00:00Z', desc: 'Added 100 units from Supplier' },
-          { id: 2, type: 'Price Changed', date: '2026-07-15T08:30:00Z', desc: 'Base price updated to Rp 15.000' }
-        ]
-      });
-      setLoading(false);
-    }, 800);
-  }, [productId]);
-
-  return { product: data, loading, error };
+const OverviewTab = ({ product }) => {
+  const rows = [
+    ['SKU / Kode', product.sku || product.code || '-'],
+    ['Barcode', product.barcode || '-'],
+    ['Kategori', product.category?.name || '-'],
+    ['Merek', product.brand?.name || '-'],
+    ['Satuan', product.unit?.name || '-'],
+    ['Pemasok', product.supplier?.name || '-'],
+    ['Kemasan', product.packaging?.name || '-'],
+    ['Pajak', product.tax ? `${product.tax.name} (${product.tax.rate ?? 0}%)` : '-'],
+    ['Gudang', product.warehouse?.name || '-'],
+    ['Deskripsi', product.description || '-'],
+  ];
+  return (
+    <div className="card-custom" style={{ maxWidth: '640px', padding: '20px' }}>
+      {rows.map(([label, value]) => (
+        <div key={label} className="summary-row">
+          <span>{label}</span>
+          <span style={{ fontWeight: '600' }}>{value}</span>
+        </div>
+      ))}
+    </div>
+  );
 };
 
-const ProductDetail = ({ productId = '1' }) => {
-  const { product, loading, error } = useProduct(productId);
-  const [activeTab, setActiveTab] = useState('Profile');
+const PricingStockTab = ({ product }) => {
+  const rows = [
+    ['Harga Modal', formatRupiah(product.cost_price)],
+    ['Stok Minimum', product.minimum_stock ?? '-'],
+    ['Stok Maksimum', product.maximum_stock ?? '-'],
+    ['Level Restok', product.reorder_level ?? '-'],
+    ['Masa Simpan (hari)', product.shelf_life_days ?? '-'],
+    ['Volume', product.volume ?? '-'],
+    ['Berat (gram)', product.weight ?? '-'],
+    ['Konsinyasi', product.is_consignment ? 'Ya' : 'Tidak'],
+    ['Dapat Dijual', product.is_sellable ? 'Ya' : 'Tidak'],
+    ['Dapat Dibeli', product.is_purchasable ? 'Ya' : 'Tidak'],
+    ['Status', product.is_active ? 'Aktif' : 'Nonaktif'],
+  ];
+  return (
+    <div className="card-custom" style={{ maxWidth: '640px', padding: '20px' }}>
+      {rows.map(([label, value]) => (
+        <div key={label} className="summary-row">
+          <span>{label}</span>
+          <span style={{ fontWeight: '600' }}>{value}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
-  if (loading) return <div>Loading product details...</div>;
-  if (error) return <div>Error loading product: {error.message}</div>;
-  if (!product) return <div>Product not found.</div>;
+const HistoryTab = ({ productId }) => {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('SalesTransactionItem')
+          .select('qty, selling_price, discount, sales_transaction:SalesTransaction(id, code, created_at, payment_status, warung:Warung(name))')
+          .eq('product_id', productId)
+          .order('sales_transaction(created_at)', { ascending: false })
+          .limit(20);
+        if (error) throw error;
+        if (mounted) setItems(data || []);
+      } catch (err) {
+        console.error('Failed to load product sales history', err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    load();
+    return () => { mounted = false; };
+  }, [productId]);
+
+  if (loading) return <p className="empty-hint">Memuat...</p>;
+  if (items.length === 0) return <p className="empty-hint">Belum ada transaksi penjualan untuk produk ini.</p>;
+
+  return (
+    <div className="card-custom">
+      <h5 style={{ margin: 0, padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>Riwayat Penjualan (20 terakhir)</h5>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead style={{ backgroundColor: 'var(--background)' }}>
+            <tr>
+              <th style={TH}>Tanggal</th>
+              <th style={TH}>Faktur</th>
+              <th style={TH}>Warung</th>
+              <th style={TH}>Qty</th>
+              <th style={TH}>Harga</th>
+              <th style={TH}>Subtotal</th>
+              <th style={TH}>Status Bayar</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((it, i) => (
+              <tr key={i}>
+                <td style={CELL}>{formatDate(it.sales_transaction?.created_at)}</td>
+                <td style={{ ...CELL, fontWeight: '500' }}>{it.sales_transaction?.code || '-'}</td>
+                <td style={CELL}>{it.sales_transaction?.warung?.name || '-'}</td>
+                <td style={CELL}>{it.qty}</td>
+                <td style={CELL}>{formatRupiah(it.selling_price)}</td>
+                <td style={{ ...CELL, fontWeight: '600' }}>{formatRupiah(it.selling_price * it.qty)}</td>
+                <td style={CELL}>{PAYMENT_LABELS[it.sales_transaction?.payment_status] || it.sales_transaction?.payment_status || '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const ProductDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { data: product, loading, error } = useProduct(id);
+
+  if (loading) return <p className="empty-hint">Memuat detail produk...</p>;
+  if (error) return <div className="alert-error">{error}</div>;
+  if (!product) return <p className="empty-hint">Produk tidak ditemukan.</p>;
 
   const tabs = [
-    { id: 'Profile', label: 'Profile', component: <ProductProfileTab product={product} /> },
-    { id: 'Inventory', label: 'Inventory', component: <ProductInventoryTab inventory={product.inventory} /> },
-    { id: 'Pricing', label: 'Pricing', component: <ProductPricingTab productId={product.id} /> },
-    { id: 'Dashboard', label: 'Dashboard', component: <ProductDashboardTab dashboard={product.dashboard} /> },
-    { id: 'Activity', label: 'Activity', component: <ProductActivityTab activities={product.activities} /> }
+    { id: 'overview', label: 'Profil', component: <OverviewTab product={product} /> },
+    { id: 'pricing', label: 'Harga & Stok', component: <PricingStockTab product={product} /> },
+    { id: 'history', label: 'Riwayat Penjualan', component: <HistoryTab productId={product.id} /> },
   ];
 
   return (
     <EntityDetailPage
-      headerProps={{
-        title: product.name,
-        badge: product.status,
-        onEdit: () => {}
-      }}
+      title={product.name}
+      summary={
+        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+          <span><strong>SKU:</strong> {product.sku || '-'}</span>
+          <span><strong>Kategori:</strong> {product.category?.name || '-'}</span>
+          <span><strong>Status:</strong> <span className={`badge ${product.is_active ? 'badge-success' : 'badge-muted'}`}>{product.is_active ? 'Aktif' : 'Nonaktif'}</span></span>
+        </div>
+      }
       tabs={tabs}
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-      error={error}
+      actions={{
+        left: [{ label: 'Ubah', variant: 'primary', onClick: () => navigate(`/products/${product.id}/edit`) }],
+      }}
     />
   );
 };

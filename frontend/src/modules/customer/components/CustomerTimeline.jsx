@@ -4,7 +4,7 @@ const CustomerTimeline = ({ events }) => {
   if (!events || events.length === 0) {
     return (
       <div style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-text-tertiary)' }}>
-        No timeline activity found.
+        Tidak ada aktivitas yang ditemukan.
       </div>
     );
   }
@@ -74,7 +74,7 @@ const getTimelineColor = (type) => {
 
 const formatDate = (dateStr) => {
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const formatCurrency = (amount) => {
