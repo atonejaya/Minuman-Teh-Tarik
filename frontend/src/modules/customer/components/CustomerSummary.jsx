@@ -22,9 +22,9 @@ const CustomerSummary = ({ data }) => {
         <SummaryItem label="Nama Toko" value={data.name} />
         <SummaryItem label="Pemilik" value={data.owner_name} />
         <SummaryItem label="No. HP" value={data.phone} />
-        <SummaryItem label="Sales" value={data.assignedSales?.name || '-'} />
-        <SummaryItem label="Area" value={data.area?.name || '-'} />
-        <SummaryItem label="Rute" value={data.route?.name || '-'} />
+        <SummaryItem label="Sales" value={Array.isArray(data.User) ? data.User[0]?.name : data.User?.name || data.assignedSales?.name || '-'} />
+        <SummaryItem label="Area" value={Array.isArray(data.Area) ? data.Area[0]?.name : data.Area?.name || data.area?.name || '-'} />
+        <SummaryItem label="Rute" value={Array.isArray(data.Route) ? data.Route[0]?.name : data.Route?.name || data.route?.name || '-'} />
         <SummaryItem label="Limit Kredit" value={`Rp ${Number(data.credit_limit || 0).toLocaleString('id-ID')}`} />
         <SummaryItem label="Syarat Pembayaran" value={`${data.payment_term || 0} Hari`} />
       </div>

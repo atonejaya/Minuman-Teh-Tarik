@@ -33,8 +33,8 @@ const CustomerDetail = () => {
       summary={
         <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
           <span><strong>Kode:</strong> {profile.code || '-'}</span>
-          <span><strong>Area:</strong> {profile.area?.name || '-'}</span>
-          <span><strong>Rute:</strong> {profile.route?.name || '-'}</span>
+          <span><strong>Area:</strong> {Array.isArray(profile.Area) ? profile.Area[0]?.name : profile.Area?.name || profile.area?.name || '-'}</span>
+          <span><strong>Rute:</strong> {Array.isArray(profile.Route) ? profile.Route[0]?.name : profile.Route?.name || profile.route?.name || '-'}</span>
           <span><strong>Status:</strong> <span className="badge badge-success">{STATUS_LABELS[(profile.status || 'ACTIVE').toUpperCase()] || profile.status || 'Aktif'}</span></span>
         </div>
       }

@@ -16,7 +16,7 @@ const CustomerApiService = {
   },
 
   getCustomerById: async (id) => {
-    const { data, error } = await supabase.from('Warung').select('*, user:User(name)').eq('id', id).single();
+    const { data, error } = await supabase.from('Warung').select('*, User(name), Area(name), Route(name)').eq('id', id).single();
     if (error) throw error;
     return { success: true, data };
   },
