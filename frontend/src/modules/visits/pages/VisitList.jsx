@@ -116,9 +116,6 @@ const VisitList = () => {
           <h2>Rencana Kunjungan</h2>
           <p className="text-muted">{today}</p>
         </div>
-        <button className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }} onClick={() => navigate('/visits/new')}>
-          + Kunjungan Baru
-        </button>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}

@@ -60,7 +60,6 @@ const VisitWizard = () => {
   const [closingNote, setClosingNote] = useState('');
   const [checkOutPhoto, setCheckOutPhoto] = useState(null);
 
-  const [warungs, setWarungs] = useState([]);
 
   const warungId = useMemo(() => {
     if (warung) return warung.id;
@@ -122,15 +121,7 @@ const VisitWizard = () => {
           if (err) throw err;
           setWarung(data);
         } else {
-          const { data, error: err } = await supabase
-            .from('Warung')
-            .select('id, code, name, address')
-            .eq('status', 'ACTIVE')
-            .order('name');
-          if (!active) return;
-          if (err) throw err;
-          setWarungs(data || []);
-          if (active) setLoading(false);
+          if (active) navigate('/visits', { replace: true });
         }
       } catch (err) {
         if (active) setError(err.message);
@@ -339,27 +330,7 @@ const VisitWizard = () => {
 
       {error && <div className="alert-error">{error}</div>}
 
-      {!id && !warungId && (
-        <div className="wizard-card">
-          <h3>Pilih Warung untuk Dikunjungi</h3>
-          <p className="text-muted" style={{ marginBottom: '16px' }}>Anda memulai kunjungan tanpa jadwal. Silakan pilih warung.</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {warungs.map((w) => (
-              <button
-                key={w.id}
-                className="btn-secondary"
-                style={{ textAlign: 'left', padding: '12px' }}
-                onClick={() => navigate(`/visits/new?warung=${w.id}`, { replace: true })}
-              >
-                <strong>{w.name}</strong>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  <MapPin size={12} style={{ marginRight: '4px' }} /> {w.address}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+
 
       {step === 0 && warungId && (
         <div className="wizard-card">
