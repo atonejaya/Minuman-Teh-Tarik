@@ -73,6 +73,54 @@ const SalesStockIssueRepository = {
     return { data };
   },
 
+  async updateSalesStockIssue(id, payload) {
+    const items = payload.items && payload.items.length > 0 ? payload.items : [];
+    const totalQty = items.reduce((sum, i) => sum + (Number(i.qty) || 0), 0);
+
+    const { data: header, error: headerErr } = await supabase
+      .from('SalesStockIssue')
+      .update({
+        issue_date: payload.issue_date,
+        warehouse_id: payload.warehouse_id || null,
+        sales_id: payload.sales_id || null,
+        total_item: items.length,
+        total_qty: totalQty,
+        notes: payload.notes || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+    if (headerErr) throw headerErr;
+
+    const { error: delErr } = await supabase
+      .from('SalesStockIssueItem')
+      .delete()
+      .eq('issue_id', id);
+    if (delErr) throw delErr;
+
+    if (items.length > 0) {
+      const rows = items.map((i) => ({
+        issue_id: id,
+        product_id: i.product_id,
+        qty: Number(i.qty) || 0,
+        unit_id: i.unit_id || null,
+        remark: i.remark || null,
+      }));
+      const { error: itemsErr } = await supabase.from('SalesStockIssueItem').insert(rows);
+      if (itemsErr) throw itemsErr;
+    }
+
+    return { data: header };
+  },
+
+  async deleteSalesStockIssue(id) {
+    await supabase.from('SalesStockIssueItem').delete().eq('issue_id', id);
+    const { error } = await supabase.from('SalesStockIssue').delete().eq('id', id).eq('status', 'DRAFT');
+    if (error) throw error;
+    return { success: true };
+  },
+
   async closeSalesStockIssue(id) {
     const { data, error } = await supabase.rpc('sales_stock_issue_close', { p_issue_id: id });
     if (error) throw error;

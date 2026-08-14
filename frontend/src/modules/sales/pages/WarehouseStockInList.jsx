@@ -16,7 +16,7 @@ const STATUS_LABELS = {
 
 const cell = { padding: '12px 16px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
 
-const WarehouseStockInTable = ({ data, loading, onView, onConfirm }) => {
+const WarehouseStockInTable = ({ data, loading, onView, onEdit, onDelete, onConfirm }) => {
   if (loading) {
     return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat...</p>;
   }
@@ -63,9 +63,17 @@ const WarehouseStockInTable = ({ data, loading, onView, onConfirm }) => {
                   Lihat
                 </button>
                 {item.status === 'DRAFT' && (
-                  <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--success)', color: '#fff' }} onClick={() => onConfirm(item.id)}>
-                    Konfirmasi
-                  </button>
+                  <>
+                    <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--success)', color: '#fff' }} onClick={() => onConfirm(item.id)}>
+                      Konfirmasi
+                    </button>
+                    <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }} onClick={() => onEdit(item.id)}>
+                      Ubah
+                    </button>
+                    <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--error)', color: '#fff' }} onClick={() => { if(window.confirm('Hapus transaksi draft ini?')) onDelete(item.id); }}>
+                      Hapus
+                    </button>
+                  </>
                 )}
               </td>
             </tr>
@@ -111,6 +119,16 @@ const WarehouseStockInList = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    try {
+      await WarehouseStockInRepository.deleteStockIn(id);
+      toast.success('Draft barang masuk berhasil dihapus.');
+      fetchStockIns();
+    } catch (error) {
+      toast.error(error.message || 'Gagal menghapus draft barang masuk');
+    }
+  };
+
   return (
     <EntityListPage
       title="Barang Masuk (Produksi)"
@@ -122,6 +140,8 @@ const WarehouseStockInList = () => {
           {...props}
           loading={loading}
           onView={(id) => navigate(`/sales/stock-in/${id}`)}
+          onEdit={(id) => navigate(`/sales/stock-in/${id}/edit`)}
+          onDelete={handleDelete}
           onConfirm={handleConfirm}
         />
       )}

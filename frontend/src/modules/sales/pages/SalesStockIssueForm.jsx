@@ -21,10 +21,17 @@ const SalesStockIssueFormComponent = ({ onSubmit, onCancel }) => {
   
   const { id } = useParams();
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (id) {
       SalesStockIssueRepository.getSalesStockIssue(id).then(({ data }) => {
         if (data) {
+          if (data.status !== 'DRAFT') {
+            alert('Hanya mutasi stok DRAFT yang dapat diedit');
+            navigate('/sales/stock-issues');
+            return;
+          }
           setForm({
             warehouse_id: data.warehouse_id || '',
             sales_id: data.sales_id || '',
@@ -39,7 +46,7 @@ const SalesStockIssueFormComponent = ({ onSubmit, onCancel }) => {
         }
       });
     }
-  }, [id]);
+  }, [id, navigate]);
 
   useEffect(() => {
     const fetchProducts = async () => {

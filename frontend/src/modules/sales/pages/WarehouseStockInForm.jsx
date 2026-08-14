@@ -9,14 +9,29 @@ import { useToast } from '../../../components/toast/ToastContext';
 const labelStyle = { display: 'block', marginBottom: '8px', fontWeight: '500', color: 'var(--text-main)' };
 const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--surface)', color: 'var(--text-main)' };
 
-const WarehouseStockInFormComponent = ({ onSubmit, onCancel }) => {
+const WarehouseStockInFormComponent = ({ initialData, onSubmit, onCancel }) => {
   const { lookups } = useMasterLookupContext();
   const [products, setProducts] = useState([]);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(initialData || {
     warehouse_id: '',
     doc_date: new Date().toISOString().slice(0, 10),
     items: [{ product_id: '', qty: 1, unit_id: '', remark: '' }]
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        ...initialData,
+        doc_date: initialData.doc_date ? new Date(initialData.doc_date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+        items: initialData.items?.length > 0 ? initialData.items.map(i => ({
+          product_id: i.product_id,
+          qty: i.qty,
+          unit_id: i.unit_id || '',
+          remark: i.remark || ''
+        })) : [{ product_id: '', qty: 1, unit_id: '', remark: '' }]
+      });
+    }
+  }, [initialData]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -153,24 +168,58 @@ const WarehouseStockInFormComponent = ({ onSubmit, onCancel }) => {
   );
 };
 
+import { useParams } from 'react-router-dom';
+
 const WarehouseStockInForm = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const [initialData, setInitialData] = useState(null);
+  const [loading, setLoading] = useState(!!id);
+
+  useEffect(() => {
+    if (id) {
+      const fetchData = async () => {
+        try {
+          const result = await WarehouseStockInRepository.getStockIn(id);
+          if (result.data.status !== 'DRAFT') {
+            toast.error('Hanya dokumen DRAFT yang dapat diubah');
+            navigate('/sales/stock-in');
+            return;
+          }
+          setInitialData(result.data);
+        } catch (error) {
+          toast.error('Gagal memuat data');
+          navigate('/sales/stock-in');
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchData();
+    }
+  }, [id, navigate, toast]);
 
   const handleSubmit = async (formData) => {
     try {
-      await WarehouseStockInRepository.createStockIn(formData);
-      toast.success('Barang masuk berhasil dibuat.');
+      if (id) {
+        await WarehouseStockInRepository.updateStockIn(id, formData);
+        toast.success('Barang masuk berhasil diperbarui.');
+      } else {
+        await WarehouseStockInRepository.createStockIn(formData);
+        toast.success('Barang masuk berhasil dibuat.');
+      }
       navigate('/sales/stock-in');
     } catch (error) {
-      toast.error(error.message || 'Gagal membuat barang masuk');
+      toast.error(error.message || `Gagal ${id ? 'memperbarui' : 'membuat'} barang masuk`);
     }
   };
 
+  if (loading) return <p style={{ padding: '48px', textAlign: 'center' }}>Memuat...</p>;
+
   return (
     <EntityFormPage
-      title="Tambah Barang Masuk (Hasil Produksi)"
-      form={(props) => <WarehouseStockInFormComponent {...props} />}
+      title={id ? "Ubah Barang Masuk" : "Tambah Barang Masuk (Hasil Produksi)"}
+      form={(props) => <WarehouseStockInFormComponent initialData={initialData} {...props} />}
       onSubmit={handleSubmit}
       onCancel={() => navigate('/sales/stock-in')}
     />

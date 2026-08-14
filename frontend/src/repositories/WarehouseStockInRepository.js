@@ -71,6 +71,53 @@ const WarehouseStockInRepository = {
     if (error) throw error;
     return { data };
   },
+
+  async updateStockIn(id, payload) {
+    const items = payload.items && payload.items.length > 0 ? payload.items : [];
+    const totalQty = items.reduce((sum, i) => sum + (Number(i.qty) || 0), 0);
+
+    const { data: header, error: headerErr } = await supabase
+      .from('WarehouseStockIn')
+      .update({
+        doc_date: payload.doc_date,
+        warehouse_id: payload.warehouse_id || null,
+        total_qty: totalQty,
+        notes: payload.notes || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+    if (headerErr) throw headerErr;
+
+    const { error: delErr } = await supabase
+      .from('WarehouseStockInItem')
+      .delete()
+      .eq('stock_in_id', id);
+    if (delErr) throw delErr;
+
+    if (items.length > 0) {
+      const rows = items.map((i) => ({
+        stock_in_id: id,
+        product_id: i.product_id,
+        qty: Number(i.qty) || 0,
+        unit_id: i.unit_id || null,
+        remark: i.remark || null,
+      }));
+      const { error: itemsErr } = await supabase.from('WarehouseStockInItem').insert(rows);
+      if (itemsErr) throw itemsErr;
+    }
+
+    return { data: header };
+  },
+
+  async deleteStockIn(id) {
+    // Delete items first to maintain referential integrity (if no CASCADE)
+    await supabase.from('WarehouseStockInItem').delete().eq('stock_in_id', id);
+    const { error } = await supabase.from('WarehouseStockIn').delete().eq('id', id).eq('status', 'DRAFT');
+    if (error) throw error;
+    return { success: true };
+  },
 };
 
 export default WarehouseStockInRepository;

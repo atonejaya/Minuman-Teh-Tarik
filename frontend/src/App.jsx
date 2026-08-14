@@ -38,6 +38,7 @@ const AccountPage = lazy(() => import('./modules/account/pages/AccountPage.jsx')
 const AreaList = lazy(() => import('./modules/masterdata/pages/AreaList.jsx'));
 const AreaForm = lazy(() => import('./modules/masterdata/pages/AreaForm.jsx'));
 const RouteList = lazy(() => import('./modules/masterdata/pages/RouteList.jsx'));
+const WarehouseStockList = lazy(() => import('./modules/masterdata/pages/WarehouseStockList.jsx'));
 const RouteForm = lazy(() => import('./modules/masterdata/pages/RouteForm.jsx'));
 const SalesUserList = lazy(() => import('./modules/masterdata/pages/SalesUserList.jsx'));
 const SalesUserForm = lazy(() => import('./modules/masterdata/pages/SalesUserForm.jsx'));
@@ -138,7 +139,9 @@ function App() {
               <Route path="sales/stock-issues/:id" element={<SalesStockIssueDetail />} />
               <Route path="sales/stock-in" element={<WarehouseStockInList />} />
               <Route path="sales/stock-in/new" element={<WarehouseStockInForm />} />
+              <Route path="sales/stock-in/:id/edit" element={<WarehouseStockInForm />} />
               <Route path="sales/stock-in/:id" element={<WarehouseStockInDetail />} />
+              <Route path="warehouse-stock" element={<WarehouseStockList />} />
               <Route path="sales/transactions" element={<SalesTransactionList />} />
               <Route path="sales/transactions/new" element={<SalesTransactionFormPage />} />
               <Route path="sales/transactions/:id" element={<SalesTransactionDetail />} />

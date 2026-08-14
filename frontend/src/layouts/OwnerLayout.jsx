@@ -49,6 +49,7 @@ const OwnerLayout = () => {
   ];
 
   const operasionalItems = [
+    { to: '/warehouse-stock', label: 'Stok Gudang', icon: Package },
     { to: '/sales/stock-in', label: 'Barang Masuk', icon: Package },
     { to: '/sales/stock-issues', label: 'Pengeluaran Stok', icon: Truck },
     { to: '/sales/transactions', label: 'Transaksi', icon: Receipt },
