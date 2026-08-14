@@ -30,8 +30,8 @@ const ParStockForm = () => {
     { name: 'warung_id', label: 'Warung', type: 'select', options: warungs.map((w) => ({ value: w.id, label: w.name })), required: true },
     { name: 'product_id', label: 'Produk', type: 'select', options: products.map((p) => ({ value: p.id, label: p.name })), required: true },
     { name: 'par_qty', label: 'Stok Normal', type: 'number', required: true },
-    { name: 'min_qty', label: 'Stok Minimum', type: 'number' },
-    { name: 'max_qty', label: 'Stok Maksimum', type: 'number' },
+    { name: 'min_qty', label: 'Stok Minimum', type: 'number', required: true },
+    { name: 'max_qty', label: 'Stok Maksimum', type: 'number', required: true },
     { name: 'priority', label: 'Prioritas', type: 'number' },
     { name: 'is_active', label: 'Aktif', type: 'checkbox', default: true },
   ];
