@@ -15,6 +15,7 @@ const statusLabels = {
   RECEIVED: 'Diterima',
   PAID: 'Lunas',
   PARTIAL: 'Sebagian',
+  PARTIALLY_PAID: 'Dibayar Sebagian',
   UNPAID: 'Belum Lunas',
   CHECKED_IN: 'Check-in',
   STOCK_COUNTED: 'Stok Dihitung',
@@ -41,7 +42,8 @@ const StatusBadge = ({ status }) => {
       case 'CANCELLED': return 'danger';
       case 'DRAFT':
       case 'PENDING':
-      case 'PARTIAL': return 'warning';
+      case 'PARTIAL':
+      case 'PARTIALLY_PAID': return 'warning';
       case 'COMPLETED':
       case 'CHECKED_IN':
       case 'STOCK_COUNTED':
