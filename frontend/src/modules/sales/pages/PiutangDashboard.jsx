@@ -101,12 +101,28 @@ const PiutangDashboard = () => {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const { data, error } = await supabase
-          .from('AccountsReceivableProjection')
-          .select('invoice_number, customer_name, outstanding_amount, due_date, aging_days, status, last_visit_date')
-          .limit(5000);
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const [{ data, error }, visitRes] = await Promise.all([
+          supabase
+            .from('AccountsReceivableProjection')
+            .select('invoice_number, customer_name, outstanding_amount, due_date, status')
+            .gt('outstanding_amount', 0)
+            .limit(5000),
+          supabase.from('CustomerARProjection').select('customer_code, last_visit_date'),
+        ]);
         if (error) throw error;
-        setMetrics(computeMetrics(data || []));
+
+        const visitMap = {};
+        for (const row of visitRes?.data || []) visitMap[row.customer_code] = row.last_visit_date;
+
+        const enriched = (data || []).map((r) => ({
+          ...r,
+          aging_days: r.due_date
+            ? Math.max(0, Math.floor((new Date(todayStr) - new Date(String(r.due_date).slice(0, 10))) / 86400000))
+            : 0,
+          last_visit_date: visitMap[r.customer_code] || null,
+        }));
+        setMetrics(computeMetrics(enriched));
       } catch (err) {
         console.error('Failed to fetch piutang metrics', err);
         setError(err.message || 'Gagal memuat data piutang');

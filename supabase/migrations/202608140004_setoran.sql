@@ -156,12 +156,14 @@ end;
 $$;
 
 drop function if exists public.sales_setoran_verify(integer, text, text, text);
+drop function if exists public.sales_setoran_verify(integer, text, text, text, numeric);
 
 create or replace function public.sales_setoran_verify(
   p_collection_id   integer,
   p_result          text,
   p_failure_reason  text default null,
-  p_notes           text default null
+  p_notes           text default null,
+  p_received_amount numeric default null
 )
 returns jsonb
 language plpgsql
@@ -171,6 +173,10 @@ as $$
 declare
   v_user_id  int := public.current_user_id();
   v_status   text;
+  v_total    numeric;
+  v_received numeric;
+  v_running  numeric := 0;
+  v_item     record;
 begin
   if public.current_user_role() <> 'OWNER' then
     raise exception 'Only OWNER can verify setoran';
@@ -187,6 +193,21 @@ begin
     raise exception 'Collection % not found or not pending', p_collection_id;
   end if;
 
+  select coalesce(sum(i.payment_amount), 0)
+    into v_total
+  from public."CollectionItem" i
+  where i.collection_id = p_collection_id;
+
+  v_received := coalesce(p_received_amount, v_total);
+
+  if p_result = 'PARTIAL' then
+    if v_received >= v_total then
+      p_result := 'FULL';
+    elsif v_received <= 0 then
+      raise exception 'Received amount must be greater than 0 and less than total for PARTIAL result';
+    end if;
+  end if;
+
   if p_result = 'NONE' then
     v_status := 'FAILED';
   else
@@ -201,15 +222,48 @@ begin
          updated_at = now()
    where id = p_collection_id;
 
-  update public."Payment"
-     set collected_by = v_user_id
-   where collection_id = p_collection_id;
+  if p_result = 'NONE' then
+    update public."Payment"
+       set collection_id = null
+     where collection_id = p_collection_id;
+  else
+    if p_result = 'PARTIAL' then
+      for v_item in
+        select i.id, i.payment_amount, i.sales_transaction_id
+        from public."CollectionItem" i
+        where i.collection_id = p_collection_id
+        order by i.id
+      loop
+        if v_running + v_item.payment_amount <= v_received then
+          v_running := v_running + v_item.payment_amount;
+        else
+          update public."Payment" p
+             set collection_id = null
+           where p.collection_id = p_collection_id
+             and p.transaction_id in (
+               select i2.sales_transaction_id
+               from public."CollectionItem" i2
+               where i2.collection_id = p_collection_id and i2.id >= v_item.id
+             );
+          delete from public."CollectionItem"
+           where collection_id = p_collection_id and id >= v_item.id;
+          exit;
+        end if;
+      end loop;
+    end if;
+
+    update public."Payment"
+       set collected_by = v_user_id
+     where collection_id = p_collection_id;
+  end if;
 
   return jsonb_build_object(
     'success', true,
     'collection_id', p_collection_id,
     'status', v_status,
-    'result', p_result
+    'result', p_result,
+    'total_amount', v_total,
+    'received_amount', case when p_result = 'PARTIAL' then v_received else v_total end
   );
 exception
   when others then

@@ -96,7 +96,7 @@ const OwnerLayout = () => {
           <div className="owner-user-chip">
             <div>
               <div className="owner-user-name">{user?.name}</div>
-              <div className="owner-user-role">OWNER</div>
+              <div className="owner-user-role">{user?.role || 'OWNER'}</div>
             </div>
             <button onClick={handleLogout} className="owner-logout-btn" title="Keluar">
               <LogOut size={16} />

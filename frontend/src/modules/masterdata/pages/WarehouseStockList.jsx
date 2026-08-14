@@ -58,7 +58,7 @@ const WarehouseStockList = () => {
         .select(`
           *,
           warehouse:Warehouse(name),
-          product:Product(code, name, category:Category(name))
+          product:Product(code, name, category:ProductCategory(name))
         `, { count: 'exact' })
         .order('warehouse_id')
         .range((page - 1) * pageSize, page * pageSize - 1);

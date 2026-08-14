@@ -8,7 +8,7 @@ export default function Dashboard() {
   if (!user) return <div>Memuat konteks pengguna...</div>;
 
   if (user.role === 'SALES') return <SalesDashboard user={user} />;
-  if (user.role === 'OWNER') return <OwnerDashboard user={user} />;
+  if (user.role === 'OWNER' || user.role === 'ADMIN') return <OwnerDashboard user={user} />;
 
   return (
     <div>

@@ -44,7 +44,7 @@ const ReportsPage = () => {
           .select('id, code, created_at, grand_total, payment_status, customer_name, warung:Warung(name), salesman:User(name)')
           .gte('created_at', `${fromDate}T00:00:00`)
           .lte('created_at', `${toDate}T23:59:59`)
-          .neq('status', 'CANCELLED')
+          .eq('status', 'CONFIRMED')
           .order('created_at', { ascending: true });
         if (e) throw e;
         rows = d || [];
@@ -279,9 +279,15 @@ const useTodayMinusDays = (days) => {
 };
 
 const useDailyTotals = (rows) => {
+  const toLocalDateStr = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
   const map = {};
   for (const r of rows) {
-    const key = new Date(r.created_at).toISOString().slice(0, 10);
+    const key = toLocalDateStr(new Date(r.created_at));
     map[key] = (map[key] || 0) + Number(r.grand_total || 0);
   }
   const labels = Object.keys(map).sort();

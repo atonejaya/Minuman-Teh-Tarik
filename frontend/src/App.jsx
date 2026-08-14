@@ -92,12 +92,12 @@ function App() {
             <Route path="setoran" element={<SetoranList />} />
 
             {/* Sales-only Routes */}
-            <Route path="visits/new" element={<RequireRole roles={['SALES', 'OWNER']}><VisitWizard /></RequireRole>} />
-            <Route path="visits/:id" element={<RequireRole roles={['SALES', 'OWNER']}><VisitWizard /></RequireRole>} />
+            <Route path="visits/new" element={<RequireRole roles={['SALES', 'OWNER', 'ADMIN']}><VisitWizard /></RequireRole>} />
+            <Route path="visits/:id" element={<RequireRole roles={['SALES', 'OWNER', 'ADMIN']}><VisitWizard /></RequireRole>} />
             <Route path="account" element={<RequireRole roles={['SALES']}><AccountPage /></RequireRole>} />
 
             {/* Owner-only Routes */}
-            <Route element={<RequireRole roles={['OWNER']} />}>
+            <Route element={<RequireRole roles={['OWNER', 'ADMIN']} />}>
               <Route path="customers" element={<CustomerList />} />
               <Route path="customers/new" element={<CustomerFormPage />} />
               <Route path="customers/:id" element={<CustomerDetail />} />

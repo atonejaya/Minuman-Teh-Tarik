@@ -18,6 +18,7 @@
 
 -- Role of the authenticated app user (map auth.uid() -> User.role).
 -- SECURITY DEFINER so it bypasses RLS on "User" (avoids recursion in policies).
+-- ADMIN is treated as OWNER-equivalent for authorization (owner-level back office).
 create or replace function public.current_user_role()
 returns text
 language sql
@@ -25,7 +26,7 @@ stable
 security definer
 set search_path = public, pg_temp
 as $$
-  select u.role::text
+  select case when u.role = 'ADMIN' then 'OWNER'::text else u.role::text end
   from public."User" u
   where u.auth_id = auth.uid()
   limit 1;

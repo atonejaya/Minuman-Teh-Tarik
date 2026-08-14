@@ -2,12 +2,14 @@ import React from 'react';
 import MasterListPage from '../components/MasterListPage';
 import MasterDataRepository from '../repositories/MasterDataRepository';
 
+const DAY_LABELS = { MONDAY: 'Senin', TUESDAY: 'Selasa', WEDNESDAY: 'Rabu', THURSDAY: 'Kamis', FRIDAY: 'Jumat', SATURDAY: 'Sabtu', SUNDAY: 'Minggu' };
+
 const columns = [
   { key: 'code', label: 'Kode' },
   { key: 'name', label: 'Nama' },
   { key: 'area_id', label: 'Area', render: (r) => r.area?.name || '-' },
   { key: 'sales_id', label: 'Sales', render: (r) => r.sales?.name || '-' },
-  { key: 'visit_day', label: 'Hari Kunjungan', render: (r) => r.visit_day || '-' },
+  { key: 'visit_day', label: 'Hari Kunjungan', render: (r) => DAY_LABELS[r.visit_day] || r.visit_day || '-' },
   { key: 'is_active', label: 'Status', render: (r) => (r.is_active ? 'Aktif' : 'Nonaktif') },
 ];
 

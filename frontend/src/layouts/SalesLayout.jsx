@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useCompany } from '../contexts/CompanyContext.jsx';
-import { Home, Store, Banknote, User, Bell, LogOut, Coffee } from 'lucide-react';
+import { Home, Store, Banknote, User, LogOut, Coffee } from 'lucide-react';
 
 const SalesLayout = () => {
   const { user, logout } = useAuth();
@@ -38,9 +38,6 @@ const SalesLayout = () => {
           </div>
         </div>
         <div className="top-app-bar-actions">
-          <button className="mobile-icon-btn" aria-label="Notifikasi">
-            <Bell size={20} />
-          </button>
           <button className="mobile-icon-btn" aria-label="Keluar" onClick={handleLogout}>
             <LogOut size={20} />
           </button>

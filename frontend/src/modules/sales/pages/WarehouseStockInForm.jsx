@@ -219,7 +219,7 @@ const WarehouseStockInForm = () => {
   return (
     <EntityFormPage
       title={id ? "Ubah Barang Masuk" : "Tambah Barang Masuk (Hasil Produksi)"}
-      form={(props) => <WarehouseStockInFormComponent initialData={initialData} {...props} />}
+      form={(props) => <WarehouseStockInFormComponent {...props} initialData={initialData} />}
       onSubmit={handleSubmit}
       onCancel={() => navigate('/sales/stock-in')}
     />

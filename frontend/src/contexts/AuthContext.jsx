@@ -19,15 +19,18 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        fetchProfile(session.user.id);
+        fetchProfile(session.user.id).catch((err) => console.error(err.message));
       } else {
         setLoading(false);
       }
+    }).catch((err) => {
+      console.error('getSession failed', err);
+      setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        fetchProfile(session.user.id);
+        fetchProfile(session.user.id).catch((err) => console.error(err.message));
       } else {
         setUser(null);
         setLoading(false);

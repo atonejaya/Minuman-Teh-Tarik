@@ -9,12 +9,13 @@ const SetoranApiService = {
     return supabase.rpc('sales_setoran_submit', { p_date: date, p_notes: notes });
   },
 
-  verify(collectionId, result, failureReason, notes) {
+  verify(collectionId, result, failureReason, notes, receivedAmount) {
     return supabase.rpc('sales_setoran_verify', {
       p_collection_id: collectionId,
       p_result: result,
       p_failure_reason: failureReason,
       p_notes: notes,
+      p_received_amount: receivedAmount,
     });
   },
 

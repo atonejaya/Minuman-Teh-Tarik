@@ -24,7 +24,7 @@ const RouteForm = () => {
     { name: 'code', label: 'Kode Rute', disabled: true, placeholder: 'Otomatis Dibuat' },
     { name: 'area_id', label: 'Area', type: 'select', options: areas.map((a) => ({ value: a.id, label: a.name })), required: true },
     { name: 'sales_id', label: 'Sales', type: 'select', options: salesList.map((s) => ({ value: s.id, label: s.name })), required: true },
-    { name: 'visit_day', label: 'Hari Kunjungan', type: 'select', options: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map(d => ({ value: d, label: d })), required: true },
+    { name: 'visit_day', label: 'Hari Kunjungan', type: 'select', options: [{ value: 'MONDAY', label: 'Senin' }, { value: 'TUESDAY', label: 'Selasa' }, { value: 'WEDNESDAY', label: 'Rabu' }, { value: 'THURSDAY', label: 'Kamis' }, { value: 'FRIDAY', label: 'Jumat' }, { value: 'SATURDAY', label: 'Sabtu' }, { value: 'SUNDAY', label: 'Minggu' }], required: true },
     { name: 'is_active', label: 'Status', type: 'checkbox', default: true },
     { name: 'description', label: 'Keterangan (opsional)', placeholder: 'Contoh: Kunjungan outlet wilayah Cipete dan Kemang' },
   ];

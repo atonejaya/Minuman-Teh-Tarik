@@ -22,7 +22,8 @@ set search_path = public, pg_temp
 as $$
 declare
   v_user_id  int := public.current_user_id();
-  v_weekday  text := trim(to_char(p_date, 'Day'));
+  v_role     text := public.current_user_role();
+  v_weekday  text := upper(trim(to_char(p_date, 'Day')));
   v_result   jsonb;
 begin
   if v_user_id is null then
@@ -41,6 +42,7 @@ begin
       w.longitude,
       w.target_cups,
       w.visit_order,
+      su.name as sales_name,
       v.id as visit_id,
       v.status,
       v.check_in_time,
@@ -48,6 +50,7 @@ begin
       coalesce(aps.outstanding_amount, 0) as outstanding_amount,
       coalesce(apc.last_visit_date, w.last_visit_date) as last_visit_date
     from public."Warung" w
+    left join public."User" su on su.id = w.assigned_sales_id
     left join lateral (
       select sv.id, sv.status, sv.check_in_time, sv.check_out_time
       from public."SalesVisit" sv
@@ -61,10 +64,10 @@ begin
       where customer_code = w.code
     ) aps on true
     left join public."CustomerARProjection" apc on apc.customer_code = w.code
-    where w.assigned_sales_id = v_user_id
-      and w.status = 'ACTIVE'
+    where w.status = 'ACTIVE'
       and w.deleted_at is null
-      and (w.visit_day is null or w.visit_day::text = v_weekday)
+      and (v_role = 'OWNER' or w.assigned_sales_id = v_user_id)
+      and (w.visit_day is null or upper(trim(w.visit_day)) = v_weekday)
     order by w.visit_order nulls last, w.name
   ) t;
 

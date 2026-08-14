@@ -14,14 +14,21 @@ const KpiCard = ({ label, value, color = 'var(--primary)', link }) => (
 export const OwnerDashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-        const todayISO = todayStart.toISOString();
-        const sevenDaysAgo = new Date(todayStart);
+        const toLocalDateStr = (d) => {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        };
+
+        const today = new Date();
+        const todayStr = toLocalDateStr(today);
+        const sevenDaysAgo = new Date(today);
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
 
         const [
@@ -36,13 +43,19 @@ export const OwnerDashboard = () => {
           supabase
             .from('SalesTransaction')
             .select('grand_total')
-            .not('status', 'eq', 'CANCELLED')
-            .gte('created_at', todayISO),
-          supabase.from('AccountsReceivableProjection').select('outstanding_amount').limit(5000),
+            .eq('status', 'CONFIRMED')
+            .gte('created_at', `${todayStr}T00:00:00`)
+            .lte('created_at', `${todayStr}T23:59:59`),
+          supabase
+            .from('AccountsReceivableProjection')
+            .select('outstanding_amount')
+            .gt('outstanding_amount', 0)
+            .limit(5000),
           supabase
             .from('Payment')
             .select('amount')
-            .not('collected_by', 'is', null)
+            .eq('payment_method', 'CASH')
+            .eq('status', 'PAID')
             .is('collection_id', null),
           supabase
             .from('Collection')
@@ -52,13 +65,13 @@ export const OwnerDashboard = () => {
           supabase
             .from('SalesVisit')
             .select('id', { count: 'exact', head: true })
-            .gte('visit_date', todayISO.slice(0, 10)),
+            .eq('visit_date', todayStr),
           supabase.from('WarehouseStock').select('qty_available').limit(5000),
           supabase
             .from('SalesTransaction')
             .select('created_at, grand_total')
-            .not('status', 'eq', 'CANCELLED')
-            .gte('created_at', sevenDaysAgo.toISOString())
+            .eq('status', 'CONFIRMED')
+            .gte('created_at', `${toLocalDateStr(sevenDaysAgo)}T00:00:00`)
             .order('created_at', { ascending: true })
             .limit(10000),
         ]);
@@ -77,10 +90,10 @@ export const OwnerDashboard = () => {
         for (let i = 0; i < 7; i++) {
           const d = new Date(sevenDaysAgo);
           d.setDate(sevenDaysAgo.getDate() + i);
-          daily[d.toISOString().slice(0, 10)] = 0;
+          daily[toLocalDateStr(d)] = 0;
         }
         for (const row of last7Res.data || []) {
-          const day = new Date(row.created_at).toISOString().slice(0, 10);
+          const day = toLocalDateStr(new Date(row.created_at));
           if (day in daily) daily[day] += Number(row.grand_total) || 0;
         }
 
@@ -95,6 +108,7 @@ export const OwnerDashboard = () => {
         });
       } catch (err) {
         console.error('Failed to load owner dashboard', err);
+        setError(err.message || 'Gagal memuat data dashboard');
       } finally {
         setLoading(false);
       }
@@ -103,6 +117,16 @@ export const OwnerDashboard = () => {
   }, []);
 
   if (loading) return <div className="loading-screen">Memuat Dashboard Eksekutif...</div>;
+
+  if (error || !data) {
+    return (
+      <div className="owner-dashboard">
+        <div className="alert alert-error" style={{ margin: '24px' }}>
+          {error || 'Gagal memuat data dashboard'}
+        </div>
+      </div>
+    );
+  }
 
   const maxDaily = Math.max(1, ...(data.daily || []).map((d) => d.total));
 

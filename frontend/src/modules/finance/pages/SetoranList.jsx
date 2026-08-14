@@ -30,7 +30,7 @@ const StatusPill = ({ status }) => {
 
 const SetoranList = () => {
   const { user } = useAuth();
-  const isOwner = user?.role === 'OWNER';
+  const isOwner = user?.role === 'OWNER' || user?.role === 'ADMIN';
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   if (isOwner) return <OwnerSetoran />;
@@ -170,11 +170,11 @@ const OwnerSetoran = () => {
     load();
   }, [load]);
 
-  const confirmVerify = async (result, failureReason, notes) => {
+  const confirmVerify = async (result, failureReason, notes, receivedAmount) => {
     setVerifying(true);
     setError(null);
     try {
-      const { error: err } = await SetoranApiService.verify(verifyTarget.id, result, failureReason, notes);
+      const { error: err } = await SetoranApiService.verify(verifyTarget.id, result, failureReason, notes, receivedAmount);
       if (err) throw err;
       toast.success(result === 'NONE' ? 'Setoran ditandai gagal dan dikembalikan ke sales.' : 'Setoran berhasil diverifikasi.');
       setVerifyTarget(null);
@@ -270,8 +270,22 @@ const VerifyModal = ({ collection, verifying, onCancel, onConfirm }) => {
   const [result, setResult] = useState('FULL');
   const [failureReason, setFailureReason] = useState('OTHER');
   const [notes, setNotes] = useState('');
+  const [receivedAmount, setReceivedAmount] = useState('');
 
   const total = collection.items?.reduce((s, i) => s + Number(i.payment_amount || 0), 0) || 0;
+
+  const handleResult = (next) => {
+    setResult(next);
+    if (next === 'PARTIAL' && !receivedAmount) setReceivedAmount(String(total));
+  };
+
+  const handleConfirm = () => {
+    const amount = result === 'PARTIAL' ? Number(receivedAmount) : null;
+    if (result === 'PARTIAL' && (!receivedAmount || Number(receivedAmount) <= 0 || Number(receivedAmount) >= total)) {
+      return;
+    }
+    onConfirm(result, failureReason, notes, amount);
+  };
 
   return (
     <div className="modal-backdrop" onClick={onCancel}>
@@ -281,16 +295,31 @@ const VerifyModal = ({ collection, verifying, onCancel, onConfirm }) => {
           Sales: {collection.sales?.name} · {formatDate(collection.collection_date)} · Nominal {formatRupiah(total)}
         </p>
         <div className="pay-method-grid">
-          <button className={`pay-method ${result === 'FULL' ? 'selected' : ''}`} onClick={() => setResult('FULL')}>
+          <button className={`pay-method ${result === 'FULL' ? 'selected' : ''}`} onClick={() => handleResult('FULL')}>
             <CheckCircle2 size={16} /> Setoran Penuh
           </button>
-          <button className={`pay-method ${result === 'PARTIAL' ? 'selected' : ''}`} onClick={() => setResult('PARTIAL')}>
+          <button className={`pay-method ${result === 'PARTIAL' ? 'selected' : ''}`} onClick={() => handleResult('PARTIAL')}>
             <Wallet size={16} /> Sebagian
           </button>
-          <button className={`pay-method ${result === 'NONE' ? 'selected' : ''}`} onClick={() => setResult('NONE')}>
+          <button className={`pay-method ${result === 'NONE' ? 'selected' : ''}`} onClick={() => handleResult('NONE')}>
             <XCircle size={16} /> Tidak Ada
           </button>
         </div>
+        {result === 'PARTIAL' && (
+          <>
+            <label className="field-label">Nominal diterima</label>
+            <input
+              type="number"
+              min="0"
+              step="1000"
+              className="wizard-input"
+              value={receivedAmount}
+              onChange={(e) => setReceivedAmount(e.target.value)}
+              placeholder={`Maks ${formatRupiah(total - 1)}`}
+            />
+            <p className="verify-note"><Wallet size={14} /> Selisih {formatRupiah(total - (Number(receivedAmount) || 0))} akan dikembalikan ke kas sales.</p>
+          </>
+        )}
         {result === 'NONE' && (
           <>
             <label className="field-label">Alasan gagal</label>
@@ -314,7 +343,7 @@ const VerifyModal = ({ collection, verifying, onCancel, onConfirm }) => {
         />
         <div className="wizard-actions">
           <button className="btn-secondary" onClick={onCancel} disabled={verifying}>Batal</button>
-          <button className="btn-primary" onClick={() => onConfirm(result, failureReason, notes)} disabled={verifying}>
+          <button className="btn-primary" onClick={handleConfirm} disabled={verifying}>
             {verifying ? <Loader2 size={16} className="spin" /> : <CheckCircle2 size={16} />}
             Konfirmasi
           </button>

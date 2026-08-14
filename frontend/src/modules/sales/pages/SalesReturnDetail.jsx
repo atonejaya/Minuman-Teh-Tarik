@@ -19,7 +19,7 @@ const STATUS_LABELS = {
 };
 
 const REFERENCE_TYPE_LABELS = {
-  SALES_TRANSACTION: 'Transaksi Penjualan', SALES_INVOICE: 'Faktur Penjualan',
+  SALES: 'Penjualan Sales', SALES_TRANSACTION: 'Transaksi Penjualan', SALES_INVOICE: 'Faktur Penjualan',
   CREDIT_NOTE: 'Nota Kredit', MANUAL: 'Manual',
 };
 

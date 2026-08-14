@@ -9,7 +9,7 @@ import { useToast } from '../../../components/toast/ToastContext';
 const cell = { padding: '12px 16px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
 
 const REFERENCE_TYPE_LABELS = {
-  SALES_TRANSACTION: 'Transaksi Penjualan', SALES_INVOICE: 'Faktur Penjualan',
+  SALES: 'Penjualan Sales', SALES_TRANSACTION: 'Transaksi Penjualan', SALES_INVOICE: 'Faktur Penjualan',
   CREDIT_NOTE: 'Nota Kredit', MANUAL: 'Manual',
 };
 
@@ -80,7 +80,7 @@ const SalesReturnList = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const { user } = useAuth();
-  const isOwner = user?.role === 'OWNER';
+  const isOwner = user?.role === 'OWNER' || user?.role === 'ADMIN';
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);

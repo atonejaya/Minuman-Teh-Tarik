@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import EntityDetailPage from '../../../components/entity/EntityDetailPage';
 import SalesStockIssueRepository from '../../../repositories/SalesStockIssueRepository';
+import { supabase } from '../../../utils/supabase';
 import { useToast } from '../../../components/toast/ToastContext';
 
 const cell = { padding: '12px 16px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
@@ -19,6 +20,9 @@ const SalesStockIssueDetail = () => {
   const toast = useToast();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [returnOpen, setReturnOpen] = useState(false);
+  const [returnQty, setReturnQty] = useState({});
+  const [returning, setReturning] = useState(false);
 
   const fetchIssue = useCallback(async () => {
     setLoading(true);
@@ -56,6 +60,34 @@ const SalesStockIssueDetail = () => {
       fetchIssue();
     } catch (error) {
       toast.error(error.message || 'Gagal menutup mutasi stok');
+    }
+  };
+
+  const handleReturn = async () => {
+    const items = (data.items || [])
+      .filter((i) => Number(returnQty[i.product_id] || 0) > 0)
+      .map((i) => ({ product_id: i.product_id, qty: Number(returnQty[i.product_id]) }));
+    if (items.length === 0) return;
+    setReturning(true);
+    try {
+      const { error } = await supabase.rpc('sales_stock_return', {
+        p_payload: {
+          sales_id: data.sales_id,
+          warehouse_id: data.warehouse_id,
+          return_date: new Date().toISOString().slice(0, 10),
+          issue_id: data.id,
+          items,
+        },
+      });
+      if (error) throw error;
+      toast.success('Retur barang diterima dan dikembalikan ke gudang.');
+      setReturnOpen(false);
+      setReturnQty({});
+      fetchIssue();
+    } catch (error) {
+      toast.error(error.message || 'Gagal memproses retur');
+    } finally {
+      setReturning(false);
     }
   };
 
@@ -98,8 +130,44 @@ const SalesStockIssueDetail = () => {
             {data.status === 'CONFIRMED' && (
               <button className="btn" style={{ backgroundColor: 'var(--secondary)', color: '#fff' }} onClick={handleClose}>Tutup</button>
             )}
+            {(data.status === 'CONFIRMED' || data.status === 'COMPLETED') && (
+              <button className="btn btn-primary" onClick={() => setReturnOpen(true)}>Terima Retur</button>
+            )}
             <button className="btn" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }} onClick={() => navigate('/sales/stock-issues')}>Kembali</button>
           </div>
+          {returnOpen && (
+            <div className="modal-backdrop" onClick={() => setReturnOpen(false)}>
+              <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+                <h4>Terima Retur Barang</h4>
+                <p className="text-muted" style={{ marginBottom: '12px' }}>
+                  Kembalikan barang dari {data.sales?.name || 'sales'} ke gudang {data.warehouse?.name || ''}.
+                </p>
+                {(data.items || []).map((item) => (
+                  <div key={item.product_id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+                    <div style={{ flex: 1, fontSize: '14px' }}>{item.product?.name || '-'}</div>
+                    <input
+                      type="number"
+                      min="0"
+                      max={item.qty}
+                      className="wizard-input"
+                      style={{ width: '90px' }}
+                      value={returnQty[item.product_id] || 0}
+                      onChange={(e) =>
+                        setReturnQty({ ...returnQty, [item.product_id]: Math.max(0, Math.min(Number(e.target.value), item.qty)) })
+                      }
+                    />
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>/ {item.qty}</span>
+                  </div>
+                ))}
+                <div className="wizard-actions">
+                  <button className="btn-secondary" onClick={() => setReturnOpen(false)} disabled={returning}>Batal</button>
+                  <button className="btn-primary" onClick={handleReturn} disabled={returning || (data.items || []).every((i) => !(Number(returnQty[i.product_id] || 0) > 0))}>
+                    {returning ? 'Memproses...' : 'Proses Retur'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )
     },
@@ -149,7 +217,7 @@ const SalesStockIssueDetail = () => {
                   {activity.changed_at ? new Date(activity.changed_at).toLocaleString('id-ID') : ''}
                 </p>
                 <p style={{ fontSize: '14px', fontWeight: '500' }}>
-                  {(activity.status_from ? STATUS_LABELS[activity.status_from] || activity.status_from : 'null')} → {STATUS_LABELS[activity.status_to] || activity.status_to}
+                  {(activity.status_from ? STATUS_LABELS[activity.status_from] || activity.status_from : '-')} → {STATUS_LABELS[activity.status_to] || activity.status_to}
                 </p>
                 {activity.remarks && <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{activity.remarks}</p>}
               </div>

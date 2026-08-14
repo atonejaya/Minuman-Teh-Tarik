@@ -14,8 +14,12 @@ export const SalesDashboard = ({ user }) => {
     const fetchSalesData = async () => {
       try {
         const today = new Date().toISOString().slice(0, 10);
-        const todayStart = `${today}T00:00:00Z`;
-        const todayEnd = `${today}T23:59:59Z`;
+        const localStart = new Date();
+        localStart.setHours(0, 0, 0, 0);
+        const localEnd = new Date(localStart);
+        localEnd.setHours(23, 59, 59, 999);
+        const todayStart = localStart.toISOString();
+        const todayEnd = localEnd.toISOString();
         const dayName = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
 
         const [salesRes, warungRes, visitsRes, paymentRes, ledgerRes] = await Promise.all([
@@ -23,7 +27,7 @@ export const SalesDashboard = ({ user }) => {
             .from('SalesTransaction')
             .select('grand_total')
             .eq('sales_id', user.id)
-            .not('status', 'eq', 'CANCELLED')
+            .eq('status', 'CONFIRMED')
             .gte('created_at', todayStart)
             .lte('created_at', todayEnd),
           supabase
@@ -40,10 +44,11 @@ export const SalesDashboard = ({ user }) => {
           supabase
             .from('Payment')
             .select('amount')
-            .eq('collected_by', user.id)
+            .eq('created_by', user.id)
+            .eq('payment_method', 'CASH')
+            .eq('status', 'PAID')
             .is('collection_id', null)
-            .gte('payment_date', todayStart)
-            .lte('payment_date', todayEnd),
+            .eq('payment_date', today),
           supabase
             .from('SalesStockLedger')
             .select('product_id, balance')
@@ -53,9 +58,9 @@ export const SalesDashboard = ({ user }) => {
         ]);
 
         const assigned = warungRes.data || [];
-        const targetToday = assigned.length > 0
-          ? assigned.filter((w) => w.visit_day === dayName).length || assigned.length
-          : 0;
+        const targetToday = assigned.filter(
+          (w) => !w.visit_day || String(w.visit_day).trim().toUpperCase() === dayName
+        ).length;
         const salesToday = (salesRes.data || []).reduce((acc, r) => acc + (Number(r.grand_total) || 0), 0);
         const kasDibawa = (paymentRes.data || []).reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
 
