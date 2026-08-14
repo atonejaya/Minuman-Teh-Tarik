@@ -6,17 +6,8 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function run() {
-  console.log('Fetching schema for SalesStockIssue...');
-  const { data, error } = await supabase
-    .from('SalesStockIssue')
-    .select('*')
-    .limit(1);
-    
-  if (error) {
-    console.error('Error fetching ledger:', error);
-  } else {
-    console.log('Sample data:', data);
-  }
+  const { data, error } = await supabase.from('Warung').select('id, name, status');
+  console.log('Warungs:', data, 'Error:', error);
 }
 
 run().catch(console.error);

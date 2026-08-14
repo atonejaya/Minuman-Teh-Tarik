@@ -3,21 +3,28 @@ import MasterFormPage from '../components/MasterFormPage';
 import MasterDataRepository from '../repositories/MasterDataRepository';
 import { supabase } from '../../../utils/supabase';
 
+import { useToast } from '../../../components/toast/ToastContext';
+
 const ParStockForm = () => {
+  const toast = useToast();
   const [warungs, setWarungs] = useState([]);
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
     const load = async () => {
       const [w, p] = await Promise.all([
-        supabase.from('Warung').select('id, name').eq('status', 'ACTIVE').order('name'),
+        supabase.from('Warung').select('id, name, status').order('name'),
         supabase.from('Product').select('id, name').eq('is_active', true).order('name'),
       ]);
-      setWarungs(w.data || []);
+      if (w.error) toast.error('Gagal memuat warung: ' + w.error.message);
+      if (p.error) toast.error('Gagal memuat produk: ' + p.error.message);
+      
+      const activeWarungs = (w.data || []).filter(warung => warung.status === 'ACTIVE' || warung.status === 'Active' || warung.status === 'Aktif' || !warung.status);
+      setWarungs(activeWarungs);
       setProducts(p.data || []);
     };
     load();
-  }, []);
+  }, [toast]);
 
   const fields = [
     { name: 'warung_id', label: 'Warung', type: 'select', options: warungs.map((w) => ({ value: w.id, label: w.name })), required: true },
