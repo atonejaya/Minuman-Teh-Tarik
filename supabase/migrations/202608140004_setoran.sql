@@ -277,5 +277,5 @@ grant execute on function public.get_setoran_summary(date) to authenticated;
 revoke execute on function public.sales_setoran_submit(date, text) from public, anon;
 grant execute on function public.sales_setoran_submit(date, text) to authenticated;
 
-revoke execute on function public.sales_setoran_verify(integer, text, text, text) from public, anon;
-grant execute on function public.sales_setoran_verify(integer, text, text, text) to authenticated;
+revoke execute on function public.sales_setoran_verify(integer, text, text, text, numeric) from public, anon;
+grant execute on function public.sales_setoran_verify(integer, text, text, text, numeric) to authenticated;
