@@ -6,8 +6,14 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function run() {
-  const { data, error } = await supabase.from('Warung').select('id, name, status');
-  console.log('Warungs:', data, 'Error:', error);
+  const [user, area, route] = await Promise.all([
+    supabase.from('User').select('id, name').limit(1),
+    supabase.from('Area').select('id, name').limit(1),
+    supabase.from('Route').select('id, name').limit(1),
+  ]);
+  console.log('User:', JSON.stringify(user));
+  console.log('Area:', JSON.stringify(area));
+  console.log('Route:', JSON.stringify(route));
 }
 
 run().catch(console.error);

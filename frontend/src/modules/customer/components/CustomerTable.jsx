@@ -82,11 +82,11 @@ const CustomerTable = ({ data, loading, onAction, onBulkAction }) => {
                   <td style={{ padding: '12px 16px', fontSize: '14px', fontWeight: '500' }}>{item.code}</td>
                   <td style={{ padding: '12px 16px', fontSize: '14px' }}>{item.name}</td>
                   <td style={{ padding: '12px 16px', fontSize: '14px', color: 'var(--text-muted)' }}>{item.owner_name}</td>
-                  <td style={{ padding: '12px 16px', fontSize: '14px' }}>{item.assignedSales?.name || '-'}</td>
+                  <td style={{ padding: '12px 16px', fontSize: '14px' }}>{Array.isArray(item.assignedSales) ? item.assignedSales[0]?.name : (item.assignedSales?.name || item.User?.name || '-')}</td>
                   <td style={{ padding: '12px 16px', fontSize: '14px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span>{item.area?.name || '-'}</span>
-                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{item.route?.name || '-'}</span>
+                      <span>{Array.isArray(item.area) ? item.area[0]?.name : (item.area?.name || item.Area?.name || '-')}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{Array.isArray(item.route) ? item.route[0]?.name : (item.route?.name || item.Route?.name || '-')}</span>
                     </div>
                   </td>
                   <td style={{ padding: '12px 16px' }}>

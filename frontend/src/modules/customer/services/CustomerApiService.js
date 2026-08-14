@@ -2,7 +2,7 @@ import { supabase } from '../../../utils/supabase';
 
 const CustomerApiService = {
   getCustomers: async (params = {}) => {
-    let query = supabase.from('Warung').select('*, assignedSales:User(name), area:Area(name), route:Route(name)');
+    let query = supabase.from('Warung').select('*, User(name), Area(name), Route(name)');
     if (params.search) query = query.ilike('name', `%${params.search}%`);
     const { data, error, count } = await query;
     if (error) throw error;
