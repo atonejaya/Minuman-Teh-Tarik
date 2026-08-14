@@ -47,7 +47,7 @@ const MasterListPage = ({ title, description, addPath, columns, fetchList, onTog
       description={description}
       error={error}
       actions={{
-        left: [{ label: '+ Tambah', variant: 'primary', onClick: () => navigate(addPath) }],
+        left: [{ label: '+ Tambah', variant: 'primary', onClick: () => navigate(`${addPath}/new`) }],
       }}
       table={(props) => (
         <MasterTable

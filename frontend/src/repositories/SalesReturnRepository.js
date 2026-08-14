@@ -4,7 +4,7 @@ class SalesReturnRepositoryClass {
   async fetchAll(params) {
     let query = supabase
       .from('SalesReturn')
-      .select('*, warung:Warung(name, code), salesman:User(name)', { count: 'exact' });
+      .select('*, warung:Warung(name, code), salesman:User!sales_id(name)', { count: 'exact' });
     if (params?.status) query = query.eq('status', params.status);
     if (params?.search) query = query.ilike('code', `%${params.search}%`);
     query = query.order('return_date', { ascending: false });
@@ -24,7 +24,7 @@ class SalesReturnRepositoryClass {
   async fetchById(id) {
     const { data, error } = await supabase
       .from('SalesReturn')
-      .select('*, items:SalesReturnItem(*, product:Product(*)), warung:Warung(*), salesman:User(name)')
+      .select('*, items:SalesReturnItem(*, product:Product(*)), warung:Warung(*), salesman:User!sales_id(name)')
       .eq('id', id)
       .single();
     if (error) throw error;
@@ -56,7 +56,8 @@ class SalesReturnRepositoryClass {
   }
 
   async update(id, payload) {
-    const { data, error } = await supabase.from('SalesReturn').update(payload).eq('id', id).select().single();
+    const finalPayload = { ...payload, updated_at: new Date().toISOString() };
+    const { data, error } = await supabase.from('SalesReturn').update(finalPayload).eq('id', id).select().single();
     if (error) throw error;
     return { success: true, data };
   }

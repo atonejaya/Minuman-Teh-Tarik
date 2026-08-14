@@ -5,37 +5,47 @@ const EntityDetailPage = ({ title, summary, tabs, actions }) => {
   const [activeTab, setActiveTab] = useState(tabs && tabs.length > 0 ? tabs[0].id : null);
 
   return (
-    <div className="entity-detail-page">
-      <div className="page-header mb-4">
-        <h2>{title || 'Detail Entitas'}</h2>
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: '600', color: 'var(--text-main)' }}>{title || 'Detail'}</h2>
+        {actions && <EntityToolbar actions={actions} />}
       </div>
 
-      <EntityToolbar actions={actions} />
-
-      <div className="summary-card card mb-4">
-        <div className="card-body">
-          {summary || <p className="text-muted">Ringkasan tidak tersedia.</p>}
+      {summary && (
+        <div style={{ backgroundColor: 'var(--surface)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', marginBottom: '24px', boxShadow: 'var(--shadow-sm)' }}>
+          {summary}
         </div>
-      </div>
+      )}
 
-      <div className="tabs-container">
-        <ul className="nav nav-tabs mb-3">
-          {tabs?.map(tab => (
-            <li className="nav-item" key={tab.id}>
+      {tabs && tabs.length > 0 && (
+        <div style={{ backgroundColor: 'var(--surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', backgroundColor: 'var(--background)' }}>
+            {tabs.map(tab => (
               <button
-                className={`nav-link ${activeTab === tab.id ? 'active' : ''}`}
+                key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
+                style={{
+                  padding: '14px 24px',
+                  fontSize: '14px',
+                  fontWeight: activeTab === tab.id ? '600' : '500',
+                  color: activeTab === tab.id ? 'var(--primary)' : 'var(--text-muted)',
+                  borderBottom: activeTab === tab.id ? '2px solid var(--primary)' : '2px solid transparent',
+                  backgroundColor: activeTab === tab.id ? 'var(--surface)' : 'transparent',
+                  transition: 'all 0.2s ease',
+                  outline: 'none'
+                }}
               >
                 {tab.label}
               </button>
-            </li>
-          ))}
-        </ul>
-
-        <div className="tab-content">
-          {tabs?.find(t => t.id === activeTab)?.content || <p className="text-muted">Tidak ada konten untuk tab ini.</p>}
+            ))}
+          </div>
+          <div style={{ padding: '0' }}>
+            {tabs.find(t => t.id === activeTab)?.content || (
+              <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Tidak ada konten untuk tab ini.</div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

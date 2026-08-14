@@ -10,7 +10,7 @@ const ParStockForm = () => {
   useEffect(() => {
     const load = async () => {
       const [w, p] = await Promise.all([
-        supabase.from('Warung').select('id, name').eq('is_active', true).order('name'),
+        supabase.from('Warung').select('id, name').eq('status', 'ACTIVE').order('name'),
         supabase.from('Product').select('id, name').eq('is_active', true).order('name'),
       ]);
       setWarungs(w.data || []);

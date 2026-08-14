@@ -1,6 +1,6 @@
 import { supabase } from '../../../utils/supabase';
 
-const PRODUCT_SELECT = '*, category:ProductCategory(id, name), brand:Brand(id, name), unit:Unit(id, name), supplier:Supplier(id, name), packaging:Packaging(id, name), tax:Tax(id, name, rate), warehouse:Warehouse(id, name)';
+const PRODUCT_SELECT = '*, category:ProductCategory(id, name), brand:Brand(id, name), unit:Unit(id, name), packaging:Packaging(id, name), tax:Tax(id, name, rate), warehouse:Warehouse(id, name)';
 
 const ProductApiService = {
   async getProducts({ search = '', categoryId = '', brandId = '', status = 'all', page = 1, pageSize = 20 } = {}) {
@@ -30,19 +30,23 @@ const ProductApiService = {
   },
 
   async create(payload) {
-    const { data, error } = await supabase.from('Product').insert(payload).select().single();
+    const finalPayload = { ...payload, updated_at: new Date().toISOString() };
+    if (finalPayload.code === '') delete finalPayload.code;
+    const { data, error } = await supabase.from('Product').insert(finalPayload).select().single();
     if (error) throw error;
     return { success: true, data };
   },
 
   async update(id, payload) {
-    const { data, error } = await supabase.from('Product').update(payload).eq('id', id).select().single();
+    const finalPayload = { ...payload, updated_at: new Date().toISOString() };
+    if (finalPayload.code === '') delete finalPayload.code;
+    const { data, error } = await supabase.from('Product').update(finalPayload).eq('id', id).select().single();
     if (error) throw error;
     return { success: true, data };
   },
 
   async setActive(id, isActive) {
-    const { data, error } = await supabase.from('Product').update({ is_active: isActive }).eq('id', id).select().single();
+    const { data, error } = await supabase.from('Product').update({ is_active: isActive, updated_at: new Date().toISOString() }).eq('id', id).select().single();
     if (error) throw error;
     return { success: true, data };
   },

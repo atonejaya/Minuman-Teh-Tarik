@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import EntityFormPage from '../../../components/entity/EntityFormPage';
-import SalesStockIssueRepository from '../../../repositories/SalesStockIssueRepository';
+import WarehouseStockInRepository from '../../../repositories/WarehouseStockInRepository';
 import { supabase } from '../../../utils/supabase';
 import { useMasterLookupContext } from '../../../contexts/MasterLookupContext';
 import { useToast } from '../../../components/toast/ToastContext';
@@ -9,44 +9,21 @@ import { useToast } from '../../../components/toast/ToastContext';
 const labelStyle = { display: 'block', marginBottom: '8px', fontWeight: '500', color: 'var(--text-main)' };
 const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--surface)', color: 'var(--text-main)' };
 
-const SalesStockIssueFormComponent = ({ onSubmit, onCancel }) => {
+const WarehouseStockInFormComponent = ({ onSubmit, onCancel }) => {
   const { lookups } = useMasterLookupContext();
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState({
     warehouse_id: '',
-    sales_id: '',
-    issue_date: new Date().toISOString().slice(0, 10),
+    doc_date: new Date().toISOString().slice(0, 10),
     items: [{ product_id: '', qty: 1, unit_id: '', remark: '' }]
   });
-  
-  const { id } = useParams();
-
-  useEffect(() => {
-    if (id) {
-      SalesStockIssueRepository.getSalesStockIssue(id).then(({ data }) => {
-        if (data) {
-          setForm({
-            warehouse_id: data.warehouse_id || '',
-            sales_id: data.sales_id || '',
-            issue_date: data.issue_date || new Date().toISOString().slice(0, 10),
-            items: data.items && data.items.length > 0 ? data.items.map(i => ({
-              product_id: i.product_id || '',
-              qty: i.qty || 1,
-              unit_id: i.unit_id || '',
-              remark: i.remark || ''
-            })) : [{ product_id: '', qty: 1, unit_id: '', remark: '' }]
-          });
-        }
-      });
-    }
-  }, [id]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const { data, error } = await supabase
           .from('Product')
-          .select('id, code, name, cost_price')
+          .select('id, code, name')
           .eq('is_active', true)
           .order('name');
         if (error) throw error;
@@ -59,7 +36,6 @@ const SalesStockIssueFormComponent = ({ onSubmit, onCancel }) => {
   }, []);
 
   const warehouses = lookups?.warehouses || [];
-  const salesmen = lookups?.salesmen || [];
   const units = lookups?.units || [];
 
   const updateField = (field, value) => {
@@ -83,10 +59,9 @@ const SalesStockIssueFormComponent = ({ onSubmit, onCancel }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const payload = {
+    await onSubmit({
       warehouse_id: Number(form.warehouse_id),
-      sales_id: Number(form.sales_id),
-      issue_date: form.issue_date,
+      doc_date: form.doc_date,
       items: form.items
         .filter((item) => item.product_id)
         .map((item) => ({
@@ -95,15 +70,14 @@ const SalesStockIssueFormComponent = ({ onSubmit, onCancel }) => {
           unit_id: item.unit_id ? Number(item.unit_id) : undefined,
           remark: item.remark || undefined
         }))
-    };
-    await onSubmit(payload, id);
+    });
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
         <div className="form-group">
-          <label style={labelStyle}>Gudang</label>
+          <label style={labelStyle}>Gudang Tujuan (Simpan Stok)</label>
           <select style={inputStyle} value={form.warehouse_id} onChange={(e) => updateField('warehouse_id', e.target.value)} required>
             <option value="">Pilih gudang</option>
             {warehouses.map((w) => (
@@ -112,29 +86,20 @@ const SalesStockIssueFormComponent = ({ onSubmit, onCancel }) => {
           </select>
         </div>
         <div className="form-group">
-          <label style={labelStyle}>Sales</label>
-          <select style={inputStyle} value={form.sales_id} onChange={(e) => updateField('sales_id', e.target.value)} required>
-            <option value="">Pilih sales</option>
-            {salesmen.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
+          <label style={labelStyle}>Tanggal Masuk</label>
+          <input style={inputStyle} type="date" value={form.doc_date} onChange={(e) => updateField('doc_date', e.target.value)} required />
         </div>
       </div>
 
       <div className="form-group">
-        <label style={labelStyle}>Tanggal Mutasi</label>
-        <input style={inputStyle} type="date" value={form.issue_date} onChange={(e) => updateField('issue_date', e.target.value)} required />
-      </div>
-
-      <div className="form-group">
-        <label style={labelStyle}>Item</label>
+        <label style={labelStyle}>Daftar Produk Masuk</label>
         {form.items.map((item, index) => (
           <div key={index} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr auto', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
             <select
               style={inputStyle}
               value={item.product_id}
               onChange={(e) => updateItem(index, 'product_id', e.target.value)}
+              required
             >
               <option value="">Pilih produk</option>
               {products.map((p) => (
@@ -148,12 +113,12 @@ const SalesStockIssueFormComponent = ({ onSubmit, onCancel }) => {
               placeholder="Qty"
               value={item.qty}
               onChange={(e) => updateItem(index, 'qty', e.target.value)}
+              required
             />
             <select
               style={inputStyle}
               value={item.unit_id}
               onChange={(e) => updateItem(index, 'unit_id', e.target.value)}
-              required
             >
               <option value="">Unit</option>
               {units.map((u) => (
@@ -172,11 +137,11 @@ const SalesStockIssueFormComponent = ({ onSubmit, onCancel }) => {
           </div>
         ))}
         <button type="button" className="btn" style={{ padding: '8px 16px', backgroundColor: 'var(--secondary)', color: '#fff' }} onClick={addItem}>
-          + Tambah Item
+          + Tambah Produk
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '32px' }}>
         <button type="button" className="btn" style={{ padding: '8px 16px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }} onClick={onCancel}>
           Batal
         </button>
@@ -188,34 +153,28 @@ const SalesStockIssueFormComponent = ({ onSubmit, onCancel }) => {
   );
 };
 
-const SalesStockIssueForm = () => {
+const WarehouseStockInForm = () => {
   const navigate = useNavigate();
   const toast = useToast();
-  const { id } = useParams();
 
-  const handleSubmit = async (formData, editId) => {
+  const handleSubmit = async (formData) => {
     try {
-      if (editId) {
-        await SalesStockIssueRepository.updateSalesStockIssue(editId, formData);
-        toast.success('Mutasi stok berhasil diubah.');
-      } else {
-        await SalesStockIssueRepository.createSalesStockIssue(formData);
-        toast.success('Mutasi stok berhasil dibuat.');
-      }
-      navigate('/sales/stock-issues');
+      await WarehouseStockInRepository.createStockIn(formData);
+      toast.success('Barang masuk berhasil dibuat.');
+      navigate('/sales/stock-in');
     } catch (error) {
-      toast.error(error.message || 'Gagal menyimpan mutasi stok');
+      toast.error(error.message || 'Gagal membuat barang masuk');
     }
   };
 
   return (
     <EntityFormPage
-      title={id ? "Edit Mutasi Stok" : "Tambah Mutasi Stok"}
-      form={(props) => <SalesStockIssueFormComponent {...props} />}
+      title="Tambah Barang Masuk (Hasil Produksi)"
+      form={(props) => <WarehouseStockInFormComponent {...props} />}
       onSubmit={handleSubmit}
-      onCancel={() => navigate('/sales/stock-issues')}
+      onCancel={() => navigate('/sales/stock-in')}
     />
   );
 };
 
-export default SalesStockIssueForm;
+export default WarehouseStockInForm;

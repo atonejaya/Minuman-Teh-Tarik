@@ -3,7 +3,7 @@ import MasterFormPage from '../components/MasterFormPage';
 import MasterDataRepository from '../repositories/MasterDataRepository';
 
 const fields = [
-  { name: 'code', label: 'Kode', required: true },
+  { name: 'code', label: 'Kode', disabled: true, placeholder: 'Otomatis Dibuat' },
   { name: 'name', label: 'Nama', required: true },
   { name: 'address', label: 'Alamat' },
   { name: 'is_active', label: 'Aktif', type: 'checkbox', default: true },

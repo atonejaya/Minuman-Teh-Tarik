@@ -2,7 +2,7 @@ import { supabase } from '../../../utils/supabase';
 
 const CustomerApiService = {
   getCustomers: async (params = {}) => {
-    let query = supabase.from('Warung').select('*');
+    let query = supabase.from('Warung').select('*, assignedSales:User(name), area:Area(name), route:Route(name)');
     if (params.search) query = query.ilike('name', `%${params.search}%`);
     const { data, error, count } = await query;
     if (error) throw error;
@@ -22,13 +22,39 @@ const CustomerApiService = {
   },
 
   createCustomer: async (payload) => {
-    const { data, error } = await supabase.from('Warung').insert([payload]).select().single();
+    const finalPayload = { 
+      ...payload, 
+      updated_at: new Date().toISOString(),
+      latitude: payload.latitude !== undefined ? payload.latitude : 0,
+      longitude: payload.longitude !== undefined ? payload.longitude : 0
+    };
+    if (finalPayload.visit_week !== undefined && finalPayload.visit_week !== '') {
+      finalPayload.visit_week = Number(finalPayload.visit_week);
+    } else {
+      finalPayload.visit_week = null;
+    }
+    if (finalPayload.visit_day === '') finalPayload.visit_day = null;
+    if (finalPayload.code === '') delete finalPayload.code;
+    const { data, error } = await supabase.from('Warung').insert([finalPayload]).select().single();
     if (error) throw error;
     return { success: true, data };
   },
 
   updateCustomer: async (id, payload) => {
-    const { data, error } = await supabase.from('Warung').update(payload).eq('id', id).select().single();
+    const finalPayload = { 
+      ...payload, 
+      updated_at: new Date().toISOString(),
+      latitude: payload.latitude !== undefined ? payload.latitude : 0,
+      longitude: payload.longitude !== undefined ? payload.longitude : 0
+    };
+    if (finalPayload.visit_week !== undefined && finalPayload.visit_week !== '') {
+      finalPayload.visit_week = Number(finalPayload.visit_week);
+    } else {
+      finalPayload.visit_week = null;
+    }
+    if (finalPayload.visit_day === '') finalPayload.visit_day = null;
+    if (finalPayload.code === '') delete finalPayload.code;
+    const { data, error } = await supabase.from('Warung').update(finalPayload).eq('id', id).select().single();
     if (error) throw error;
     return { success: true, data };
   },

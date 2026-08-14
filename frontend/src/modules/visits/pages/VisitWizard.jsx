@@ -60,6 +60,8 @@ const VisitWizard = () => {
   const [closingNote, setClosingNote] = useState('');
   const [checkOutPhoto, setCheckOutPhoto] = useState(null);
 
+  const [warungs, setWarungs] = useState([]);
+
   const warungId = useMemo(() => {
     if (warung) return warung.id;
     const q = searchParams.get('warung');
@@ -107,18 +109,29 @@ const VisitWizard = () => {
 
   useEffect(() => {
     if (id) return undefined;
-    if (!warungId) return undefined;
     let active = true;
     (async () => {
       try {
-        const { data, error: err } = await supabase
-          .from('Warung')
-          .select('id, code, name, address')
-          .eq('id', warungId)
-          .single();
-        if (!active) return;
-        if (err) throw err;
-        setWarung(data);
+        if (warungId) {
+          const { data, error: err } = await supabase
+            .from('Warung')
+            .select('id, code, name, address')
+            .eq('id', warungId)
+            .single();
+          if (!active) return;
+          if (err) throw err;
+          setWarung(data);
+        } else {
+          const { data, error: err } = await supabase
+            .from('Warung')
+            .select('id, code, name, address')
+            .eq('status', 'ACTIVE')
+            .order('name');
+          if (!active) return;
+          if (err) throw err;
+          setWarungs(data || []);
+          if (active) setLoading(false);
+        }
       } catch (err) {
         if (active) setError(err.message);
       }
@@ -131,7 +144,7 @@ const VisitWizard = () => {
   const loadStock = async (targetWarungId) => {
     const { data, error: err } = await supabase
       .from('OutletParStock')
-      .select('id, par_qty, product_id, product:Product(id, code, name, cost_price)')
+      .select('id, par_qty, product_id, product:Product(id, code, name, selling_price)')
       .eq('warung_id', targetWarungId)
       .eq('is_active', true)
       .order('id');
@@ -141,7 +154,7 @@ const VisitWizard = () => {
       code: row.product?.code || '',
       name: row.product?.name || 'Produk',
       par_qty: Number(row.par_qty || 0),
-      cost_price: Number(row.product?.cost_price || 0),
+      selling_price: Number(row.product?.selling_price || 0),
       physical: Number(row.par_qty || 0),
       expired: 0,
     }));
@@ -165,6 +178,12 @@ const VisitWizard = () => {
       if (checkInPhoto) {
         photoPath = await VisitApiService.uploadPhoto(checkInPhoto);
         photoMime = checkInPhoto.type;
+      }
+      if (!location.latitude || !location.longitude) {
+        if (!window.confirm('Gagal mendapatkan lokasi GPS. Lanjutkan check-in tanpa koordinat lokasi?')) {
+          setSubmitting(false);
+          return;
+        }
       }
       const { data, error: err } = await VisitApiService.checkIn({
         warungId,
@@ -194,8 +213,8 @@ const VisitWizard = () => {
   const totalTagihan = useMemo(
     () =>
       stockRows.reduce((sum, r) => {
-        const sold = Math.max(r.par_qty - Number(r.physical || 0), 0);
-        return sum + sold * r.cost_price;
+        const sold = Math.max(r.par_qty - Number(r.physical || 0) - Number(r.expired || 0), 0);
+        return sum + sold * r.selling_price;
       }, 0),
     [stockRows]
   );
@@ -320,7 +339,29 @@ const VisitWizard = () => {
 
       {error && <div className="alert-error">{error}</div>}
 
-      {step === 0 && (
+      {!id && !warungId && (
+        <div className="wizard-card">
+          <h3>Pilih Warung untuk Dikunjungi</h3>
+          <p className="text-muted" style={{ marginBottom: '16px' }}>Anda memulai kunjungan tanpa jadwal. Silakan pilih warung.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {warungs.map((w) => (
+              <button
+                key={w.id}
+                className="btn-secondary"
+                style={{ textAlign: 'left', padding: '12px' }}
+                onClick={() => navigate(`/visits/new?warung=${w.id}`, { replace: true })}
+              >
+                <strong>{w.name}</strong>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  <MapPin size={12} style={{ marginRight: '4px' }} /> {w.address}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step === 0 && warungId && (
         <div className="wizard-card">
           <h3>{warung?.name || 'Memuat warung...'}</h3>
           {warung && (
@@ -379,12 +420,12 @@ const VisitWizard = () => {
             <p className="empty-hint">Belum ada Par Stock untuk warung ini.</p>
           )}
           {stockRows.map((row, idx) => {
-            const sold = Math.max(row.par_qty - Number(row.physical || 0), 0);
+            const sold = Math.max(row.par_qty - Number(row.physical || 0) - Number(row.expired || 0), 0);
             return (
               <div className="stock-row" key={row.product_id}>
                 <div className="stock-row-info">
                   <p>{row.name}</p>
-                  <span>Par {row.par_qty} · {formatRupiah(row.cost_price)} · Terjual {sold}</span>
+                  <span>Par {row.par_qty} · {formatRupiah(row.selling_price)} · Terjual {sold}</span>
                 </div>
                 <input
                   type="number"
@@ -451,6 +492,7 @@ const VisitWizard = () => {
                 className="wizard-input"
                 type="number"
                 min="0"
+                max={result?.grandTotal || totalTagihan || 0}
                 value={payAmount}
                 onChange={(e) => setPayAmount(e.target.value)}
               />

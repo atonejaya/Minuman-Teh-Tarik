@@ -7,8 +7,8 @@ const MasterLookupContext = createContext({
   error: null,
 });
 
-const CACHE_KEY = 'masterLookups';
-const CACHE_TTL = 30 * 60 * 1000; // 30 minutes in ms
+const CACHE_KEY = 'masterLookups_v2';
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in ms
 
 export const MasterLookupProvider = ({ children }) => {
   const [lookups, setLookups] = useState(null);

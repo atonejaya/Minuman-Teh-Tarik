@@ -38,10 +38,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const fetchProfile = async (authId) => {
-    const { data } = await supabase.from('User').select('*').eq('auth_id', authId).single();
-    if (data) {
-      setUser(data);
+    const { data, error } = await supabase.from('User').select('*').eq('auth_id', authId).single();
+    if (error || !data) {
+      setLoading(false);
+      throw new Error('Profil pengguna tidak ditemukan di database.');
     }
+    setUser(data);
     setLoading(false);
   };
 
@@ -55,6 +57,10 @@ export const AuthProvider = ({ children }) => {
     if (error) {
       error.message = translateAuthError(error.message);
       throw error;
+    }
+
+    if (data?.session) {
+      await fetchProfile(data.session.user.id);
     }
     return true;
   };

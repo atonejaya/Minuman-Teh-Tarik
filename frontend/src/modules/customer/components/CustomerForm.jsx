@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMasterLookupContext } from '../../../contexts/MasterLookupContext';
 
 const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, submitError }) => {
@@ -34,6 +34,90 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, subm
       ...prev,
       [name]: type === 'number' ? Number(value) : value
     }));
+  };
+
+  const [provinces, setProvinces] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [villages, setVillages] = useState([]);
+  const [selectedRegionIds, setSelectedRegionIds] = useState({
+    province_id: '',
+    city_id: '',
+    district_id: ''
+  });
+
+  useEffect(() => {
+    fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json')
+      .then(res => res.json())
+      .then(data => {
+        setProvinces(data);
+        if (initialData.province) {
+          const prov = data.find(p => p.name === initialData.province);
+          if (prov) setSelectedRegionIds(prev => ({ ...prev, province_id: prov.id }));
+        }
+      })
+      .catch(err => console.error('Gagal memuat provinsi:', err));
+  }, [initialData.province]);
+
+  useEffect(() => {
+    if (selectedRegionIds.province_id) {
+      fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${selectedRegionIds.province_id}.json`)
+        .then(res => res.json())
+        .then(data => {
+          setCities(data);
+          if (initialData.city) {
+            const city = data.find(c => c.name === initialData.city);
+            if (city) setSelectedRegionIds(prev => ({ ...prev, city_id: city.id }));
+          }
+        });
+    } else {
+      setCities([]);
+    }
+  }, [selectedRegionIds.province_id, initialData.city]);
+
+  useEffect(() => {
+    if (selectedRegionIds.city_id) {
+      fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${selectedRegionIds.city_id}.json`)
+        .then(res => res.json())
+        .then(data => {
+          setDistricts(data);
+          if (initialData.district) {
+            const dist = data.find(d => d.name === initialData.district);
+            if (dist) setSelectedRegionIds(prev => ({ ...prev, district_id: dist.id }));
+          }
+        });
+    } else {
+      setDistricts([]);
+    }
+  }, [selectedRegionIds.city_id, initialData.district]);
+
+  useEffect(() => {
+    if (selectedRegionIds.district_id) {
+      fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/villages/${selectedRegionIds.district_id}.json`)
+        .then(res => res.json())
+        .then(data => setVillages(data));
+    } else {
+      setVillages([]);
+    }
+  }, [selectedRegionIds.district_id]);
+
+  const handleRegionChange = (level, e) => {
+    const name = e.target.value;
+    const selectedOption = e.target.options[e.target.selectedIndex];
+    const id = selectedOption.getAttribute('data-id');
+
+    setFormData(prev => ({ ...prev, [level]: name }));
+
+    if (level === 'province') {
+      setSelectedRegionIds({ province_id: id, city_id: '', district_id: '' });
+      setFormData(prev => ({ ...prev, city: '', district: '', village: '' }));
+    } else if (level === 'city') {
+      setSelectedRegionIds(prev => ({ ...prev, city_id: id, district_id: '' }));
+      setFormData(prev => ({ ...prev, district: '', village: '' }));
+    } else if (level === 'district') {
+      setSelectedRegionIds(prev => ({ ...prev, district_id: id }));
+      setFormData(prev => ({ ...prev, village: '' }));
+    }
   };
 
   const handleSubmit = (e) => {
@@ -85,19 +169,31 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
           <div className="form-group">
             <label className="form-label" style={labelStyle}>Provinsi <span style={{ color: 'var(--danger)' }}>*</span></label>
-            <input type="text" className="form-input" style={inputStyle} name="province" value={formData.province} onChange={handleChange} required />
+            <select className="form-input" style={inputStyle} name="province" value={formData.province} onChange={(e) => handleRegionChange('province', e)} required>
+              <option value="">Pilih Provinsi</option>
+              {provinces.map(p => <option key={p.id} value={p.name} data-id={p.id}>{p.name}</option>)}
+            </select>
           </div>
           <div className="form-group">
-            <label className="form-label" style={labelStyle}>Kota <span style={{ color: 'var(--danger)' }}>*</span></label>
-            <input type="text" className="form-input" style={inputStyle} name="city" value={formData.city} onChange={handleChange} required />
+            <label className="form-label" style={labelStyle}>Kota/Kabupaten <span style={{ color: 'var(--danger)' }}>*</span></label>
+            <select className="form-input" style={inputStyle} name="city" value={formData.city} onChange={(e) => handleRegionChange('city', e)} required disabled={!cities.length}>
+              <option value="">Pilih Kota/Kab.</option>
+              {cities.map(c => <option key={c.id} value={c.name} data-id={c.id}>{c.name}</option>)}
+            </select>
           </div>
           <div className="form-group">
             <label className="form-label" style={labelStyle}>Kecamatan <span style={{ color: 'var(--danger)' }}>*</span></label>
-            <input type="text" className="form-input" style={inputStyle} name="district" value={formData.district} onChange={handleChange} required />
+            <select className="form-input" style={inputStyle} name="district" value={formData.district} onChange={(e) => handleRegionChange('district', e)} required disabled={!districts.length}>
+              <option value="">Pilih Kecamatan</option>
+              {districts.map(d => <option key={d.id} value={d.name} data-id={d.id}>{d.name}</option>)}
+            </select>
           </div>
           <div className="form-group">
             <label className="form-label" style={labelStyle}>Desa/Kelurahan <span style={{ color: 'var(--danger)' }}>*</span></label>
-            <input type="text" className="form-input" style={inputStyle} name="village" value={formData.village} onChange={handleChange} required />
+            <select className="form-input" style={inputStyle} name="village" value={formData.village} onChange={handleChange} required disabled={!villages.length}>
+              <option value="">Pilih Desa/Kel.</option>
+              {villages.map(v => <option key={v.id} value={v.name}>{v.name}</option>)}
+            </select>
           </div>
         </div>
       </section>
@@ -157,9 +253,11 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
             <label className="form-label" style={labelStyle}>Minggu Kunjungan</label>
             <select className="form-input" style={inputStyle} name="visit_week" value={formData.visit_week} onChange={handleChange}>
               <option value="">Pilih Minggu</option>
-              {['ALL', 'WEEK_1', 'WEEK_2', 'WEEK_3', 'WEEK_4'].map((w) => (
-                <option key={w} value={w}>{WEEK_LABELS[w] || w}</option>
-              ))}
+              <option value="0">Semua (Tiap Minggu)</option>
+              <option value="1">Minggu ke-1</option>
+              <option value="2">Minggu ke-2</option>
+              <option value="3">Minggu ke-3</option>
+              <option value="4">Minggu ke-4</option>
             </select>
           </div>
         </section>

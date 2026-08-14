@@ -5,7 +5,7 @@ import { useCompany } from '../contexts/CompanyContext.jsx';
 import {
   LayoutDashboard, Users, ShoppingCart, Map, Route as RouteIcon, UserCog, Warehouse,
   Tag, Package, Truck, Receipt, Repeat, ClipboardList, Wallet, Banknote, FileText,
-  Settings, LogOut, Coffee
+  Settings, LogOut, Coffee, Layers, Ruler
 } from 'lucide-react';
 
 const section = (title, items) => (
@@ -38,6 +38,8 @@ const OwnerLayout = () => {
   const masterItems = [
     { to: '/customers', label: 'Pelanggan', icon: Users },
     { to: '/products', label: 'Produk', icon: ShoppingCart },
+    { to: '/categories', label: 'Kategori', icon: Layers },
+    { to: '/units', label: 'Satuan', icon: Ruler },
     { to: '/areas', label: 'Area', icon: Map },
     { to: '/routes', label: 'Rute', icon: RouteIcon },
     { to: '/sales-users', label: 'Sales', icon: UserCog },
@@ -47,6 +49,7 @@ const OwnerLayout = () => {
   ];
 
   const operasionalItems = [
+    { to: '/sales/stock-in', label: 'Barang Masuk', icon: Package },
     { to: '/sales/stock-issues', label: 'Pengeluaran Stok', icon: Truck },
     { to: '/sales/transactions', label: 'Transaksi', icon: Receipt },
     { to: '/sales/returns', label: 'Retur Penjualan', icon: Repeat },
@@ -65,9 +68,11 @@ const OwnerLayout = () => {
           {logoUrl ? (
             <img src={logoUrl} alt={companyName} className="owner-sidebar-logo-img" />
           ) : (
-            <Coffee size={22} />
+            <Coffee size={32} />
           )}
-          <span>{companyName} Konsinyasi</span>
+          <div className="owner-sidebar-brand">
+            <span className="owner-sidebar-brand-name">{companyName}</span>
+          </div>
         </div>
         <nav className="owner-nav">
           <NavLink to="/dashboard" end className={({ isActive }) => `owner-nav-link ${isActive ? 'active' : ''}`}>

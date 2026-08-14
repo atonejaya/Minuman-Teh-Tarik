@@ -16,7 +16,7 @@ const STATUS_LABELS = {
 
 const VisitList = () => {
   const navigate = useNavigate();
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const today = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
   const [plan, setPlan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -111,9 +111,14 @@ const VisitList = () => {
 
   return (
     <div className="page-mobile">
-      <div className="page-mobile-title">
-        <h2>Rencana Kunjungan</h2>
-        <p className="text-muted">{today}</p>
+      <div className="page-mobile-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h2>Rencana Kunjungan</h2>
+          <p className="text-muted">{today}</p>
+        </div>
+        <button className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }} onClick={() => navigate('/visits/new')}>
+          + Kunjungan Baru
+        </button>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}

@@ -1,7 +1,8 @@
 import React, { Suspense, lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext.jsx';
 import { MasterLookupProvider } from './contexts/MasterLookupContext.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 import OwnerLayout from './layouts/OwnerLayout.jsx';
 import SalesLayout from './layouts/SalesLayout.jsx';
 import Login from './pages/Login.jsx';
@@ -17,6 +18,9 @@ const ProductFormPage = lazy(() => import('./modules/product/pages/ProductFormPa
 const SalesStockIssueList = lazy(() => import('./modules/sales/pages/SalesStockIssueList.jsx'));
 const SalesStockIssueForm = lazy(() => import('./modules/sales/pages/SalesStockIssueForm.jsx'));
 const SalesStockIssueDetail = lazy(() => import('./modules/sales/pages/SalesStockIssueDetail.jsx'));
+const WarehouseStockInList = lazy(() => import('./modules/sales/pages/WarehouseStockInList.jsx'));
+const WarehouseStockInForm = lazy(() => import('./modules/sales/pages/WarehouseStockInForm.jsx'));
+const WarehouseStockInDetail = lazy(() => import('./modules/sales/pages/WarehouseStockInDetail.jsx'));
 const PiutangDashboard = lazy(() => import('./modules/sales/pages/PiutangDashboard.jsx'));
 const SalesTransactionList = lazy(() => import('./modules/sales/pages/SalesTransactionList.jsx'));
 const SalesTransactionDetail = lazy(() => import('./modules/sales/pages/SalesTransactionDetail.jsx'));
@@ -43,6 +47,10 @@ const PriceLevelList = lazy(() => import('./modules/masterdata/pages/PriceLevelL
 const PriceLevelForm = lazy(() => import('./modules/masterdata/pages/PriceLevelForm.jsx'));
 const ParStockList = lazy(() => import('./modules/masterdata/pages/ParStockList.jsx'));
 const ParStockForm = lazy(() => import('./modules/masterdata/pages/ParStockForm.jsx'));
+const UnitList = lazy(() => import('./modules/masterdata/pages/UnitList.jsx'));
+const UnitForm = lazy(() => import('./modules/masterdata/pages/UnitForm.jsx'));
+const CategoryList = lazy(() => import('./modules/masterdata/pages/CategoryList.jsx'));
+const CategoryForm = lazy(() => import('./modules/masterdata/pages/CategoryForm.jsx'));
 
 function Loading() {
   return <div className="loading-screen">Memuat...</div>;
@@ -53,91 +61,101 @@ function RequireRole({ roles, children }) {
   if (loading) return <Loading />;
   if (!user) return <Navigate to="/login" replace />;
   if (!roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
-  return children;
+  return children ? children : <Outlet />;
+}
+
+function RoleBasedLayout() {
+  const { user, loading } = useAuth();
+  if (loading) return <Loading />;
+  if (!user) return <Navigate to="/login" replace />;
+
+  if (user.role === 'OWNER' || user.role === 'ADMIN') return <OwnerLayout />;
+  if (user.role === 'SALES') return <SalesLayout />;
+  
+  return <Navigate to="/login" replace />;
 }
 
 function App() {
   return (
     <MasterLookupProvider>
-      <Suspense fallback={<Loading />}>
+      <ErrorBoundary>
+        <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          <Route
-            path="/"
-            element={
-              <RequireRole roles={['OWNER']}>
-                <OwnerLayout />
-              </RequireRole>
-            }
-          >
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="customers" element={<CustomerList />} />
-            <Route path="customers/new" element={<CustomerFormPage />} />
-            <Route path="customers/:id" element={<CustomerDetail />} />
-            <Route path="customers/:id/edit" element={<CustomerFormPage />} />
-
-            <Route path="products" element={<ProductList />} />
-            <Route path="products/new" element={<ProductFormPage />} />
-            <Route path="products/:id" element={<ProductDetail />} />
-            <Route path="products/:id/edit" element={<ProductFormPage />} />
-
-            <Route path="areas" element={<AreaList />} />
-            <Route path="areas/new" element={<AreaForm />} />
-            <Route path="areas/:id/edit" element={<AreaForm />} />
-            <Route path="routes" element={<RouteList />} />
-            <Route path="routes/new" element={<RouteForm />} />
-            <Route path="routes/:id/edit" element={<RouteForm />} />
-            <Route path="sales-users" element={<SalesUserList />} />
-            <Route path="sales-users/new" element={<SalesUserForm />} />
-            <Route path="sales-users/:id/edit" element={<SalesUserForm />} />
-            <Route path="warehouses" element={<WarehouseList />} />
-            <Route path="warehouses/new" element={<WarehouseForm />} />
-            <Route path="warehouses/:id/edit" element={<WarehouseForm />} />
-            <Route path="price-levels" element={<PriceLevelList />} />
-            <Route path="price-levels/new" element={<PriceLevelForm />} />
-            <Route path="price-levels/:id/edit" element={<PriceLevelForm />} />
-            <Route path="par-stock" element={<ParStockList />} />
-            <Route path="par-stock/new" element={<ParStockForm />} />
-            <Route path="par-stock/:id/edit" element={<ParStockForm />} />
-
-            <Route path="sales/stock-issues" element={<SalesStockIssueList />} />
-            <Route path="sales/stock-issues/new" element={<SalesStockIssueForm />} />
-            <Route path="sales/stock-issues/:id" element={<SalesStockIssueDetail />} />
-            <Route path="sales/transactions" element={<SalesTransactionList />} />
-            <Route path="sales/transactions/new" element={<SalesTransactionFormPage />} />
-            <Route path="sales/transactions/:id" element={<SalesTransactionDetail />} />
-            <Route path="sales/returns" element={<SalesReturnList />} />
-            <Route path="sales/returns/new" element={<SalesReturnFormPage />} />
-            <Route path="sales/returns/:id" element={<SalesReturnDetail />} />
-            <Route path="sales/piutang" element={<PiutangDashboard />} />
-
-            <Route path="visits" element={<VisitList />} />
-            <Route path="setoran" element={<SetoranList />} />
-            <Route path="reports" element={<ReportsPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-          </Route>
-
-          <Route
-            path="/"
-            element={
-              <RequireRole roles={['SALES']}>
-                <SalesLayout />
-              </RequireRole>
-            }
-          >
+          <Route path="/" element={<RoleBasedLayout />}>
+            {/* Shared Routes */}
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="visits" element={<VisitList />} />
-            <Route path="visits/new" element={<VisitWizard />} />
-            <Route path="visits/:id" element={<VisitWizard />} />
             <Route path="setoran" element={<SetoranList />} />
-            <Route path="account" element={<AccountPage />} />
+
+            {/* Sales-only Routes */}
+            <Route path="visits/new" element={<RequireRole roles={['SALES', 'OWNER']}><VisitWizard /></RequireRole>} />
+            <Route path="visits/:id" element={<RequireRole roles={['SALES', 'OWNER']}><VisitWizard /></RequireRole>} />
+            <Route path="account" element={<RequireRole roles={['SALES']}><AccountPage /></RequireRole>} />
+
+            {/* Owner-only Routes */}
+            <Route element={<RequireRole roles={['OWNER']} />}>
+              <Route path="customers" element={<CustomerList />} />
+              <Route path="customers/new" element={<CustomerFormPage />} />
+              <Route path="customers/:id" element={<CustomerDetail />} />
+              <Route path="customers/:id/edit" element={<CustomerFormPage />} />
+
+              <Route path="products" element={<ProductList />} />
+              <Route path="products/new" element={<ProductFormPage />} />
+              <Route path="products/:id" element={<ProductDetail />} />
+              <Route path="products/:id/edit" element={<ProductFormPage />} />
+
+              <Route path="areas" element={<AreaList />} />
+              <Route path="areas/new" element={<AreaForm />} />
+              <Route path="areas/:id/edit" element={<AreaForm />} />
+              <Route path="routes" element={<RouteList />} />
+              <Route path="routes/new" element={<RouteForm />} />
+              <Route path="routes/:id/edit" element={<RouteForm />} />
+              <Route path="sales-users" element={<SalesUserList />} />
+              <Route path="sales-users/new" element={<SalesUserForm />} />
+              <Route path="sales-users/:id/edit" element={<SalesUserForm />} />
+              <Route path="warehouses" element={<WarehouseList />} />
+              <Route path="warehouses/new" element={<WarehouseForm />} />
+              <Route path="warehouses/:id/edit" element={<WarehouseForm />} />
+              <Route path="price-levels" element={<PriceLevelList />} />
+              <Route path="price-levels/new" element={<PriceLevelForm />} />
+              <Route path="price-levels/:id/edit" element={<PriceLevelForm />} />
+              <Route path="par-stock" element={<ParStockList />} />
+              <Route path="par-stock/new" element={<ParStockForm />} />
+              <Route path="par-stock/:id/edit" element={<ParStockForm />} />
+              <Route path="units" element={<UnitList />} />
+              <Route path="units/new" element={<UnitForm />} />
+              <Route path="units/:id/edit" element={<UnitForm />} />
+              <Route path="categories" element={<CategoryList />} />
+              <Route path="categories/new" element={<CategoryForm />} />
+              <Route path="categories/:id/edit" element={<CategoryForm />} />
+
+              <Route path="sales/stock-issues" element={<SalesStockIssueList />} />
+              <Route path="sales/stock-issues/new" element={<SalesStockIssueForm />} />
+              <Route path="sales/stock-issues/:id/edit" element={<SalesStockIssueForm />} />
+              <Route path="sales/stock-issues/:id" element={<SalesStockIssueDetail />} />
+              <Route path="sales/stock-in" element={<WarehouseStockInList />} />
+              <Route path="sales/stock-in/new" element={<WarehouseStockInForm />} />
+              <Route path="sales/stock-in/:id" element={<WarehouseStockInDetail />} />
+              <Route path="sales/transactions" element={<SalesTransactionList />} />
+              <Route path="sales/transactions/new" element={<SalesTransactionFormPage />} />
+              <Route path="sales/transactions/:id" element={<SalesTransactionDetail />} />
+              <Route path="sales/returns" element={<SalesReturnList />} />
+              <Route path="sales/returns/new" element={<SalesReturnFormPage />} />
+              <Route path="sales/returns/:id" element={<SalesReturnDetail />} />
+              <Route path="sales/piutang" element={<PiutangDashboard />} />
+
+              <Route path="reports" element={<ReportsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
     </MasterLookupProvider>
   );
 }

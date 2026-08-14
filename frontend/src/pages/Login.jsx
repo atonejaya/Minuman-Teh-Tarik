@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Coffee, LogIn, User, Lock, MapPin, Phone } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext.jsx';
@@ -9,9 +9,15 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const { companyName, tagline, address, phone, logoUrl } = useCompany();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,10 +25,8 @@ export default function Login() {
     setLoading(true);
     try {
       await login(username, password);
-      navigate('/dashboard');
-    } catch {
-      setError('Username atau password salah');
-    } finally {
+    } catch (err) {
+      setError(err.message || 'Username atau password salah');
       setLoading(false);
     }
   };

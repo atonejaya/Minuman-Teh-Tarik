@@ -29,15 +29,7 @@ const ProductFilters = ({ filters, setFilters }) => {
           ))}
         </select>
       </div>
-      <div>
-        <label className="field-label">Merek</label>
-        <select className="wizard-input" value={filters.brandId || ''} onChange={(e) => set('brandId', e.target.value)}>
-          <option value="">Semua Merek</option>
-          {brands.map((b) => (
-            <option key={b.id} value={b.id}>{b.name}</option>
-          ))}
-        </select>
-      </div>
+
       <div>
         <label className="field-label">Status</label>
         <select className="wizard-input" value={filters.status || 'all'} onChange={(e) => set('status', e.target.value)}>

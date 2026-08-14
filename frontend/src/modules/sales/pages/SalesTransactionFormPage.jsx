@@ -23,7 +23,7 @@ const SalesTransactionFormComponent = ({ onSubmit, onCancel }) => {
     const fetchOptions = async () => {
       const [customerRes, productRes] = await Promise.all([
         supabase.from('Warung').select('id, code, name').eq('status', 'ACTIVE').order('name'),
-        supabase.from('Product').select('id, code, name, cost_price').eq('is_active', true).order('name'),
+        supabase.from('Product').select('id, code, name, selling_price, cost_price').eq('is_active', true).order('name'),
       ]);
       setCustomers(customerRes.data || []);
       setProducts(productRes.data || []);
@@ -51,7 +51,7 @@ const SalesTransactionFormComponent = ({ onSubmit, onCancel }) => {
   const handleProductChange = (index, productId) => {
     const product = products.find((p) => String(p.id) === String(productId));
     updateItem(index, 'product_id', productId);
-    if (product) updateItem(index, 'selling_price', product.cost_price || 0);
+    if (product) updateItem(index, 'selling_price', product.selling_price || 0);
   };
 
   const handleSubmit = async (event) => {
@@ -108,6 +108,15 @@ const SalesTransactionFormComponent = ({ onSubmit, onCancel }) => {
 
       <div className="form-group">
         <label style={labelStyle}>Item</label>
+        {form.items.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: '8px', marginBottom: '4px', fontWeight: 'bold', fontSize: '12px', color: 'var(--text-muted)' }}>
+            <div>Nama Produk</div>
+            <div>Qty</div>
+            <div>Harga Satuan</div>
+            <div>Diskon</div>
+            <div>Aksi</div>
+          </div>
+        )}
         {form.items.map((item, index) => (
           <div key={index} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
             <select

@@ -3,11 +3,10 @@ import MasterFormPage from '../components/MasterFormPage';
 import MasterDataRepository from '../repositories/MasterDataRepository';
 
 const fields = [
-  { name: 'code', label: 'Kode', required: true },
-  { name: 'name', label: 'Nama', required: true },
-  { name: 'regional_id', label: 'ID Regional', type: 'number' },
-  { name: 'description', label: 'Deskripsi' },
-  { name: 'is_active', label: 'Aktif', type: 'checkbox', default: true },
+  { name: 'name', label: 'Nama Area', required: true, placeholder: 'Contoh: Jakarta Selatan' },
+  { name: 'code', label: 'Kode Area', disabled: true, placeholder: 'Otomatis Dibuat' },
+  { name: 'is_active', label: 'Status', type: 'checkbox', default: true },
+  { name: 'description', label: 'Keterangan (opsional)', placeholder: 'Contoh: Wilayah Jakarta Selatan' },
 ];
 
 const AreaForm = () => (

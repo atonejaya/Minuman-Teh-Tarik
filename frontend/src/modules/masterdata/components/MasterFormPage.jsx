@@ -58,9 +58,13 @@ const MasterFormPage = ({ title, listPath, fields, getById, create, update, toPa
       const payload = {};
       fields.forEach((f) => {
         let value = form[f.name];
-        if (f.type === 'checkbox') value = value === true;
-        if (f.type === 'number') value = value === '' || value === null || value === undefined ? null : Number(value);
-        payload[f.name] = value;
+        if (f.disabled && (value === '' || value === null || value === undefined)) {
+          // Abaikan field yang dikunci dan kosong agar di-generate backend
+        } else {
+          if (f.type === 'checkbox') value = value === true;
+          if (f.type === 'number') value = value === '' || value === null || value === undefined ? null : Number(value);
+          payload[f.name] = value;
+        }
       });
       const finalPayload = toPayload ? toPayload(payload) : payload;
       if (isEdit) {
@@ -75,7 +79,7 @@ const MasterFormPage = ({ title, listPath, fields, getById, create, update, toPa
     }
   };
 
-  const FormComponent = ({ onCancel }) => {
+  const renderForm = ({ onCancel }) => {
     if (loading) {
       return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat...</p>;
     }
@@ -99,7 +103,7 @@ const MasterFormPage = ({ title, listPath, fields, getById, create, update, toPa
                   <input type="checkbox" checked={form[f.name] === true} onChange={(e) => updateField(f.name, e.target.checked)} />
                 </div>
               ) : (
-                <input style={inputStyle} type={f.type || 'text'} value={form[f.name] ?? ''} required={f.required} onChange={(e) => updateField(f.name, e.target.value)} />
+                <input style={inputStyle} type={f.type || 'text'} placeholder={f.placeholder} value={form[f.name] ?? ''} required={f.required} disabled={f.disabled} onChange={(e) => updateField(f.name, e.target.value)} />
               )}
             </div>
           ))}
@@ -119,7 +123,7 @@ const MasterFormPage = ({ title, listPath, fields, getById, create, update, toPa
   return (
     <EntityFormPage
       title={`${isEdit ? 'Ubah' : 'Tambah'} ${title}`}
-      form={(props) => <FormComponent {...props} />}
+      form={renderForm}
       onCancel={() => navigate(listPath)}
     />
   );

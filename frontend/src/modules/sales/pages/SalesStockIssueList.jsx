@@ -18,7 +18,7 @@ const STATUS_LABELS = {
 
 const cell = { padding: '12px 16px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
 
-const SalesStockIssueTable = ({ data, loading, onView, onConfirm, onClose }) => {
+const SalesStockIssueTable = ({ data, loading, onView, onEdit, onDelete, onConfirm, onClose }) => {
   if (loading) {
     return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat...</p>;
   }
@@ -67,9 +67,17 @@ const SalesStockIssueTable = ({ data, loading, onView, onConfirm, onClose }) => 
                   Lihat
                 </button>
                 {item.status === 'DRAFT' && (
-                  <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--success)', color: '#fff' }} onClick={() => onConfirm(item.id)}>
-                    Konfirmasi
-                  </button>
+                  <>
+                    <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--warning)', color: '#fff' }} onClick={() => onEdit(item.id)}>
+                      Edit
+                    </button>
+                    <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--danger)', color: '#fff' }} onClick={() => onDelete(item.id)}>
+                      Hapus
+                    </button>
+                    <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--success)', color: '#fff' }} onClick={() => onConfirm(item.id)}>
+                      Konfirmasi
+                    </button>
+                  </>
                 )}
                 {item.status === 'CONFIRMED' && (
                   <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', backgroundColor: 'var(--secondary)', color: '#fff' }} onClick={() => onClose(item.id)}>
@@ -130,6 +138,18 @@ const SalesStockIssueList = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus mutasi stok ini?')) {
+      try {
+        await SalesStockIssueRepository.deleteSalesStockIssue(id);
+        toast.success('Mutasi stok berhasil dihapus.');
+        fetchIssues();
+      } catch (error) {
+        toast.error(error.message || 'Gagal menghapus mutasi stok');
+      }
+    }
+  };
+
   return (
     <EntityListPage
       title="Mutasi Stok"
@@ -141,6 +161,8 @@ const SalesStockIssueList = () => {
           {...props}
           loading={loading}
           onView={(id) => navigate(`/sales/stock-issues/${id}`)}
+          onEdit={(id) => navigate(`/sales/stock-issues/${id}/edit`)}
+          onDelete={handleDelete}
           onConfirm={handleConfirm}
           onClose={handleClose}
         />

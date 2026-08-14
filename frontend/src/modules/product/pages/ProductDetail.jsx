@@ -11,16 +11,9 @@ const PAYMENT_LABELS = { PAID: 'Lunas', PARTIAL: 'Sebagian', UNPAID: 'Belum Luna
 
 const OverviewTab = ({ product }) => {
   const rows = [
-    ['SKU / Kode', product.sku || product.code || '-'],
-    ['Barcode', product.barcode || '-'],
+    ['Kode Produk', product.code || '-'],
     ['Kategori', product.category?.name || '-'],
-    ['Merek', product.brand?.name || '-'],
     ['Satuan', product.unit?.name || '-'],
-    ['Pemasok', product.supplier?.name || '-'],
-    ['Kemasan', product.packaging?.name || '-'],
-    ['Pajak', product.tax ? `${product.tax.name} (${product.tax.rate ?? 0}%)` : '-'],
-    ['Gudang', product.warehouse?.name || '-'],
-    ['Deskripsi', product.description || '-'],
   ];
   return (
     <div className="card-custom" style={{ maxWidth: '640px', padding: '20px' }}>
@@ -36,16 +29,8 @@ const OverviewTab = ({ product }) => {
 
 const PricingStockTab = ({ product }) => {
   const rows = [
-    ['Harga Modal', formatRupiah(product.cost_price)],
-    ['Stok Minimum', product.minimum_stock ?? '-'],
-    ['Stok Maksimum', product.maximum_stock ?? '-'],
-    ['Level Restok', product.reorder_level ?? '-'],
-    ['Masa Simpan (hari)', product.shelf_life_days ?? '-'],
-    ['Volume', product.volume ?? '-'],
-    ['Berat (gram)', product.weight ?? '-'],
-    ['Konsinyasi', product.is_consignment ? 'Ya' : 'Tidak'],
-    ['Dapat Dijual', product.is_sellable ? 'Ya' : 'Tidak'],
-    ['Dapat Dibeli', product.is_purchasable ? 'Ya' : 'Tidak'],
+    ['HPP (Modal)', formatRupiah(product.cost_price)],
+    ['Harga Jual', formatRupiah(product.selling_price)],
     ['Status', product.is_active ? 'Aktif' : 'Nonaktif'],
   ];
   return (

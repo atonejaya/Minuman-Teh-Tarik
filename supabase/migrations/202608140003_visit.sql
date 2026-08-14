@@ -29,7 +29,7 @@ begin
     raise exception 'Not authenticated';
   end if;
 
-  select coalesce(jsonb_agg(row_to_jsonb(t) order by t.visit_order, t.warung_name), '[]'::jsonb)
+  select coalesce(jsonb_agg(to_jsonb(t) order by t.visit_order, t.warung_name), '[]'::jsonb)
     into v_result
   from (
     select
@@ -62,7 +62,7 @@ begin
     ) aps on true
     left join public."CustomerARProjection" apc on apc.customer_code = w.code
     where w.assigned_sales_id = v_user_id
-      and w.is_active = true
+      and w.status = 'ACTIVE'
       and w.deleted_at is null
       and (w.visit_day is null or w.visit_day::text = v_weekday)
     order by w.visit_order nulls last, w.name
@@ -206,16 +206,20 @@ begin
     values
       (v_count_id, (v_item.j->>'product_id')::int, coalesce(v_physical, 0));
 
-    select coalesce(op.par_qty, 0), coalesce(p.cost_price, 0)
+    select coalesce(op.par_qty, 0), coalesce(p.selling_price, 0)
       into v_par, v_price
     from public."Product" p
     left join public."OutletParStock" op
       on op.warung_id = v_visit.warung_id and op.product_id = p.id
     where p.id = (v_item.j->>'product_id')::int;
 
+    select coalesce(current_stock, 0) into v_outlet_cur
+    from public."OutletStockProjection"
+    where warung_id = v_visit.warung_id and product_id = (v_item.j->>'product_id')::int;
+
     v_sold := 0;
-    if v_physical < v_par then
-      v_sold := v_par - v_physical;
+    if (v_physical + v_expired) < v_par then
+      v_sold := v_par - v_physical - v_expired;
     end if;
 
     if v_sold > 0 then
@@ -256,10 +260,6 @@ begin
 
       v_sold_total := v_sold_total + v_sold * v_price;
 
-      select coalesce(current_stock, 0) into v_outlet_cur
-      from public."OutletStockProjection"
-      where warung_id = v_visit.warung_id and product_id = (v_item.j->>'product_id')::int;
-
       insert into public."OutletStockLedger"
         (warung_id, product_id, movement_type, qty_before, qty_change, qty_after,
          reference_type, reference_id, visit_id, created_by, notes)
@@ -292,24 +292,6 @@ begin
            where sales_id = v_visit.sales_id
              and product_id = (v_item.j->>'product_id')::int;
       end;
-
-      begin
-        insert into public."OutletStockProjection" (warung_id, product_id, current_stock, par_qty, opening_stock, total_refill, total_sales, total_return, calculated_sales, required_refill, average_daily_sales, sell_through, last_visit_id, last_count_at, version, updated_at)
-        values (v_visit.warung_id, (v_item.j->>'product_id')::int, v_outlet_cur - v_sold, v_par, v_outlet_cur, 0, v_sold, 0, v_sold, v_par - (v_outlet_cur - v_sold), 0, 0, v_visit.id, now(), 1, now());
-      exception
-        when unique_violation then
-          update public."OutletStockProjection"
-             set current_stock = v_outlet_cur - v_sold,
-                 total_sales = total_sales + v_sold,
-                 calculated_sales = calculated_sales + v_sold,
-                 required_refill = greatest(v_par - (v_outlet_cur - v_sold), 0),
-                 last_visit_id = v_visit.id,
-                 last_count_at = now(),
-                 version = version + 1,
-                 updated_at = now()
-           where warung_id = v_visit.warung_id
-             and product_id = (v_item.j->>'product_id')::int;
-      end;
     end if;
 
     if v_expired > 0 then
@@ -338,7 +320,7 @@ begin
          reference_type, reference_id, visit_id, created_by, notes)
       values
         (v_visit.warung_id, (v_item.j->>'product_id')::int,
-         'RETURN_BAD', v_par, -v_expired, v_par - v_expired,
+         'RETURN_BAD', v_outlet_cur - v_sold, -v_expired, v_outlet_cur - v_sold - v_expired,
          'SalesReturn', v_return_id, v_visit.id, v_user_id, 'Expired');
 
       select coalesce(max(balance), 0) into v_sales_balance
@@ -363,6 +345,27 @@ begin
              set qty_expired = qty_expired + v_expired,
                  last_update = now()
            where sales_id = v_visit.sales_id
+             and product_id = (v_item.j->>'product_id')::int;
+      end;
+    end if;
+
+    if v_sold > 0 or v_expired > 0 then
+      begin
+        insert into public."OutletStockProjection" (warung_id, product_id, current_stock, par_qty, opening_stock, total_refill, total_sales, total_return, calculated_sales, required_refill, average_daily_sales, sell_through, last_visit_id, last_count_at, version, updated_at)
+        values (v_visit.warung_id, (v_item.j->>'product_id')::int, v_outlet_cur - v_sold - v_expired, v_par, v_outlet_cur, 0, v_sold, v_expired, v_sold, v_par - (v_outlet_cur - v_sold - v_expired), 0, 0, v_visit.id, now(), 1, now());
+      exception
+        when unique_violation then
+          update public."OutletStockProjection"
+             set current_stock = v_outlet_cur - v_sold - v_expired,
+                 total_sales = total_sales + v_sold,
+                 calculated_sales = calculated_sales + v_sold,
+                 total_return = total_return + v_expired,
+                 required_refill = greatest(v_par - (v_outlet_cur - v_sold - v_expired), 0),
+                 last_visit_id = v_visit.id,
+                 last_count_at = now(),
+                 version = version + 1,
+                 updated_at = now()
+           where warung_id = v_visit.warung_id
              and product_id = (v_item.j->>'product_id')::int;
       end;
     end if;
@@ -500,6 +503,10 @@ begin
   else
     if p_amount is null or p_amount <= 0 then
       raise exception 'Payment amount is required';
+    end if;
+
+    if p_amount > v_tx.grand_total then
+      raise exception 'Pembayaran (Rp %) tidak boleh melebihi tagihan (Rp %)', p_amount, v_tx.grand_total;
     end if;
 
     v_pay_code := public.next_document_number('Payment', 'PAY-', to_char(current_date, 'YYYY'), to_char(current_date, 'MM'));

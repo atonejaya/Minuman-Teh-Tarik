@@ -14,12 +14,12 @@ const ProductTable = ({ data, loading, onView, onEdit, onToggle }) => {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead style={{ backgroundColor: 'var(--background)' }}>
             <tr>
-              <th style={TH}>SKU / Kode</th>
+              <th style={TH}>Kode</th>
               <th style={TH}>Nama Produk</th>
               <th style={TH}>Kategori</th>
               <th style={TH}>Satuan</th>
-              <th style={TH}>Harga Modal</th>
-              <th style={TH}>Stok Min / Maks</th>
+              <th style={TH}>HPP (Modal)</th>
+              <th style={TH}>Harga Jual</th>
               <th style={TH}>Status</th>
               <th style={TH}>Aksi</th>
             </tr>
@@ -27,12 +27,12 @@ const ProductTable = ({ data, loading, onView, onEdit, onToggle }) => {
           <tbody>
             {data.map((p) => (
               <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => onView(p)}>
-                <td style={{ ...CELL, fontWeight: '500' }}>{p.sku || p.code || '-'}</td>
+                <td style={{ ...CELL, fontWeight: '500' }}>{p.code || '-'}</td>
                 <td style={{ ...CELL, fontWeight: '600' }}>{p.name}</td>
                 <td style={CELL}>{p.category?.name || '-'}</td>
                 <td style={CELL}>{p.unit?.name || '-'}</td>
                 <td style={CELL}>{formatRupiah(p.cost_price)}</td>
-                <td style={CELL}>{`${p.minimum_stock ?? '-'} / ${p.maximum_stock ?? '-'}`}</td>
+                <td style={CELL}>{formatRupiah(p.selling_price)}</td>
                 <td style={CELL}>
                   <span className={`badge ${p.is_active ? 'badge-success' : 'badge-muted'}`}>
                     {p.is_active ? 'Aktif' : 'Nonaktif'}

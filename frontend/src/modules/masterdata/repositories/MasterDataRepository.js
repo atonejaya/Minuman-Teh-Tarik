@@ -24,14 +24,20 @@ const MasterDataRepository = {
   },
 
   async create(table, payload) {
-    const { data, error } = await supabase.from(table).insert(payload).select().single();
+    const finalPayload = { ...payload, updated_at: new Date().toISOString() };
+    if (finalPayload.code === '') delete finalPayload.code;
+    const { data, error } = await supabase.from(table).insert(finalPayload).select().single();
     if (error) throw error;
+    try { localStorage.removeItem('masterLookups_v2'); } catch(e){}
     return data;
   },
 
   async update(table, id, payload) {
-    const { data, error } = await supabase.from(table).update(payload).eq('id', id).select().single();
+    const finalPayload = { ...payload, updated_at: new Date().toISOString() };
+    if (finalPayload.code === '') delete finalPayload.code;
+    const { data, error } = await supabase.from(table).update(finalPayload).eq('id', id).select().single();
     if (error) throw error;
+    try { localStorage.removeItem('masterLookups_v2'); } catch(e){}
     return data;
   },
 };
