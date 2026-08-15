@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../../utils/supabase';
+import { useNavigate } from 'react-router-dom';
 
 const fmtRp = (v) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0);
 
@@ -15,6 +16,7 @@ export const OwnerDashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -38,6 +40,8 @@ export const OwnerDashboard = () => {
           kasOwnerRes,
           visitsRes,
           warehouseRes,
+          salesStockRes,
+          outletStockRes,
           last7Res,
         ] = await Promise.all([
           supabase
@@ -67,6 +71,8 @@ export const OwnerDashboard = () => {
             .select('id', { count: 'exact', head: true })
             .eq('visit_date', todayStr),
           supabase.from('WarehouseStock').select('qty_available').limit(5000),
+          supabase.from('SalesStockProjection').select('qty_available').limit(5000),
+          supabase.from('OutletStockProjection').select('current_stock').limit(5000),
           supabase
             .from('SalesTransaction')
             .select('created_at, grand_total')
@@ -103,6 +109,8 @@ export const OwnerDashboard = () => {
           kasSales,
           kasOwner,
           stokGudang: sum(warehouseRes.data, 'qty_available'),
+          stokKendaraan: sum(salesStockRes.data, 'qty_available'),
+          stokWarung: sum(outletStockRes.data, 'current_stock'),
           visitsToday: visitsRes.count || 0,
           daily: Object.entries(daily).map(([date, total]) => ({ date, total })),
         });
@@ -137,8 +145,9 @@ export const OwnerDashboard = () => {
         <KpiCard label="Kas Sales (Belum Setor)" value={fmtRp(data.kasSales)} color="var(--warning)" />
         <KpiCard label="Kas Owner" value={fmtRp(data.kasOwner)} color="var(--success)" />
         <KpiCard label="Piutang Berjalan" value={fmtRp(data.piutang)} color="var(--danger)" />
-        <KpiCard label="Stok Gudang" value={`${data.stokGudang.toLocaleString('id-ID')} unit`} color="var(--secondary)" />
-        <KpiCard label="Visit Hari Ini" value={data.visitsToday} color="var(--primary)" />
+        <KpiCard label="Stok Gudang" value={`${data.stokGudang.toLocaleString('id-ID')} cup`} color="var(--secondary)" link={<a href="/stok?tab=gudang" onClick={(e) => { e.preventDefault(); navigate('/stok?tab=gudang'); }}>Lihat</a>} />
+        <KpiCard label="Stok Kendaraan" value={`${data.stokKendaraan.toLocaleString('id-ID')} cup`} color="var(--warning)" link={<a href="/stok?tab=kendaraan" onClick={(e) => { e.preventDefault(); navigate('/stok?tab=kendaraan'); }}>Lihat</a>} />
+        <KpiCard label="Stok Warung" value={`${data.stokWarung.toLocaleString('id-ID')} cup`} color="var(--primary)" link={<a href="/stok?tab=warung" onClick={(e) => { e.preventDefault(); navigate('/stok?tab=warung'); }}>Lihat</a>} />
       </div>
 
       <div className="card">
