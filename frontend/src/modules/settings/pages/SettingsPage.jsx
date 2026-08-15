@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Building2, Coins, Hash, Users, Upload, Save, Loader2, ImageOff } from 'lucide-react';
+import { Building2, Coins, Hash, Users, Upload, Save, Loader2, ImageOff, Trash2, RefreshCw } from 'lucide-react';
 import { supabase } from '../../../utils/supabase';
 import SettingsApiService from '../services/SettingsApiService';
 import { useCompany } from '../../../contexts/CompanyContext';
@@ -10,6 +10,7 @@ const TABS = [
   { key: 'payroll', label: 'Penggajian', icon: Coins },
   { key: 'penomoran', label: 'Penomoran', icon: Hash },
   { key: 'user', label: 'Manajemen Pengguna', icon: Users },
+  { key: 'reset', label: 'Reset Data', icon: Trash2 },
 ];
 
 const CELL = { padding: '10px 12px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
@@ -31,6 +32,9 @@ const SettingsPage = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [resetConfirm, setResetConfirm] = useState('');
+  const [resetting, setResetting] = useState(false);
+  const [resetDone, setResetDone] = useState(false);
   const { settingsMap, reload } = useCompany();
   const toast = useToast();
 
@@ -107,6 +111,19 @@ const SettingsPage = () => {
       loadUsers();
     } catch (err) {
       toast.error(err.message || 'Gagal memperbarui status pengguna');
+    }
+  };
+
+  const handleReset = async () => {
+    setResetting(true);
+    try {
+      await SettingsApiService.resetData(resetConfirm);
+      toast.success('Semua data operasional berhasil direset');
+      setResetDone(true);
+    } catch (err) {
+      toast.error(err.message || 'Gagal mereset data');
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -243,6 +260,58 @@ const SettingsPage = () => {
                 </tbody>
               </table>
             </div>
+          )}
+        </div>
+      )}
+
+      {tab === 'reset' && (
+        <div className="card-custom" style={{ maxWidth: '640px' }}>
+          <h5 style={{ marginBottom: '16px' }}>Reset Data Operasional</h5>
+          <div
+            style={{
+              padding: '12px 14px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--danger)',
+              backgroundColor: 'color-mix(in srgb, var(--danger) 8%, var(--surface))',
+              color: 'var(--danger)',
+              fontSize: '13px',
+              marginBottom: '16px',
+            }}
+          >
+            Menghapus seluruh transaksi, kunjungan, retur, stok masuk/keluar, setoran,
+            piutang, ledger, stok warung &amp; sales, batch, dan foto kunjungan.
+            Data master (produk, warung, pengguna, par stock, warehouse) tetap dipertahankan.
+            Tindakan ini tidak dapat dibatalkan.
+          </div>
+
+          {resetDone ? (
+            <button
+              className="btn btn-primary"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              onClick={() => window.location.reload()}
+            >
+              <RefreshCw size={16} /> Muat Ulang Halaman
+            </button>
+          ) : (
+            <>
+              <label style={LABEL}>Konfirmasi Reset</label>
+              <input
+                style={INPUT}
+                type="text"
+                placeholder="Ketik RESET untuk mengonfirmasi"
+                value={resetConfirm}
+                onChange={(e) => setResetConfirm(e.target.value)}
+              />
+              <button
+                className="btn btn-danger"
+                style={{ marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                disabled={resetConfirm !== 'RESET' || resetting}
+                onClick={handleReset}
+              >
+                {resetting ? <Loader2 size={16} className="spin" /> : <Trash2 size={16} />}
+                {resetting ? 'Menghapus...' : 'Hapus Semua Data'}
+              </button>
+            </>
           )}
         </div>
       )}

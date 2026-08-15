@@ -391,6 +391,9 @@
 .btn-secondary { background-color: var(--border); color: var(--text-main); }
 .btn-secondary:hover { background-color: color-mix(in srgb, var(--border) 60%, var(--surface)); }
 .btn-ghost { background: none; color: var(--text-muted); }
+.btn-danger { background-color: var(--danger); color: #fff; }
+.btn-danger:hover { background-color: color-mix(in srgb, var(--danger) 80%, #000); }
+.btn-danger:disabled { opacity: 0.55; cursor: not-allowed; }
 .pay-method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .pay-method {
   padding: 12px;

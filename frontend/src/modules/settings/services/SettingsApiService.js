@@ -35,6 +35,12 @@ const SettingsApiService = {
     const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
     return urlData.publicUrl;
   },
+
+  async resetData(confirm) {
+    const { data, error } = await supabase.rpc('admin_reset_data', { p_confirm: confirm });
+    if (error) throw error;
+    return data;
+  },
 };
 
 export default SettingsApiService;
