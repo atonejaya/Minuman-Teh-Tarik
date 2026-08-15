@@ -56,40 +56,45 @@ begin
     raise exception 'Konfirmasi tidak sesuai. Ketik RESET untuk melanjutkan.';
   end if;
 
-  -- urutan child -> parent (aman FK), satu transaksi otomatis
-  delete from public."PaymentAllocation";
-  delete from public."Payment";
-  delete from public."SalesTransactionItem";
-  delete from public."SalesTransaction";
-  delete from public."SalesReturnItem";
-  delete from public."SalesReturn";
-  delete from public."SalesStockIssueItem";
-  delete from public."SalesStockIssueHistory";
-  delete from public."SalesStockIssue";
-  delete from public."SalesVisitActivity";
-  delete from public."OutletStockCountItem";
-  delete from public."OutletStockCount";
-  delete from public."SalesVisitPhoto";
-  delete from public."SalesVisit";
-  delete from public."CollectionItem";
-  delete from public."Collection";
-  delete from public."ARLedger";
-  delete from public."CustomerARProjection";
-  delete from public."AccountsReceivableProjection";
-  delete from public."OutletStockLedger";
-  delete from public."OutletStockProjection";
-  delete from public."SalesStockLedger";
-  delete from public."SalesStockProjection";
-  delete from public."WarehouseLedger";
-  delete from public."WarehouseStock";
-  delete from public."WarehouseStockInItem";
-  delete from public."WarehouseStockIn";
-  delete from public."ProductBatch";
-  delete from public."FinanceIdempotencyKey";
-  delete from public."NumberSequence";
+  -- urutan child -> parent (aman FK), satu transaksi otomatis.
+  -- SalesTransaction (terakhir-2) & SalesVisit (terakhir) dihapus paling akhir
+  -- karena banyak tabel mereferensikannya (visit_id / sales_transaction_id / last_visit_id).
+  -- Semua delete diberi `where true` agar lolos guard pg_safeupdate
+  -- (Supabase memblokir DELETE/UPDATE tanpa WHERE).
+  delete from public."PaymentAllocation" where true;
+  delete from public."SalesTransactionItem" where true;
+  delete from public."SalesStockIssueItem" where true;
+  delete from public."SalesStockIssueHistory" where true;
+  delete from public."SalesVisitActivity" where true;
+  delete from public."OutletStockCountItem" where true;
+  delete from public."OutletStockCount" where true;
+  delete from public."SalesVisitPhoto" where true;
+  delete from public."SalesReturnItem" where true;
+  delete from public."ARLedger" where true;
+  delete from public."CustomerARProjection" where true;
+  delete from public."AccountsReceivableProjection" where true;
+  delete from public."Payment" where true;
+  delete from public."SalesReturn" where true;
+  delete from public."OutletStockLedger" where true;
+  delete from public."OutletStockProjection" where true;
+  delete from public."SalesStockLedger" where true;
+  delete from public."CollectionItem" where true;
+  delete from public."Collection" where true;
+  delete from public."SalesStockProjection" where true;
+  delete from public."SalesStockIssue" where true;
+  delete from public."WarehouseLedger" where true;
+  delete from public."WarehouseStock" where true;
+  delete from public."WarehouseStockInItem" where true;
+  delete from public."WarehouseStockIn" where true;
+  delete from public."ProductBatch" where true;
+  delete from public."FinanceIdempotencyKey" where true;
+  delete from public."NumberSequence" where true;
+  delete from public."SalesTransaction" where true;
+  delete from public."SalesVisit" where true;
 
-  -- hapus foto kunjungan dari storage
-  delete from storage.objects where bucket_id = 'visit-photos';
+  -- CATATAN: foto kunjungan TIDAK dihapus di sini.
+  -- Supabase memblokir `delete` langsung dari storage.objects
+  -- (wajib lewat Storage API). Frontend menghapusnya setelah RPC sukses.
 
   return jsonb_build_object('success', true, 'message', 'Semua data operasional berhasil direset');
 exception
@@ -100,6 +105,12 @@ $$;
 
 revoke execute on function public.admin_reset_data(text) from public, anon;
 grant execute on function public.admin_reset_data(text) to authenticated;
+
+-- Izinkan OWNER menghapus objek di bucket visit-photos lewat Storage API.
+drop policy if exists p_visit_photos_delete_owner on storage.objects;
+create policy p_visit_photos_delete_owner on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'visit-photos' and public.current_user_role() = 'OWNER');
 ```
 
 Poin penting:
@@ -107,7 +118,8 @@ Poin penting:
 - **Urutan FK** child → parent menghindari error constraint.
 - `ProductBatch` dihapus karena isinya otomatis dibuat saat retur (format `B-{produk}-{tanggal}`), tidak ada data master; setelah `SalesReturnItem` dihapus, `ProductBatch` menjadi data yatim → dihapus agar bersih. Tidak ada tabel yang mereferensikannya setelah retur dihapus.
 - `NumberSequence` direset → nomor dokumen mulai dari awal lagi.
-- Foto storage dihapus via `delete from storage.objects` (definer punya akses).
+- Semua `delete` diberi `where true` agar lolos guard **`pg_safeupdate`** (Supabase memblokir `DELETE`/`UPDATE` tanpa `WHERE`, kode error 21000).
+- Foto storage dihapus lewat **Storage API** dari frontend (`storage.from('visit-photos').remove(paths)`), bukan via SQL — Supabase memblokir `delete` langsung ke `storage.objects`. Butuh policy DELETE baru `p_visit_photos_delete_owner` agar OWNER bisa memanggil Storage API.
 - Master data (`Product`, `Warung`, `User`, `OutletParStock`, dll) tidak tersentuh.
 
 ## 3. Frontend — Tab "Reset Data" di SettingsPage
@@ -118,8 +130,32 @@ Tambah method:
 
 ```js
 async resetData(confirm) {
-  return supabase.rpc('admin_reset_data', { p_confirm: confirm });
-}
+  const { data, error } = await supabase.rpc('admin_reset_data', { p_confirm: confirm });
+  if (error) throw error;
+
+  await this.removeAllVisitPhotos();
+  return data;
+},
+
+async removeAllVisitPhotos() {
+  const paths = [];
+  const bucket = supabase.storage.from('visit-photos');
+  const walk = async (prefix) => {
+    const { data: items, error } = await bucket.list(prefix, { limit: 1000, offset: 0 });
+    if (error) throw error;
+    for (const item of items || []) {
+      if (item.metadata) {
+        paths.push(prefix ? `${prefix}/${item.name}` : item.name);
+      } else {
+        await walk(prefix ? `${prefix}/${item.name}` : item.name);
+      }
+    }
+  };
+  await walk('');
+  if (paths.length === 0) return;
+  const { error } = await bucket.remove(paths);
+  if (error) throw error;
+},
 ```
 
 ### 3.2 `SettingsPage.jsx`

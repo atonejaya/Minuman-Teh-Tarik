@@ -39,7 +39,29 @@ const SettingsApiService = {
   async resetData(confirm) {
     const { data, error } = await supabase.rpc('admin_reset_data', { p_confirm: confirm });
     if (error) throw error;
+
+    await this.removeAllVisitPhotos();
     return data;
+  },
+
+  async removeAllVisitPhotos() {
+    const paths = [];
+    const bucket = supabase.storage.from('visit-photos');
+    const walk = async (prefix) => {
+      const { data: items, error } = await bucket.list(prefix, { limit: 1000, offset: 0 });
+      if (error) throw error;
+      for (const item of items || []) {
+        if (item.metadata) {
+          paths.push(prefix ? `${prefix}/${item.name}` : item.name);
+        } else {
+          await walk(prefix ? `${prefix}/${item.name}` : item.name);
+        }
+      }
+    };
+    await walk('');
+    if (paths.length === 0) return;
+    const { error } = await bucket.remove(paths);
+    if (error) throw error;
   },
 };
 
