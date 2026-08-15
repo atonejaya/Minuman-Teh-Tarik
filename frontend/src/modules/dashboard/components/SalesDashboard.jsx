@@ -114,7 +114,7 @@ export const SalesDashboard = ({ user }) => {
           <small style={{ color: 'var(--text-muted)' }}>Kas Dibawa</small>
         </div>
         <div className="card-custom" style={{ textAlign: 'center', gridColumn: '1 / -1' }}>
-          <div style={{ fontSize: '22px', fontWeight: 'bold', color: 'var(--secondary)' }}>{data.stockVan} unit</div>
+          <div style={{ fontSize: '22px', fontWeight: 'bold', color: 'var(--secondary)' }}>{data.stockVan} cup</div>
           <small style={{ color: 'var(--text-muted)' }}>Barang Tersisa di Kendaraan</small>
         </div>
       </div>

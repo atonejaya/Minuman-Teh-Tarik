@@ -4,9 +4,33 @@ const CustomerApiService = {
   getCustomers: async (params = {}) => {
     let query = supabase.from('Warung').select('*, User(name), Area(name), Route(name)');
     if (params.search) query = query.ilike('name', `%${params.search}%`);
-    const { data, error, count } = await query;
-    if (error) throw error;
-    return { success: true, data, meta: { total: count } };
+    const [customersRes, txRes] = await Promise.all([
+      query,
+      supabase
+        .from('SalesTransaction')
+        .select('warung_id, outstanding_amount, created_at')
+        .neq('status', 'CANCELLED'),
+    ]);
+    if (customersRes.error) throw customersRes.error;
+    if (txRes.error) throw txRes.error;
+
+    const agg = {};
+    for (const t of txRes.data || []) {
+      const key = String(t.warung_id);
+      if (!agg[key]) agg[key] = { outstanding: 0, last_invoice_date: null };
+      agg[key].outstanding += Number(t.outstanding_amount || 0);
+      if (t.created_at && (!agg[key].last_invoice_date || t.created_at > agg[key].last_invoice_date)) {
+        agg[key].last_invoice_date = t.created_at;
+      }
+    }
+
+    const data = (customersRes.data || []).map((c) => ({
+      ...c,
+      outstanding: agg[String(c.id)]?.outstanding || 0,
+      last_invoice_date: agg[String(c.id)]?.last_invoice_date || c.last_invoice_date || null,
+    }));
+
+    return { success: true, data, meta: { total: customersRes.count } };
   },
 
   searchCustomers: async (query) => {
