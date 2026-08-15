@@ -194,7 +194,7 @@ const VisitWizard = () => {
         selling_price: Number(row.product?.selling_price || 0),
         baseline_set: b.baseline_set,
         opening: b.baseline_set ? b.opening_stock : Number(row.par_qty || 0),
-        physical: Number(row.par_qty || 0),
+        physical: b.baseline_set ? b.opening_stock : Number(row.par_qty || 0),
         expired: 0,
       };
     });
@@ -518,10 +518,12 @@ const VisitWizard = () => {
                 <input
                   type="number"
                   min="0"
+                  max={row.opening}
                   value={row.expired}
-                  onChange={(e) =>
-                    setStockRows((prev) => prev.map((r, i) => (i === idx ? { ...r, expired: e.target.value } : r)))
-                  }
+                  onChange={(e) => {
+                    const val = Math.max(0, Math.min(Number(row.opening || 0), Number(e.target.value || 0)));
+                    setStockRows((prev) => prev.map((r, i) => (i === idx ? { ...r, expired: val } : r)));
+                  }}
                   placeholder="0"
                   aria-label={`Rusak/kadaluarsa ${row.name}`}
                 />

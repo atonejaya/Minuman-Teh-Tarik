@@ -1,0 +1,6 @@
+﻿Task 1: complete (commits d6cc62c..d6d9171, review clean)
+Task 2: complete (commits d6d9171..fd0908f, review clean)
+Task 3: complete (commits fd0908f..56bd75c, review clean)
+Task 4: complete (commits 56bd75c..e0e464d, review clean)
+Task 5: complete (commits e0e464d..e52c219, review clean)
+Task 6: complete (commits e52c219..3985d27, review clean)
