@@ -718,15 +718,15 @@ begin
 
   if v_count_id is not null then
     for v_item in
-      select i.product_id, i.physical_qty, coalesce(op.par_qty, 0) as par_qty
+      select i.product_id, i.physical_qty, coalesce(op.opening_stock, 0) as baseline_qty
       from public."OutletStockCountItem" i
-      left join public."OutletParStock" op
+      left join public."OutletStockProjection" op
         on op.warung_id = v_visit.warung_id and op.product_id = i.product_id
       where i.stock_count_id = v_count_id
       order by i.id
     loop
       v_physical := coalesce(v_item.physical_qty, 0);
-      v_par      := v_item.par_qty;
+      v_par      := v_item.baseline_qty;
       v_refill   := greatest(v_par - v_physical, 0);
 
       if v_refill > 0 then
