@@ -5,7 +5,7 @@ import { useCompany } from '../contexts/CompanyContext.jsx';
 import {
   LayoutDashboard, Users, ShoppingCart, Map, Route as RouteIcon, UserCog, Warehouse,
   Tag, Package, Truck, Receipt, Repeat, ClipboardList, Wallet, Banknote, FileText,
-  Settings, LogOut, Coffee, Layers, Ruler
+  Settings, LogOut, Coffee, Layers, Ruler, BarChart3
 } from 'lucide-react';
 
 const section = (title, items) => (
@@ -50,6 +50,7 @@ const OwnerLayout = () => {
 
   const operasionalItems = [
     { to: '/warehouse-stock', label: 'Stok Gudang', icon: Package },
+    { to: '/stok', label: 'Pantauan Stok', icon: BarChart3 },
     { to: '/sales/stock-in', label: 'Barang Masuk', icon: Package },
     { to: '/sales/stock-issues', label: 'Pengeluaran Stok', icon: Truck },
     { to: '/sales/transactions', label: 'Transaksi', icon: Receipt },

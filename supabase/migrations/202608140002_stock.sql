@@ -200,17 +200,31 @@ declare
   v_date          date := coalesce(nullif(p_payload->>'return_date','')::date, current_date);
   v_issue_id      int := nullif(p_payload->>'issue_id', '')::int;
   v_user_id       int := public.current_user_id();
+  v_role          text := public.current_user_role();
   v_item          record;
+  v_prod_id       int;
   v_qty           int;
+  v_condition     text;
+  v_notes         text;
   v_wh_stock      int;
   v_wh_balance    int;
   v_sales_balance int;
+  v_avail         int;
+  v_damaged       int;
+  v_expired       int;
+  v_total_qty     numeric := 0;
   v_ref_type      text := 'SalesStockReturn';
   v_ref_id        text := coalesce(nullif(p_payload->>'reference_number',''), 'SR-' || to_char(now(), 'YYYYMMDD-HH24MISS'));
 begin
   if v_user_id is null then
     raise exception 'Not authenticated';
   end if;
+
+  -- Role SALES hanya boleh meretur stok kendaraan miliknya sendiri.
+  if v_role = 'SALES' then
+    v_sales_id := v_user_id;
+  end if;
+
   if v_sales_id is null then
     raise exception 'sales_id is required';
   end if;
@@ -218,48 +232,48 @@ begin
     raise exception 'warehouse_id is required';
   end if;
 
+  -- Guard per produk: total qty retur (semua kondisi) tidak boleh
+  -- melebihi sisa stok kendaraan (qty_available + qty_damaged + qty_expired).
+  for v_item in
+    select t.p_id, sum(t.qty) as total
+    from (
+      select (value->>'product_id')::int as p_id,
+             greatest(coalesce((value->>'qty')::int, 0), 0) as qty
+      from jsonb_array_elements(coalesce(p_payload->'items', '[]'::jsonb))
+    ) t
+    where t.p_id is not null and t.qty > 0
+    group by t.p_id
+  loop
+    select qty_available, qty_damaged, qty_expired
+      into v_avail, v_damaged, v_expired
+    from public."SalesStockProjection"
+    where sales_id = v_sales_id and product_id = v_item.p_id;
+
+    if not found then
+      raise exception 'Tidak ada stok kendaraan untuk produk %', v_item.p_id;
+    end if;
+
+    if v_item.total > coalesce(v_avail, 0) + coalesce(v_damaged, 0) + coalesce(v_expired, 0) then
+      raise exception 'Qty retur produk % melebihi sisa stok kendaraan (retur %, sisa %)',
+        v_item.p_id, v_item.total, coalesce(v_avail, 0) + coalesce(v_damaged, 0) + coalesce(v_expired, 0);
+    end if;
+  end loop;
+
   for v_item in
     select value as j
     from jsonb_array_elements(coalesce(p_payload->'items', '[]'::jsonb)) value
   loop
-    v_qty := (v_item.j->>'qty')::int;
-    if v_qty is null or v_qty <= 0 then
+    v_prod_id   := (v_item.j->>'product_id')::int;
+    v_qty       := (v_item.j->>'qty')::int;
+    v_condition := coalesce(nullif(v_item.j->>'condition', ''), 'GOOD');
+    if v_prod_id is null or v_qty is null or v_qty <= 0 then
       continue;
     end if;
-
-    select ws.qty_available into v_wh_stock
-    from public."WarehouseStock" ws
-    where ws.warehouse_id = v_warehouse_id
-      and ws.product_id = (v_item.j->>'product_id')::int
-    for update;
-
-    v_wh_balance := coalesce(v_wh_stock, 0) + v_qty;
-
-    if not found then
-      insert into public."WarehouseStock"
-        (warehouse_id, product_id, batch_id, qty_available, version, updated_at, condition)
-      values
-        (v_warehouse_id, (v_item.j->>'product_id')::int, null, v_qty, 1, now(), 'GOOD');
-    else
-      update public."WarehouseStock"
-         set qty_available = v_wh_balance,
-             version = version + 1,
-             updated_at = now()
-       where warehouse_id = v_warehouse_id
-         and product_id = (v_item.j->>'product_id')::int;
-    end if;
-
-    insert into public."WarehouseLedger"
-      (warehouse_id, sales_id, product_id, movement_type, qty, balance,
-       reference_type, reference_id, notes, created_by, transaction_date)
-    values
-      (v_warehouse_id, v_sales_id, (v_item.j->>'product_id')::int,
-       'RETURN_FROM_SALES'::public."WarehouseMovementType", v_qty, v_wh_balance,
-       v_ref_type, v_ref_id, null, v_user_id, v_date);
+    v_total_qty := v_total_qty + v_qty;
 
     select coalesce(max(balance), 0) into v_sales_balance
     from public."SalesStockLedger"
-    where sales_id = v_sales_id and product_id = (v_item.j->>'product_id')::int;
+    where sales_id = v_sales_id and product_id = v_prod_id;
 
     v_sales_balance := greatest(v_sales_balance - v_qty, 0);
 
@@ -267,23 +281,69 @@ begin
       (sales_id, product_id, movement_type, qty, balance,
        document_type, document_id, transaction_date)
     values
-      (v_sales_id, (v_item.j->>'product_id')::int,
+      (v_sales_id, v_prod_id,
        'RETURN_TO_WAREHOUSE'::public."MovementType", v_qty, v_sales_balance,
        v_ref_type, v_issue_id, v_date);
 
-    update public."SalesStockProjection"
-       set qty_available = greatest(qty_available - v_qty, 0),
-           last_update = now()
-     where sales_id = v_sales_id
-       and product_id = (v_item.j->>'product_id')::int;
+    select ws.qty_available into v_wh_stock
+    from public."WarehouseStock" ws
+    where ws.warehouse_id = v_warehouse_id
+      and ws.product_id = v_prod_id
+    for update;
+
+    v_wh_stock := coalesce(v_wh_stock, 0);
+
+    if v_condition = 'GOOD' then
+      v_wh_balance := v_wh_stock + v_qty;
+
+      if not found then
+        insert into public."WarehouseStock"
+          (warehouse_id, product_id, batch_id, qty_available, version, updated_at, condition)
+        values
+          (v_warehouse_id, v_prod_id, null, v_qty, 1, now(), 'GOOD');
+      else
+        update public."WarehouseStock"
+           set qty_available = v_wh_balance,
+               version = version + 1,
+               updated_at = now()
+         where warehouse_id = v_warehouse_id
+           and product_id = v_prod_id;
+      end if;
+
+      update public."SalesStockProjection"
+         set qty_available = greatest(qty_available - v_qty, 0),
+             last_update = now()
+       where sales_id = v_sales_id
+         and product_id = v_prod_id;
+
+      v_notes := null;
+    else
+      -- Barang rusak/expired tidak menambah stok gudang layak jual;
+      -- hanya dicatat di ledger dengan notes kondisi.
+      v_wh_balance := v_wh_stock;
+
+      update public."SalesStockProjection"
+         set qty_damaged = greatest(qty_damaged - case when v_condition = 'DAMAGED' then v_qty else 0 end, 0),
+             qty_expired = greatest(qty_expired - case when v_condition = 'EXPIRED' then v_qty else 0 end, 0),
+             last_update = now()
+       where sales_id = v_sales_id
+         and product_id = v_prod_id;
+
+      v_notes := v_condition;
+    end if;
+
+    insert into public."WarehouseLedger"
+      (warehouse_id, sales_id, product_id, movement_type, qty, balance,
+       reference_type, reference_id, notes, created_by, transaction_date)
+    values
+      (v_warehouse_id, v_sales_id, v_prod_id,
+       'RETURN_FROM_SALES'::public."WarehouseMovementType", v_qty, v_wh_balance,
+       v_ref_type, v_ref_id, v_notes, v_user_id, v_date);
   end loop;
 
   if v_issue_id is not null then
     update public."SalesStockIssue"
-       set total_qty = greatest(total_qty - (
-         select coalesce(sum((i.value->>'qty')::int), 0)
-         from jsonb_array_elements(coalesce(p_payload->'items', '[]'::jsonb)) i
-       ), 0),
+       set total_qty = greatest(total_qty - v_total_qty, 0),
            updated_at = now()
      where id = v_issue_id;
   end if;
