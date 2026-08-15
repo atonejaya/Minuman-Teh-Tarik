@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useCompany } from '../contexts/CompanyContext.jsx';
-import { Home, Store, Banknote, User, LogOut, Coffee } from 'lucide-react';
+import { Home, Store, Banknote, User, LogOut, Coffee, Truck } from 'lucide-react';
 
 const SalesLayout = () => {
   const { user, logout } = useAuth();
@@ -17,6 +17,7 @@ const SalesLayout = () => {
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: Home },
     { to: '/visits', label: 'Kunjungan', icon: Store },
+    { to: '/vehicle-stock', label: 'Stok', icon: Truck },
     { to: '/setoran', label: 'Setoran', icon: Banknote },
     { to: '/account', label: 'Akun', icon: User },
   ];

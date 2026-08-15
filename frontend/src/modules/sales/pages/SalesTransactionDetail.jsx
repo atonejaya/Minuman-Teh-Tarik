@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import EntityDetailPage from '../../../components/entity/EntityDetailPage';
 import { SalesTransactionRepository } from '../../../repositories/SalesTransactionRepository';
 import StatusBadge from '../../../components/shared/StatusBadge';
+import { openPrintWindow } from '../../../utils/printInvoice';
 
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('id-ID', {
@@ -33,6 +34,11 @@ const SalesTransactionDetail = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const handlePrint = () => {
+    if (!data) return;
+    openPrintWindow(data);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -164,7 +170,8 @@ const SalesTransactionDetail = () => {
       summary={summary}
       tabs={tabs}
       actions={{
-        left: [{ label: 'Kembali ke Daftar', variant: 'outline', onClick: () => navigate('/sales/transactions') }]
+        left: [{ label: 'Kembali ke Daftar', variant: 'outline', onClick: () => navigate('/sales/transactions') }],
+        right: [{ label: 'Cetak Faktur', variant: 'primary', onClick: handlePrint }]
       }}
     />
   );

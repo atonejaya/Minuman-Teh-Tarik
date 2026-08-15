@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../../../utils/supabase';
-import { formatDate } from '../../../../utils/format';
+import { formatDate, formatTime } from '../../../../utils/format';
 
 const CELL = { padding: '10px 12px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
 const TH = { ...CELL, fontSize: '13px', color: 'var(--text-muted)' };
@@ -58,8 +58,8 @@ const CustomerActivityTab = ({ customer }) => {
                 <tr key={v.id}>
                   <td style={CELL}>{formatDate(v.visit_date)}</td>
                   <td style={{ ...CELL, fontWeight: '500' }}>{v.code}</td>
-                  <td style={CELL}>{v.check_in_time ? new Date(v.check_in_time).toLocaleTimeString('id-ID') : '-'}</td>
-                  <td style={CELL}>{v.check_out_time ? new Date(v.check_out_time).toLocaleTimeString('id-ID') : '-'}</td>
+                  <td style={CELL}>{formatTime(v.check_in_time)}</td>
+                  <td style={CELL}>{formatTime(v.check_out_time)}</td>
                   <td style={CELL}>
                     <span className={`badge ${v.status === 'COMPLETED' ? 'badge-success' : 'badge-warning'}`}>{VISIT_STATUS_LABELS[v.status] || v.status}</span>
                   </td>

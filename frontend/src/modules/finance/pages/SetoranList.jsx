@@ -59,8 +59,34 @@ const SalesSetoran = ({ today }) => {
   }, [today]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let active = true;
+    const loadData = async () => {
+      try {
+        const [{ data: summaryData }, collections] = await Promise.all([
+          SetoranApiService.getSummary(today),
+          SetoranApiService.listCollections(),
+        ]);
+        if (!active) return;
+        setSummary(summaryData || { kas_hari_ini: 0, jumlah_transaksi: 0, sudah_disetor: 0, setoran_pending: false });
+        setHistory(collections);
+      } catch (err) {
+        if (active) setError(err.message);
+      }
+    };
+    loadData();
+    const interval = setInterval(() => {
+      if (!document.hidden) loadData();
+    }, 20000);
+    const onVisibility = () => {
+      if (!document.hidden) loadData();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      active = false;
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [today]);
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -69,7 +95,11 @@ const SalesSetoran = ({ today }) => {
     try {
       const { data, error: err } = await SetoranApiService.submit(today, null);
       if (err) throw err;
-      setSuccess(`Setoran ${data.code} diajukan, menunggu verifikasi Owner.`);
+      const collections = data?.collections || [];
+      const codes = collections.map((c) => c.code).join(', ');
+      setSuccess(collections.length > 1
+        ? `${collections.length} setoran diajukan (${codes}), menunggu verifikasi Owner.`
+        : `Setoran ${codes} diajukan, menunggu verifikasi Owner.`);
       await load();
     } catch (err) {
       setError(err.message);

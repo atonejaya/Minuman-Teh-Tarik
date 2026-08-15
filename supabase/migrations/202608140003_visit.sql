@@ -67,7 +67,7 @@ begin
     where w.status = 'ACTIVE'
       and w.deleted_at is null
       and (v_role = 'OWNER' or w.assigned_sales_id = v_user_id)
-      and (w.visit_day is null or upper(trim(w.visit_day)) = v_weekday)
+      and (w.visit_day is null or upper(trim(w.visit_day::text)) = v_weekday)
     order by w.visit_order nulls last, w.name
   ) t;
 
@@ -119,10 +119,12 @@ begin
 
   insert into public."SalesVisit"
     (code, sales_id, warung_id, status, visit_date,
-     check_in_time, check_in_latitude, check_in_longitude, opening_note)
+     check_in_time, check_in_latitude, check_in_longitude, opening_note,
+     updated_at)
   values
     (v_code, v_user_id, p_warung_id, 'CHECKED_IN'::public."SalesVisitStatus", current_date,
-     now(), p_latitude, p_longitude, p_opening_note)
+     now(), p_latitude, p_longitude, p_opening_note,
+     now())
   returning id into v_visit_id;
 
   insert into public."SalesVisitActivity"
@@ -160,6 +162,7 @@ declare
   v_count_id  int;
   v_tx_id     int := null;
   v_return_id int := null;
+  v_batch_id  int;
   v_code      text;
   v_par       int;
   v_price     numeric;
@@ -216,9 +219,14 @@ begin
       on op.warung_id = v_visit.warung_id and op.product_id = p.id
     where p.id = (v_item.j->>'product_id')::int;
 
+    v_par   := coalesce(v_par, 0);
+    v_price := coalesce(v_price, 0);
+
     select coalesce(current_stock, 0) into v_outlet_cur
     from public."OutletStockProjection"
     where warung_id = v_visit.warung_id and product_id = (v_item.j->>'product_id')::int;
+
+    v_outlet_cur := coalesce(v_outlet_cur, 0);
 
     v_sold := 0;
     if (v_physical + v_expired) < v_par then
@@ -237,7 +245,7 @@ begin
            salesman_name, salesman_code, version)
         values
           (v_code, v_visit.id, v_visit.sales_id, v_visit.warung_id,
-           null, 'UNPAID'::public."PaymentStatus", 'CONFIRMED'::public."SalesTransactionStatus",
+           'CASH'::public."PaymentMethod", 'UNPAID'::public."PaymentStatus", 'CONFIRMED'::public."SalesTransactionStatus",
            0, 0, 0, 0, 0, 0, 0, null,
            (select name from public."Warung" w where w.id = v_visit.warung_id),
            (select code from public."Warung" w where w.id = v_visit.warung_id),
@@ -252,13 +260,21 @@ begin
 
       insert into public."SalesTransactionItem"
         (sales_transaction_id, product_id, qty, selling_price, discount, subtotal,
-         product_code, product_name, display_name, sku, unit_price, price_source, is_manual_price, line_number, sort_order)
+         product_code, product_name, display_name, sku, barcode, unit_name,
+         unit_price, price_source, price_level_name, category_name, brand_name,
+         packaging_name, is_manual_price, line_number, sort_order)
       select
         v_tx_id, p.id, v_sold, v_price, 0, v_sold * v_price,
-        p.code, p.name, p.name, p.sku, v_price, 'RETAIL'::public."PriceSource", false,
+        p.code, p.name, coalesce(p.display_name, p.name), p.sku, p.barcode, u.name,
+        v_price, 'RETAIL'::public."PriceSource", null, pc.name, b.name,
+        pk.name, false,
         (select count(*) from public."SalesTransactionItem" i where i.sales_transaction_id = v_tx_id) + 1,
         (select count(*) from public."SalesTransactionItem" i where i.sales_transaction_id = v_tx_id) + 1
       from public."Product" p
+      left join public."ProductCategory" pc on pc.id = p.category_id
+      left join public."Brand" b on b.id = p.brand_id
+      left join public."Unit" u on u.id = p.unit_id
+      left join public."Packaging" pk on pk.id = p.packaging_id
       where p.id = (v_item.j->>'product_id')::int;
 
       v_sold_total := v_sold_total + v_sold * v_price;
@@ -302,17 +318,34 @@ begin
         v_code := public.next_document_number('SalesReturn', 'SR-', to_char(current_date, 'YYYY'), to_char(current_date, 'MM'));
 
         insert into public."SalesReturn"
-          (code, visit_id, sales_id, warung_id, transaction_id, status, return_date, total_amount, reference_type)
+          (code, visit_id, sales_id, warung_id, transaction_id, status, return_date, total_amount, reference_type, updated_at)
         values
           (v_code, v_visit.id, v_visit.sales_id, v_visit.warung_id, v_tx_id,
-           'COMPLETED'::public."ReturnStatus", current_date, 0, 'SALES'::public."SalesReturnReferenceType")
+           'COMPLETED'::public."ReturnStatus", current_date, 0,
+           'SALES'::public."SalesReturnReferenceType", now())
         returning id into v_return_id;
       end if;
 
+      select id into v_batch_id
+      from public."ProductBatch"
+      where product_id = (v_item.j->>'product_id')::int
+      order by id
+      limit 1;
+
+      if v_batch_id is null then
+        insert into public."ProductBatch"
+          (product_id, batch_number, production_date, expired_at)
+        values
+          ((v_item.j->>'product_id')::int,
+           'B-' || (v_item.j->>'product_id')::int || '-' || to_char(current_date, 'YYYYMMDD'),
+           current_date, current_date)
+        returning id into v_batch_id;
+      end if;
+
       insert into public."SalesReturnItem"
-        (sales_return_id, product_id, qty, reason, item_price, subtotal, return_type, condition)
+        (sales_return_id, product_id, batch_id, qty, reason, item_price, subtotal, return_type, condition)
       values
-        (v_return_id, (v_item.j->>'product_id')::int, v_expired,
+        (v_return_id, (v_item.j->>'product_id')::int, v_batch_id, v_expired,
          'EXPIRED'::public."ReturnReason", v_price, v_expired * v_price,
          'BAD'::public."ReturnType", 'DAMAGED'::public."ItemCondition");
 
@@ -677,7 +710,13 @@ begin
         from public."SalesStockLedger"
         where sales_id = v_visit.sales_id and product_id = v_item.product_id;
 
-        v_sales_balance := greatest(v_sales_balance - v_refill, 0);
+        if v_sales_balance < v_refill then
+          raise exception 'Stok kendaraan tidak cukup: % (butuh % , tersedia %)',
+            (select name from public."Product" where id = v_item.product_id),
+            v_refill, v_sales_balance;
+        end if;
+
+        v_sales_balance := v_sales_balance - v_refill;
 
         insert into public."SalesStockLedger"
           (sales_id, product_id, movement_type, qty, balance, document_type, document_id, transaction_date)

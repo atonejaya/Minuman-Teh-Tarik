@@ -34,6 +34,7 @@ const SetoranList = lazy(() => import('./modules/finance/pages/SetoranList.jsx')
 const ReportsPage = lazy(() => import('./modules/reports/pages/ReportsPage.jsx'));
 const SettingsPage = lazy(() => import('./modules/settings/pages/SettingsPage.jsx'));
 const AccountPage = lazy(() => import('./modules/account/pages/AccountPage.jsx'));
+const SalesVehicleStock = lazy(() => import('./modules/sales/pages/SalesVehicleStock.jsx'));
 
 const AreaList = lazy(() => import('./modules/masterdata/pages/AreaList.jsx'));
 const AreaForm = lazy(() => import('./modules/masterdata/pages/AreaForm.jsx'));
@@ -95,6 +96,7 @@ function App() {
             <Route path="visits/new" element={<RequireRole roles={['SALES', 'OWNER', 'ADMIN']}><VisitWizard /></RequireRole>} />
             <Route path="visits/:id" element={<RequireRole roles={['SALES', 'OWNER', 'ADMIN']}><VisitWizard /></RequireRole>} />
             <Route path="account" element={<RequireRole roles={['SALES']}><AccountPage /></RequireRole>} />
+            <Route path="vehicle-stock" element={<RequireRole roles={['SALES', 'OWNER', 'ADMIN']}><SalesVehicleStock /></RequireRole>} />
 
             {/* Owner-only Routes */}
             <Route element={<RequireRole roles={['OWNER', 'ADMIN']} />}>

@@ -23,7 +23,7 @@ const VisitList = () => {
 
   useEffect(() => {
     let active = true;
-    (async () => {
+    const loadPlan = async () => {
       try {
         const { data, error: rpcError } = await VisitApiService.getPlan(today);
         if (!active) return;
@@ -34,9 +34,19 @@ const VisitList = () => {
       } finally {
         if (active) setLoading(false);
       }
-    })();
+    };
+    loadPlan();
+    const interval = setInterval(() => {
+      if (!document.hidden) loadPlan();
+    }, 20000);
+    const onVisibility = () => {
+      if (!document.hidden) loadPlan();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
     return () => {
       active = false;
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [today]);
 

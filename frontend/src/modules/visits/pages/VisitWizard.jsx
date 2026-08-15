@@ -6,6 +6,7 @@ import {
 import { supabase } from '../../../utils/supabase';
 import VisitApiService from '../services/VisitApiService.js';
 import { formatRupiah, formatTime } from '../../../utils/format.js';
+import { openPrintWindow } from '../../../utils/printInvoice';
 
 const STEPS = ['Check-in', 'Stok', 'Bayar', 'Selesai'];
 
@@ -60,6 +61,40 @@ const VisitWizard = () => {
   const [closingNote, setClosingNote] = useState('');
   const [checkOutPhoto, setCheckOutPhoto] = useState(null);
 
+  const [visitPhotos, setVisitPhotos] = useState([]);
+  const [tx, setTx] = useState(null);
+
+  const loadTransaction = async (visitId) => {
+    const { data, error: err } = await supabase
+      .from('SalesTransaction')
+      .select('*, items:SalesTransactionItem(*, product:Product(*))')
+      .eq('visit_id', visitId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (err) throw err;
+    setTx(data || null);
+  };
+
+  const loadVisitPhotos = async (visitId) => {
+    const { data, error: err } = await supabase
+      .from('SalesVisitPhoto')
+      .select('file_path, captured_at')
+      .eq('visit_id', visitId)
+      .order('captured_at', { ascending: true });
+    if (err) throw err;
+    const urls = await Promise.all(
+      (data || []).map(async (p) => {
+        const { data: signed, error: serr } = await supabase
+          .storage
+          .from('visit-photos')
+          .createSignedUrl(p.file_path, 3600);
+        return serr ? null : { url: signed?.signedUrl, captured_at: p.captured_at };
+      })
+    );
+    setVisitPhotos(urls.filter(Boolean));
+  };
+
 
   const warungId = useMemo(() => {
     if (warung) return warung.id;
@@ -95,6 +130,8 @@ const VisitWizard = () => {
         setWarung(data.warung);
         setOpeningNote(data.opening_note || '');
         setStep(stepFromStatus(data.status));
+        loadVisitPhotos(id).catch(() => {});
+        loadTransaction(id).catch(() => {});
       } catch (err) {
         if (active) setError(err.message);
       } finally {
@@ -277,6 +314,7 @@ const VisitWizard = () => {
       if (err) throw err;
       if (!data?.success) throw new Error('Gagal selesai kunjungan');
       setDone(true);
+      loadTransaction(visitId).catch(() => {});
     } catch (err) {
       setError(err.message);
     } finally {
@@ -295,6 +333,15 @@ const VisitWizard = () => {
           <p className="text-muted">
             {warung?.name} telah diisi dan dilaporkan.
           </p>
+          {tx && (
+            <button
+              className="btn-secondary"
+              style={{ marginBottom: '10px', width: '100%' }}
+              onClick={() => openPrintWindow(tx)}
+            >
+              Cetak Faktur
+            </button>
+          )}
           <button className="btn-primary" onClick={() => navigate('/visits')}>
             Kembali ke Rencana
           </button>
@@ -314,7 +361,28 @@ const VisitWizard = () => {
           <div className="summary-row"><span>Status</span><span>Selesai</span></div>
           <div className="summary-row"><span>Check-in</span><span>{formatTime(visit.check_in_time)}</span></div>
           <div className="summary-row"><span>Check-out</span><span>{formatTime(visit.check_out_time)}</span></div>
+          {visitPhotos.length > 0 && (
+            <div style={{ marginTop: '12px' }}>
+              <p className="field-label">Foto Kunjungan</p>
+              <div className="visit-photo-grid">
+                {visitPhotos.map((p, i) => (
+                  <img
+                    key={i}
+                    className="visit-photo-thumb"
+                    src={p.url}
+                    alt={`Foto kunjungan ${i + 1}`}
+                    onClick={() => window.open(p.url, '_blank')}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
           <div className="wizard-actions">
+            {tx && (
+              <button className="btn-secondary" onClick={() => openPrintWindow(tx)}>
+                Cetak Faktur
+              </button>
+            )}
             <button className="btn-primary" onClick={() => navigate('/visits')}>
               <ChevronLeft size={16} /> Rencana Kunjungan
             </button>
@@ -390,6 +458,15 @@ const VisitWizard = () => {
           {stockRows.length === 0 && (
             <p className="empty-hint">Belum ada Par Stock untuk warung ini.</p>
           )}
+          {stockRows.length > 0 && (
+            <div className="stock-row stock-row-header">
+              <div className="stock-row-info">
+                <span>Produk</span>
+              </div>
+              <span className="stock-col-label">Sisa</span>
+              <span className="stock-col-label">Rusak</span>
+            </div>
+          )}
           {stockRows.map((row, idx) => {
             const sold = Math.max(row.par_qty - Number(row.physical || 0) - Number(row.expired || 0), 0);
             return (
@@ -405,7 +482,8 @@ const VisitWizard = () => {
                   onChange={(e) =>
                     setStockRows((prev) => prev.map((r, i) => (i === idx ? { ...r, physical: e.target.value } : r)))
                   }
-                  aria-label={`Stok fisik ${row.name}`}
+                  placeholder="0"
+                  aria-label={`Sisa stok ${row.name}`}
                 />
                 <input
                   type="number"
@@ -414,7 +492,8 @@ const VisitWizard = () => {
                   onChange={(e) =>
                     setStockRows((prev) => prev.map((r, i) => (i === idx ? { ...r, expired: e.target.value } : r)))
                   }
-                  aria-label={`Kadaluarsa ${row.name}`}
+                  placeholder="0"
+                  aria-label={`Rusak/kadaluarsa ${row.name}`}
                 />
               </div>
             );

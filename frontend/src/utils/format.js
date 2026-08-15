@@ -6,13 +6,22 @@ export const formatRupiah = (value) =>
     maximumFractionDigits: 0,
   }).format(Number(value || 0));
 
+const toDate = (value) => {
+  if (!value) return null;
+  const s = String(value).trim();
+  const hasZone = /(Z|[+-]\d{2}:?\d{2})$/i.test(s);
+  const d = new Date(hasZone ? s : `${s}Z`);
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+
 export const formatTime = (value) => {
-  if (!value) return '-';
-  const d = new Date(value);
-  return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  const d = toDate(value);
+  if (!d) return '-';
+  return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
 };
 
 export const formatDate = (value) => {
-  if (!value) return '-';
-  return new Date(value).toLocaleDateString('id-ID');
+  const d = toDate(value);
+  if (!d) return '-';
+  return d.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' });
 };

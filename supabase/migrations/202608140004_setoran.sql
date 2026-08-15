@@ -75,79 +75,102 @@ declare
   v_user_id   int := public.current_user_id();
   v_code      text;
   v_col_id    int;
-  v_total     numeric := 0;
-  v_count     int := 0;
+  v_total     numeric;
+  v_count     int;
   v_tx        record;
+  v_visit     record;
   v_pending   int;
+  v_result    jsonb := '[]'::jsonb;
 begin
   if v_user_id is null then
     raise exception 'Not authenticated';
   end if;
 
-  select count(*) into v_pending
-  from public."Collection" c
-  where c.sales_id = v_user_id
-    and c.collection_date = p_date
-    and c.status = 'PENDING';
-
-  if v_pending > 0 then
-    raise exception 'Setoran hari ini sudah diajukan dan menunggu verifikasi';
-  end if;
-
-  perform 1 from public."Payment" p
-  where p.created_by = v_user_id
-    and p.payment_method = 'CASH'
-    and p.payment_date = p_date
-    and p.status = 'PAID'
-    and p.collection_id is null
-  limit 1;
-
-  if not found then
-    raise exception 'Tidak ada kas tunai yang belum disetor pada tanggal %', p_date;
-  end if;
-
-  v_code := public.next_document_number('Collection', 'SET-', to_char(p_date, 'YYYY'), to_char(p_date, 'MM'));
-
-  insert into public."Collection"
-    (code, sales_id, collection_date, status, notes)
-  values
-    (v_code, v_user_id, p_date, 'PENDING'::public."CollectionStatus", p_notes)
-  returning id into v_col_id;
-
-  for v_tx in
-    select p.id as payment_id, p.amount, p.transaction_id,
-           coalesce(t.grand_total, p.amount) as invoice_total,
-           coalesce(t.outstanding_amount, 0) as outstanding_amount
+  for v_visit in
+    select distinct t.warung_id, t.visit_id
     from public."Payment" p
-    left join public."SalesTransaction" t on t.id = p.transaction_id
+    join public."SalesTransaction" t on t.id = p.transaction_id
     where p.created_by = v_user_id
       and p.payment_method = 'CASH'
       and p.payment_date = p_date
       and p.status = 'PAID'
       and p.collection_id is null
-    order by p.id
+      and t.warung_id is not null
+      and t.visit_id is not null
+    order by t.visit_id
   loop
-    insert into public."CollectionItem"
-      (collection_id, sales_transaction_id, invoice_total, outstanding_before, payment_amount, outstanding_after)
+    select count(*) into v_pending
+    from public."Collection" c
+    where c.sales_id = v_user_id
+      and c.warung_id = v_visit.warung_id
+      and c.visit_id = v_visit.visit_id
+      and c.collection_date = p_date
+      and c.status = 'PENDING';
+
+    if v_pending > 0 then
+      continue;
+    end if;
+
+    v_code := public.next_document_number('Collection', 'SET-', to_char(p_date, 'YYYY'), to_char(p_date, 'MM'));
+
+    insert into public."Collection"
+      (code, sales_id, warung_id, visit_id, collection_date, status, notes, updated_at)
     values
-      (v_col_id, v_tx.transaction_id, v_tx.invoice_total,
-       v_tx.outstanding_amount, v_tx.amount,
-       greatest(v_tx.outstanding_amount - v_tx.amount, 0));
+      (v_code, v_user_id, v_visit.warung_id, v_visit.visit_id, p_date,
+       'PENDING'::public."CollectionStatus", p_notes, now())
+    returning id into v_col_id;
 
-    update public."Payment"
-       set collection_id = v_col_id
-     where id = v_tx.payment_id;
+    v_total := 0;
+    v_count := 0;
 
-    v_total := v_total + v_tx.amount;
-    v_count := v_count + 1;
+    for v_tx in
+      select p.id as payment_id, p.amount, p.transaction_id,
+             coalesce(t.grand_total, p.amount) as invoice_total,
+             coalesce(t.outstanding_amount, 0) as outstanding_amount
+      from public."Payment" p
+      left join public."SalesTransaction" t on t.id = p.transaction_id
+      where p.created_by = v_user_id
+        and p.payment_method = 'CASH'
+        and p.payment_date = p_date
+        and p.status = 'PAID'
+        and p.collection_id is null
+        and t.warung_id = v_visit.warung_id
+        and t.visit_id = v_visit.visit_id
+      order by p.id
+    loop
+      insert into public."CollectionItem"
+        (collection_id, sales_transaction_id, invoice_total, outstanding_before, payment_amount, outstanding_after)
+      values
+        (v_col_id, v_tx.transaction_id, v_tx.invoice_total,
+         v_tx.outstanding_amount, v_tx.amount,
+         greatest(v_tx.outstanding_amount - v_tx.amount, 0));
+
+      update public."Payment"
+         set collection_id = v_col_id
+       where id = v_tx.payment_id;
+
+      v_total := v_total + v_tx.amount;
+      v_count := v_count + 1;
+    end loop;
+
+    v_result := v_result || jsonb_build_object(
+      'collection_id', v_col_id,
+      'code', v_code,
+      'warung_id', v_visit.warung_id,
+      'visit_id', v_visit.visit_id,
+      'total_amount', v_total,
+      'item_count', v_count
+    );
   end loop;
+
+  if jsonb_array_length(v_result) = 0 then
+    raise exception 'Tidak ada kas tunai yang belum disetor pada tanggal %', p_date;
+  end if;
 
   return jsonb_build_object(
     'success', true,
-    'collection_id', v_col_id,
-    'code', v_code,
-    'total_amount', v_total,
-    'item_count', v_count
+    'collections', v_result,
+    'count', jsonb_array_length(v_result)
   );
 exception
   when others then
