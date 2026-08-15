@@ -170,22 +170,34 @@ const VisitWizard = () => {
   }, [id, warungId]);
 
   const loadStock = async (targetWarungId) => {
-    const { data, error: err } = await supabase
-      .from('OutletParStock')
-      .select('id, par_qty, product_id, product:Product(id, code, name, selling_price)')
-      .eq('warung_id', targetWarungId)
-      .eq('is_active', true)
-      .order('id');
-    if (err) throw err;
-    const rows = (data || []).map((row) => ({
-      product_id: row.product_id,
-      code: row.product?.code || '',
-      name: row.product?.name || 'Produk',
-      par_qty: Number(row.par_qty || 0),
-      selling_price: Number(row.product?.selling_price || 0),
-      physical: Number(row.par_qty || 0),
-      expired: 0,
-    }));
+    const [parRes, baselineRes] = await Promise.all([
+      supabase
+        .from('OutletParStock')
+        .select('id, par_qty, product_id, product:Product(id, code, name, selling_price)')
+        .eq('warung_id', targetWarungId)
+        .eq('is_active', true)
+        .order('id'),
+      VisitApiService.getWarungBaselines(targetWarungId),
+    ]);
+    if (parRes.error) throw parRes.error;
+    if (baselineRes.error) throw baselineRes.error;
+    const baselineMap = new Map(
+      (baselineRes.data || []).map((b) => [b.product_id, { baseline_set: b.baseline_set, opening_stock: Number(b.opening_stock || 0) }])
+    );
+    const rows = (parRes.data || []).map((row) => {
+      const b = baselineMap.get(row.product_id) || { baseline_set: false, opening_stock: 0 };
+      return {
+        product_id: row.product_id,
+        code: row.product?.code || '',
+        name: row.product?.name || 'Produk',
+        par_qty: Number(row.par_qty || 0),
+        selling_price: Number(row.product?.selling_price || 0),
+        baseline_set: b.baseline_set,
+        opening: b.baseline_set ? b.opening_stock : Number(row.par_qty || 0),
+        physical: Number(row.par_qty || 0),
+        expired: 0,
+      };
+    });
     setStockRows(rows);
     return rows;
   };
@@ -241,7 +253,8 @@ const VisitWizard = () => {
   const totalTagihan = useMemo(
     () =>
       stockRows.reduce((sum, r) => {
-        const sold = Math.max(r.par_qty - Number(r.physical || 0) - Number(r.expired || 0), 0);
+        const base = Number(r.opening || 0);
+        const sold = Math.max(base - Number(r.physical || 0) - Number(r.expired || 0), 0);
         return sum + sold * r.selling_price;
       }, 0),
     [stockRows]
@@ -259,6 +272,7 @@ const VisitWizard = () => {
         product_id: r.product_id,
         physical_qty: Number(r.physical || 0),
         expired_qty: Number(r.expired || 0),
+        opening_qty: r.baseline_set ? undefined : Number(r.opening || 0),
       }));
       const visitId = visit?.id || result?.visitId;
       const { data, error: err } = await VisitApiService.saveStockCount(visitId, items);
@@ -459,22 +473,38 @@ const VisitWizard = () => {
             <p className="empty-hint">Belum ada Par Stock untuk warung ini.</p>
           )}
           {stockRows.length > 0 && (
-            <div className="stock-row stock-row-header">
+            <div className={`stock-row stock-row-header ${!stockRows[0].baseline_set ? 'has-opening' : ''}`}>
               <div className="stock-row-info">
                 <span>Produk</span>
               </div>
+              {!stockRows[0].baseline_set && <span className="stock-col-label">Stok Awal</span>}
               <span className="stock-col-label">Sisa</span>
               <span className="stock-col-label">Rusak</span>
             </div>
           )}
           {stockRows.map((row, idx) => {
-            const sold = Math.max(row.par_qty - Number(row.physical || 0) - Number(row.expired || 0), 0);
+            const base = Number(row.opening || 0);
+            const sold = Math.max(base - Number(row.physical || 0) - Number(row.expired || 0), 0);
             return (
-              <div className="stock-row" key={row.product_id}>
+              <div className={`stock-row ${!row.baseline_set ? 'has-opening' : ''}`} key={row.product_id}>
                 <div className="stock-row-info">
                   <p>{row.name}</p>
-                  <span>Par {row.par_qty} · {formatRupiah(row.selling_price)} · Terjual {sold}</span>
+                  <span>
+                    {row.baseline_set ? `Stok awal ${base}` : 'Kunjungan pertama (baseline)'} · {formatRupiah(row.selling_price)} · Terjual {sold}
+                  </span>
                 </div>
+                {!row.baseline_set && (
+                  <input
+                    type="number"
+                    min="0"
+                    value={row.opening}
+                    onChange={(e) =>
+                      setStockRows((prev) => prev.map((r, i) => (i === idx ? { ...r, opening: e.target.value } : r)))
+                    }
+                    placeholder="0"
+                    aria-label={`Stok awal titipan ${row.name}`}
+                  />
+                )}
                 <input
                   type="number"
                   min="0"

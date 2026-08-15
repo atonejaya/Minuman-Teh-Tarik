@@ -5,6 +5,10 @@ const VisitApiService = {
     return supabase.rpc('get_sales_visit_plan', { p_date: date });
   },
 
+  getWarungBaselines(warungId) {
+    return supabase.rpc('get_warung_baselines', { p_warung_id: warungId });
+  },
+
   checkIn({ warungId, latitude, longitude, openingNote, photoPath, photoMime }) {
     return supabase.rpc('visit_check_in', {
       p_warung_id: warungId,
