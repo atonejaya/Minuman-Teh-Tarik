@@ -35,6 +35,7 @@ const ReportsPage = lazy(() => import('./modules/reports/pages/ReportsPage.jsx')
 const SettingsPage = lazy(() => import('./modules/settings/pages/SettingsPage.jsx'));
 const AccountPage = lazy(() => import('./modules/account/pages/AccountPage.jsx'));
 const SalesVehicleStock = lazy(() => import('./modules/sales/pages/SalesVehicleStock.jsx'));
+const StokDashboard = lazy(() => import('./modules/stok/pages/StokDashboard.jsx'));
 
 const AreaList = lazy(() => import('./modules/masterdata/pages/AreaList.jsx'));
 const AreaForm = lazy(() => import('./modules/masterdata/pages/AreaForm.jsx'));
@@ -144,6 +145,7 @@ function App() {
               <Route path="sales/stock-in/:id/edit" element={<WarehouseStockInForm />} />
               <Route path="sales/stock-in/:id" element={<WarehouseStockInDetail />} />
               <Route path="warehouse-stock" element={<WarehouseStockList />} />
+              <Route path="stok" element={<StokDashboard />} />
               <Route path="sales/transactions" element={<SalesTransactionList />} />
               <Route path="sales/transactions/new" element={<SalesTransactionFormPage />} />
               <Route path="sales/transactions/:id" element={<SalesTransactionDetail />} />

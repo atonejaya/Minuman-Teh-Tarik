@@ -553,6 +553,14 @@
 .settings-tab:hover { border-color: var(--primary); color: var(--primary); }
 .settings-tab.active { background-color: var(--primary); border-color: var(--primary); color: #fff; }
 
+/* ===== Pantauan stok ===== */
+.stok-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.stok-tab { padding: 8px 16px; border: 1px solid var(--border); background: #fff; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.stok-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.stok-panel { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 16px; overflow-x: auto; }
+.stok-section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.stok-total { background: var(--primary); color: #fff; padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 13px; }
+
 /* ===== Toast notifications ===== */
 .toast-container {
   position: fixed;
