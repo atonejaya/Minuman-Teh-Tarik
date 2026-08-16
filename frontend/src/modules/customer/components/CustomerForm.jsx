@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useMasterLookupContext } from '../../../contexts/MasterLookupContext';
+import { Crosshair, CheckCircle2, TriangleAlert } from 'lucide-react';
+import { getCurrentPosition } from '../../../utils/geolocation';
 
-const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, submitError }) => {
+const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, submitError, isSales = false, salesAreaId, salesName }) => {
   const { lookups } = useMasterLookupContext();
   const areas = lookups?.areas || [];
   const routes = lookups?.routes || [];
@@ -25,7 +27,9 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, subm
     credit_limit: initialData.credit_limit || 0,
     visit_day: initialData.visit_day || '',
     visit_week: initialData.visit_week || '',
-    status: initialData.status || 'ACTIVE'
+    status: initialData.status || 'ACTIVE',
+    latitude: initialData.latitude || '',
+    longitude: initialData.longitude || ''
   });
 
   const handleChange = (e) => {
@@ -35,6 +39,38 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, subm
       [name]: type === 'number' ? Number(value) : value
     }));
   };
+
+  const [gpsStatus, setGpsStatus] = useState('idle');
+  const [gpsMessage, setGpsMessage] = useState('');
+
+  const filteredRoutes = isSales && salesAreaId
+    ? routes.filter((r) => Number(r.area_id) === Number(salesAreaId))
+    : routes;
+
+  const areaName = areas.find((a) => Number(a.id) === Number(salesAreaId))?.name || '';
+
+  useEffect(() => {
+    if (!isSales) return;
+    let active = true;
+    setGpsStatus('loading');
+    setGpsMessage('Meminta izin GPS...');
+    getCurrentPosition().then((res) => {
+      if (!active) return;
+      if (res.latitude !== null && res.longitude !== null) {
+        setFormData((prev) => ({
+          ...prev,
+          latitude: Number(res.latitude),
+          longitude: Number(res.longitude),
+        }));
+        setGpsStatus('success');
+        setGpsMessage(`Lokasi terekam: ${Number(res.latitude).toFixed(5)}, ${Number(res.longitude).toFixed(5)}`);
+      } else {
+        setGpsStatus('denied');
+        setGpsMessage(res.error || 'Lokasi tidak terdeteksi');
+      }
+    });
+    return () => { active = false; };
+  }, [isSales]);
 
   const [provinces, setProvinces] = useState([]);
   const [cities, setCities] = useState([]);
@@ -134,6 +170,26 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {submitError && <div className="alert-error">{submitError}</div>}
 
+      {isSales && (
+        <section className="card-custom" style={{ padding: '16px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {gpsStatus === 'loading' && <Crosshair size={18} color="var(--warning)" />}
+            {gpsStatus === 'success' && <CheckCircle2 size={18} color="var(--success)" />}
+            {gpsStatus === 'denied' && <TriangleAlert size={18} color="var(--danger)" />}
+            <div>
+              <p style={{ fontWeight: '600', fontSize: '14px', margin: 0 }}>
+                {gpsStatus === 'success' ? 'Lokasi GPS Terekam Otomatis' : gpsStatus === 'denied' ? 'Lokasi GPS Tidak Tersedia' : 'Mendeteksi Lokasi GPS...'}
+              </p>
+              <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>{gpsMessage}</p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {isSales && !salesAreaId && (
+        <div className="alert-error">Akun Sales Anda belum memiliki Area. Hubungi Owner untuk mengatur Area terlebih dahulu.</div>
+      )}
+
       <section className="card-custom" style={{ padding: '20px' }}>
         <h3 style={{ marginBottom: '14px', fontSize: '16px' }}>Informasi Umum</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
@@ -200,29 +256,49 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
 
       <section className="card-custom" style={{ padding: '20px' }}>
         <h3 style={{ marginBottom: '14px', fontSize: '16px' }}>Penugasan Sales</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-          <div className="form-group">
-            <label className="form-label" style={labelStyle}>Area <span style={{ color: 'var(--danger)' }}>*</span></label>
-            <select className="form-input" style={inputStyle} name="area_id" value={formData.area_id} onChange={handleChange} required>
-              <option value="">Pilih Area</option>
-              {areas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-            </select>
+        {isSales ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+            <div className="form-group">
+              <label className="form-label" style={labelStyle}>Area</label>
+              <input type="text" className="form-input" style={inputStyle} value={areaName || '—'} disabled />
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={labelStyle}>Rute <span style={{ color: 'var(--danger)' }}>*</span></label>
+              <select className="form-input" style={inputStyle} name="route_id" value={formData.route_id} onChange={handleChange} required disabled={!salesAreaId}>
+                <option value="">Pilih Rute</option>
+                {filteredRoutes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={labelStyle}>Sales Ditugaskan</label>
+              <input type="text" className="form-input" style={inputStyle} value={salesName || 'Anda'} disabled />
+            </div>
           </div>
-          <div className="form-group">
-            <label className="form-label" style={labelStyle}>Rute <span style={{ color: 'var(--danger)' }}>*</span></label>
-            <select className="form-input" style={inputStyle} name="route_id" value={formData.route_id} onChange={handleChange} required>
-              <option value="">Pilih Rute</option>
-              {routes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-            </select>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+            <div className="form-group">
+              <label className="form-label" style={labelStyle}>Area <span style={{ color: 'var(--danger)' }}>*</span></label>
+              <select className="form-input" style={inputStyle} name="area_id" value={formData.area_id} onChange={handleChange} required>
+                <option value="">Pilih Area</option>
+                {areas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={labelStyle}>Rute <span style={{ color: 'var(--danger)' }}>*</span></label>
+              <select className="form-input" style={inputStyle} name="route_id" value={formData.route_id} onChange={handleChange} required>
+                <option value="">Pilih Rute</option>
+                {routes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={labelStyle}>Sales Ditugaskan <span style={{ color: 'var(--danger)' }}>*</span></label>
+              <select className="form-input" style={inputStyle} name="assigned_sales_id" value={formData.assigned_sales_id} onChange={handleChange} required>
+                <option value="">Pilih Sales</option>
+                {salesmen.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
           </div>
-          <div className="form-group">
-            <label className="form-label" style={labelStyle}>Sales Ditugaskan <span style={{ color: 'var(--danger)' }}>*</span></label>
-            <select className="form-input" style={inputStyle} name="assigned_sales_id" value={formData.assigned_sales_id} onChange={handleChange} required>
-              <option value="">Pilih Sales</option>
-              {salesmen.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
-        </div>
+        )}
       </section>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
@@ -263,22 +339,24 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
         </section>
       </div>
 
-      <section className="card-custom" style={{ padding: '20px' }}>
-        <h3 style={{ marginBottom: '14px', fontSize: '16px' }}>Status</h3>
-        <div className="form-group">
-          <select className="form-input" style={{ ...inputStyle, maxWidth: '300px' }} name="status" value={formData.status} onChange={handleChange}>
-            <option value="ACTIVE">Aktif</option>
-            <option value="INACTIVE">Nonaktif</option>
-            <option value="BLACKLIST">Blacklist</option>
-          </select>
-        </div>
-      </section>
+      {!isSales && (
+        <section className="card-custom" style={{ padding: '20px' }}>
+          <h3 style={{ marginBottom: '14px', fontSize: '16px' }}>Status</h3>
+          <div className="form-group">
+            <select className="form-input" style={{ ...inputStyle, maxWidth: '300px' }} name="status" value={formData.status} onChange={handleChange}>
+              <option value="ACTIVE">Aktif</option>
+              <option value="INACTIVE">Nonaktif</option>
+              <option value="BLACKLIST">Blacklist</option>
+            </select>
+          </div>
+        </section>
+      )}
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
         <button type="button" className="btn" style={{ padding: '8px 16px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }} onClick={onCancel} disabled={isSubmitting}>
           Batal
         </button>
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+        <button type="submit" className="btn btn-primary" disabled={isSubmitting || (isSales && !salesAreaId)}>
           {isSubmitting ? 'Menyimpan...' : 'Simpan Pelanggan'}
         </button>
       </div>
