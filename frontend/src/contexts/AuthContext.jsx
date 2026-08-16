@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (username, password) => {
-    const email = username.includes('@') ? username : `${username}@tehtarik.local`;
+    const email = username.includes('@') ? username : `${username.trim()}@tehtarik.local`;
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
