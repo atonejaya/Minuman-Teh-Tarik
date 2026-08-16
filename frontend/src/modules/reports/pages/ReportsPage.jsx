@@ -152,7 +152,7 @@ const ReportsPage = () => {
                 datasets: [{
                   label: 'Omzet',
                   data: dailyTotals.values,
-                  backgroundColor: 'rgba(245, 116, 32, 0.7)',
+                  backgroundColor: 'rgba(0, 93, 164, 0.7)',
                   borderRadius: 6,
                 }],
               }}
@@ -169,7 +169,7 @@ const ReportsPage = () => {
             <Pie
               data={{
                 labels: data.slice(0, 6).map((r) => r.name),
-                datasets: [{ data: data.slice(0, 6).map((r) => r.revenue), backgroundColor: ['#f57420', '#31506e', '#4caf50', '#ffc107', '#9c27b0', '#00bcd4'] }],
+                datasets: [{ data: data.slice(0, 6).map((r) => r.revenue), backgroundColor: ['#005DA4', '#31506e', '#4caf50', '#ffc107', '#9c27b0', '#00bcd4'] }],
               }}
               options={{ maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }}
             />
