@@ -32,3 +32,6 @@ Task 3: complete (commits 262eab0..04b41a7, review clean; ⚠️ build tak meng-
 Task 4: complete (commits 04b41a7..49c3955, review clean; Minor: CSS .owner-nav-section* kini mati, cleanup opsional)
 Task 5: complete (commits 49c3955..5a2a32d, review clean, zero issues)
 Task 6: complete (verifikasi otomatis lolos: node tests 2/2, lint 0 error baru, build ✓, grep regresi 0 match; browser check = PENDING HUMAN 7 item)
+Final whole-branch review: WITH FIXES -> 6 temuan di-fix dalam 1 commit (2fb9afe): auto-open tutup grup di route top-level, hardening segment boundary, assert struktur config, regression test, dead CSS dihapus, a11y aria-controls + DRY navLinkClass. Re-check: tests 2/2, lint 0 error baru, build ✓. Diff fix diverifikasi (5a2a32d..2fb9afe).
+MERGED: PR #3 (rebase) sha 5591801; branch lokal+remote dihapus; main sinkron + push (c127350 ledger). DEPLOYED live v3043d8f6-7bc9-445d-a6f4-95fb5ccf67a2, status 200. Check Vercel "Deployment has failed" pada PR = integrasi Vercel mati (tanpa vercel.json, bukan deploy utama; tidak blocking).
+PENDING (human): checklist browser 7 item di app live (sidebar accordion eksklusif, auto-open, placeholder Gajih & Biaya Operasional, nav sales tidak berubah).
