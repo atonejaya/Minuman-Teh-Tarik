@@ -77,6 +77,38 @@
 }
 .owner-nav-link:hover { background-color: rgba(255, 255, 255, 0.08); color: #fff; }
 .owner-nav-link.active { background-color: var(--primary); color: #fff; }
+.owner-sidebar-group { margin-top: 2px; }
+.owner-sidebar-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+}
+.owner-sidebar-group-title:hover { background-color: rgba(255, 255, 255, 0.08); color: #fff; }
+.owner-sidebar-chevron {
+  transition: transform var(--transition);
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+.owner-sidebar-group.open .owner-sidebar-chevron { transform: rotate(180deg); }
+.owner-sidebar-group.open .owner-sidebar-group-title { color: #fff; }
+.owner-sidebar-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0 4px 12px;
+}
 .owner-sidebar-footer {
   padding: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
