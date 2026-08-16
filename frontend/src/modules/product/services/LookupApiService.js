@@ -11,7 +11,7 @@ const LookupApiService = {
         supabase.from('ProductCategory').select('id, code, name').eq('status', 'ACTIVE').order('name'),
         supabase.from('PriceLevel').select('id, code, name').eq('status', 'ACTIVE').order('name'),
         supabase.from('Area').select('id, code, name').eq('is_active', true).order('name'),
-        supabase.from('Route').select('id, code, name').eq('is_active', true).order('name'),
+        supabase.from('Route').select('id, code, name, area_id').eq('is_active', true).order('name'),
         supabase.from('Brand').select('id, code, name').eq('status', 'ACTIVE').order('name'),
         supabase.from('Tax').select('id, code, name, rate').eq('status', 'ACTIVE').order('name'),
         supabase.from('Packaging').select('id, code, name').eq('status', 'ACTIVE').order('name'),
