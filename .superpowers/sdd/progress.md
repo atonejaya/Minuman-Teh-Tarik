@@ -22,3 +22,5 @@ Task 1: complete (commits e23257f..13b477e, review clean)
 Task 2: complete (commits 13b477e..8dcc779, review clean)
 Task 3: complete (commits 8dcc779..7c9544b, review clean)
 Task 4: complete (verifikasi grep EMPTY, lint ok, build ok; tidak ada commit kode)
+Final whole-branch review: READY TO MERGE (base e23257f..HEAD). Minor findings (pre-existing, improved): (1) kontras tombol warning putih 12px di #0284C7 ~4.09:1 di SalesStockIssueList.jsx:71 - follow-up opsional pakai --primary-hover; (2) --warning sebagai teks kecil di SalesVehicleStock.jsx:210/177; (3) dark-theme #005DA4 dormant; (4) palette pie #005DA4/#31506e mirip; (5) .payment vs .calculated sama-sama biru.
+PENDING (human): deploy wrangler + uji visual browser re-theme biru
