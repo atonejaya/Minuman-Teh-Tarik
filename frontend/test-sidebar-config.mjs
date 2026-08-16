@@ -27,4 +27,13 @@ for (const item of MENU_CONFIG) {
 assert.ok(routes.has('/payroll'), 'config must link /payroll');
 assert.ok(routes.has('/operational-cost'), 'config must link /operational-cost');
 
+assert.equal(MENU_CONFIG.length, 6);
+assert.deepEqual(MENU_CONFIG.map((i) => i.key), ['dashboard', 'input', 'operasional', 'master-data', 'keuangan', 'settings']);
+const groupCounts = { input: 2, operasional: 6, 'master-data': 10, keuangan: 5 };
+for (const [key, n] of Object.entries(groupCounts)) {
+  const g = MENU_CONFIG.find((i) => i.key === key);
+  assert.ok(g, `group ${key} exists`);
+  assert.equal(g.children.length, n, `${key} children count`);
+}
+
 console.log(`sidebar config: ${MENU_CONFIG.length} top-level items OK`);

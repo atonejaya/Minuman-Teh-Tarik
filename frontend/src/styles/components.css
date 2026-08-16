@@ -55,15 +55,6 @@
   line-height: 1.2;
 }
 .owner-nav { flex: 1; padding: 12px 12px 20px; }
-.owner-nav-section { margin-top: 8px; }
-.owner-nav-section-title {
-  padding: 10px 14px 6px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.45);
-  text-transform: uppercase;
-}
 .owner-nav-link {
   display: flex;
   align-items: center;

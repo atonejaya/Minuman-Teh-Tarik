@@ -3,21 +3,22 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { MENU_CONFIG } from './sidebarConfig';
 import { findOpenGroupForPath } from './sidebarMenuUtils';
 
+const navLinkClass = ({ isActive }) => `owner-nav-link ${isActive ? 'active' : ''}`;
+
 const SidebarMenu = () => {
   const location = useLocation();
   const [openKey, setOpenKey] = useState(() => findOpenGroupForPath(location.pathname, MENU_CONFIG));
 
   useEffect(() => {
-    const active = findOpenGroupForPath(location.pathname, MENU_CONFIG);
-    if (active !== null && active !== openKey) setOpenKey(active);
-  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+    setOpenKey(findOpenGroupForPath(location.pathname, MENU_CONFIG));
+  }, [location.pathname]);
 
   const renderItem = (item) => (
     <NavLink
       key={item.key || item.to}
       to={item.to}
       end={item.to === '/dashboard'}
-      className={({ isActive }) => `owner-nav-link ${isActive ? 'active' : ''}`}
+      className={navLinkClass}
     >
       <item.icon size={18} />
       <span>{item.label}</span>
@@ -37,17 +38,18 @@ const SidebarMenu = () => {
               className="owner-sidebar-group-title"
               onClick={() => setOpenKey(open ? null : item.key)}
               aria-expanded={open}
+              aria-controls={open ? `${item.key}-submenu` : undefined}
             >
               <span className="owner-sidebar-group-label">{item.label}</span>
               <item.icon size={16} className="owner-sidebar-chevron" />
             </button>
             {open && (
-              <div className="owner-sidebar-submenu">
+              <div id={`${item.key}-submenu`} className="owner-sidebar-submenu">
                 {item.children.map((child) => (
                   <NavLink
                     key={child.to}
                     to={child.to}
-                    className={({ isActive }) => `owner-nav-link ${isActive ? 'active' : ''}`}
+                    className={navLinkClass}
                   >
                     <child.icon size={18} />
                     <span>{child.label}</span>
