@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../contexts/AuthContext.jsx';
 import { useCustomer } from '../hooks/useCustomer';
 import CustomerRepository from '../repositories/CustomerRepository';
 import CustomerForm from '../components/CustomerForm';
@@ -10,7 +11,9 @@ const CustomerFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const { user } = useAuth();
   const isEdit = Boolean(id);
+  const isSales = user?.role === 'SALES';
 
   const { data: initialData, loading: isLoadingData, error: loadError } = useCustomer(id);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,10 +26,19 @@ const CustomerFormPage = () => {
       if (isEdit) {
         await CustomerRepository.update(id, formData);
       } else {
-        await CustomerRepository.create(formData);
+        const payload = isSales
+          ? {
+              ...formData,
+              assigned_sales_id: user.id,
+              area_id: user.area_id,
+              created_by: user.id,
+              status: 'ACTIVE',
+            }
+          : formData;
+        await CustomerRepository.create(payload);
       }
       toast.success('Data pelanggan berhasil disimpan');
-      navigate('/customers');
+      navigate(isSales ? '/dashboard' : '/customers');
     } catch (err) {
       setError(err.message || 'Gagal menyimpan pelanggan');
     } finally {
@@ -55,6 +67,9 @@ const CustomerFormPage = () => {
             onCancel={onCancel || handleCancel}
             isSubmitting={isSubmitting}
             submitError={error}
+            isSales={isSales}
+            salesAreaId={user?.area_id}
+            salesName={user?.name}
           />
         );
       }}
