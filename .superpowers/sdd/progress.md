@@ -16,3 +16,9 @@ Task 5: complete (commits 5a01ff3..af3fdbc, review clean)
 Task 6: complete (commits af3fdbc..466b7c3, review clean)
 Task 7: complete (commits 466b7c3..3de1d12, review clean)
 Task 8 (E2E manual): PENDING - butuh apply migration SQL Editor + uji browser oleh human
+
+## Fitur: Re-theme Orange -> Biru Persib (2026-08-16)
+Task 1: complete (commits e23257f..13b477e, review clean)
+Task 2: complete (commits 13b477e..8dcc779, review clean)
+Task 3: complete (commits 8dcc779..7c9544b, review clean)
+Task 4: complete (verifikasi grep EMPTY, lint ok, build ok; tidak ada commit kode)
