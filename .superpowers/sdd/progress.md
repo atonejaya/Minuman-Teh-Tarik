@@ -24,3 +24,11 @@ Task 3: complete (commits 8dcc779..7c9544b, review clean)
 Task 4: complete (verifikasi grep EMPTY, lint ok, build ok; tidak ada commit kode)
 Final whole-branch review: READY TO MERGE (base e23257f..HEAD). Minor findings (pre-existing, improved): (1) kontras tombol warning putih 12px di #0284C7 ~4.09:1 di SalesStockIssueList.jsx:71 - follow-up opsional pakai --primary-hover; (2) --warning sebagai teks kecil di SalesVehicleStock.jsx:210/177; (3) dark-theme #005DA4 dormant; (4) palette pie #005DA4/#31506e mirip; (5) .payment vs .calculated sama-sama biru.
 PENDING (human): deploy wrangler + uji visual browser re-theme biru
+
+## Fitur: Sidebar Accordion Owner + Komisi design (2026-08-16)
+Task 1: complete (commits 22e0d4a..4bab74c, review clean; Minor bawaan design: startsWith tanpa segment boundary, diterima)
+Task 2: complete (commits 4bab74c..262eab0, review clean; Minor: test tak assert count top-level=6 & route-set penuh, opsional hardening)
+Task 3: complete (commits 262eab0..04b41a7, review clean; ⚠️ build tak meng-compile file karena belum di-wire → di-resolve via oxlint bersih; Minor: aria-controls opsional)
+Task 4: complete (commits 04b41a7..49c3955, review clean; Minor: CSS .owner-nav-section* kini mati, cleanup opsional)
+Task 5: complete (commits 49c3955..5a2a32d, review clean, zero issues)
+Task 6: complete (verifikasi otomatis lolos: node tests 2/2, lint 0 error baru, build ✓, grep regresi 0 match; browser check = PENDING HUMAN 7 item)
