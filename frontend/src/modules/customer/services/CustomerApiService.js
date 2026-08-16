@@ -2,7 +2,7 @@ import { supabase } from '../../../utils/supabase';
 
 const CustomerApiService = {
   getCustomers: async (params = {}) => {
-    let query = supabase.from('Warung').select('*, User(name), Area(name), Route(name)');
+    let query = supabase.from('Warung').select('*, User!assigned_sales_id(name), Area(name), Route(name)');
     if (params.search) query = query.ilike('name', `%${params.search}%`);
     const [customersRes, txRes] = await Promise.all([
       query,
@@ -40,7 +40,7 @@ const CustomerApiService = {
   },
 
   getCustomerById: async (id) => {
-    const { data, error } = await supabase.from('Warung').select('*, User(name), Area(name), Route(name)').eq('id', id).single();
+    const { data, error } = await supabase.from('Warung').select('*, User!assigned_sales_id(name), Area(name), Route(name)').eq('id', id).single();
     if (error) throw error;
     return { success: true, data };
   },
