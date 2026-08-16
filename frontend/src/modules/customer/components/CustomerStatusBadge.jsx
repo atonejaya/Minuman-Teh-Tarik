@@ -4,7 +4,7 @@ const STATUS_COLORS = {
   ACTIVE: '#198754',
   INACTIVE: '#6c757d',
   BLACKLIST: '#dc3545',
-  SUSPENDED: '#fd7e14'
+  SUSPENDED: '#005DA4'
 };
 
 const STATUS_LABELS = { ACTIVE: 'Aktif', INACTIVE: 'Nonaktif', BLACKLIST: 'Blacklist', SUSPENDED: 'Ditangguhkan' };
