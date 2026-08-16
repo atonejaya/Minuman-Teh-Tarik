@@ -5,7 +5,7 @@
 --
 -- Contents:
 --   1. Kolom created_by pada Warung (jika belum ada) utk melacak pendaftar
---   2. Warung SELECT diperketat: OWNER lihat semua, SALES hanya warung sendiri
+--   2. Warung SELECT diperketat: OWNER/ADMIN lihat semua, SALES hanya warung sendiri
 --   3. Warung INSERT untuk SALES (area & rute terkunci sesuai akun)
 -- ============================================================================
 
@@ -16,7 +16,7 @@ drop policy if exists p_Warung_select_auth on public."Warung";
 create policy p_Warung_select_auth on public."Warung"
   for select to authenticated
   using (
-    public.current_user_role() = 'OWNER'
+    public.current_user_role() in ('OWNER', 'ADMIN')
     or assigned_sales_id = public.current_user_id()
   );
 
