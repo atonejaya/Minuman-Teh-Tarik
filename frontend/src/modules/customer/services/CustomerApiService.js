@@ -47,8 +47,8 @@ const CustomerApiService = {
 
   createCustomer: async (payload) => {
     const finalPayload = { ...payload, updated_at: new Date().toISOString() };
-    if (payload.latitude !== undefined) finalPayload.latitude = payload.latitude;
-    if (payload.longitude !== undefined) finalPayload.longitude = payload.longitude;
+    if (payload.latitude !== undefined) finalPayload.latitude = payload.latitude === '' ? null : payload.latitude;
+    if (payload.longitude !== undefined) finalPayload.longitude = payload.longitude === '' ? null : payload.longitude;
     if (finalPayload.visit_week !== undefined && finalPayload.visit_week !== '') {
       finalPayload.visit_week = Number(finalPayload.visit_week);
     } else {
@@ -63,8 +63,8 @@ const CustomerApiService = {
 
   updateCustomer: async (id, payload) => {
     const finalPayload = { ...payload, updated_at: new Date().toISOString() };
-    if (payload.latitude !== undefined) finalPayload.latitude = payload.latitude;
-    if (payload.longitude !== undefined) finalPayload.longitude = payload.longitude;
+    if (payload.latitude !== undefined) finalPayload.latitude = payload.latitude === '' ? null : payload.latitude;
+    if (payload.longitude !== undefined) finalPayload.longitude = payload.longitude === '' ? null : payload.longitude;
     if (finalPayload.visit_week !== undefined && finalPayload.visit_week !== '') {
       finalPayload.visit_week = Number(finalPayload.visit_week);
     } else {
