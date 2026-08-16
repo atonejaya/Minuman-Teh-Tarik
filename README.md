@@ -274,15 +274,16 @@ Sales Visit
 - **Database & Backend Logic**: Supabase (PostgreSQL, PostgREST, Row Level Security, RPC untuk business logic)
 - **Auth**: Supabase Auth (email/password)
 - **Frontend**: React (Vite), Context API, Vanilla CSS, chart.js
-- **Hosting**: Cloudflare Pages (static SPA, deploy dari `frontend/dist`)
+- **Hosting**: Cloudflare Workers (static SPA, deploy dari `frontend/dist`)
 - **Arsitektur**: Ledger sebagai source of truth, Projection sebagai read model, RPC security definer untuk transaksi
 
 ---
 
 # Setup Lokal
 
-1. Jalankan seluruh migrasi di `supabase/migrations/` secara berurutan di **Supabase SQL Editor** (urutan: `001_foundation` → `002_stock` → `003_visit` → `004_setoran` → `005_return`).
-2. Buat akun auth di Supabase untuk setiap user (OWNER & SALES) dan isi `auth_id` pada tabel `User`.
+1. Jalankan seluruh migrasi di `supabase/migrations/` secara berurutan di **Supabase SQL Editor** (urut berdasarkan prefix tanggal pada nama file, dari `202608140001_foundation` sampai `202608160002_create_sales_user`).
+2. Buat akun **OWNER awal** secara manual di Supabase (Auth → Add user) dan isi `auth_id` pada tabel `User`.
+   Setelah itu, akun **SALES baru dibuat langsung dari aplikasi** (Master Data → Pengguna Sales): form mengisi nama, username, role, dan password, lalu RPC `create_sales_user` otomatis membuat akun auth + profil. Email login = `<username>@tehtarik.local`, password minimal 6 karakter.
 3. Salin `frontend/.env.example` menjadi `frontend/.env` lalu isi:
    ```
    VITE_SUPABASE_URL=https://<project>.supabase.co
