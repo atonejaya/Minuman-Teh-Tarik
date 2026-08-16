@@ -3,6 +3,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useCompany } from '../contexts/CompanyContext.jsx';
 import { Home, Store, Banknote, User, LogOut, Coffee, Truck } from 'lucide-react';
+import NotificationBell from '../components/common/NotificationBell';
 
 const SalesLayout = () => {
   const { user, logout } = useAuth();
@@ -38,7 +39,8 @@ const SalesLayout = () => {
             <h1>{user?.name}</h1>
           </div>
         </div>
-        <div className="top-app-bar-actions">
+        <div className="top-app-bar-actions" style={{ display: 'flex', gap: '8px' }}>
+          <NotificationBell />
           <button className="mobile-icon-btn" aria-label="Keluar" onClick={handleLogout}>
             <LogOut size={20} />
           </button>

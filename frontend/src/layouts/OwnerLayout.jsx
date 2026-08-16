@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useCompany } from '../contexts/CompanyContext.jsx';
+import NotificationBell from '../components/common/NotificationBell';
 import {
   LayoutDashboard, Users, ShoppingCart, Map, Route as RouteIcon, UserCog, Warehouse,
   Tag, Package, Truck, Receipt, Repeat, ClipboardList, Wallet, Banknote, FileText,
@@ -51,6 +52,7 @@ const OwnerLayout = () => {
   const operasionalItems = [
     { to: '/warehouse-stock', label: 'Stok Gudang', icon: Package },
     { to: '/stok', label: 'Pantauan Stok', icon: BarChart3 },
+    { to: '/sales/vehicle-mutations', label: 'Mutasi & Retur', icon: Truck },
     { to: '/sales/stock-in', label: 'Barang Masuk', icon: Package },
     { to: '/sales/stock-issues', label: 'Pengeluaran Stok', icon: Truck },
     { to: '/sales/transactions', label: 'Transaksi', icon: Receipt },
@@ -109,7 +111,8 @@ const OwnerLayout = () => {
       <main className="owner-main">
         <header className="owner-header">
           <div className="owner-header-title">Operasional {companyName}</div>
-          <div className="owner-header-right">
+          <div className="owner-header-right" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <NotificationBell />
             <span className="owner-header-user">{user?.name}</span>
           </div>
         </header>

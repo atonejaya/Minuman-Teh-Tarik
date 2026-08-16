@@ -21,6 +21,7 @@ const SalesStockIssueDetail = lazy(() => import('./modules/sales/pages/SalesStoc
 const WarehouseStockInList = lazy(() => import('./modules/sales/pages/WarehouseStockInList.jsx'));
 const WarehouseStockInForm = lazy(() => import('./modules/sales/pages/WarehouseStockInForm.jsx'));
 const WarehouseStockInDetail = lazy(() => import('./modules/sales/pages/WarehouseStockInDetail.jsx'));
+const VehicleMutationList = lazy(() => import('./modules/sales/pages/VehicleMutationList.jsx'));
 const PiutangDashboard = lazy(() => import('./modules/sales/pages/PiutangDashboard.jsx'));
 const SalesTransactionList = lazy(() => import('./modules/sales/pages/SalesTransactionList.jsx'));
 const SalesTransactionDetail = lazy(() => import('./modules/sales/pages/SalesTransactionDetail.jsx'));
@@ -144,6 +145,7 @@ function App() {
               <Route path="sales/stock-in/new" element={<WarehouseStockInForm />} />
               <Route path="sales/stock-in/:id/edit" element={<WarehouseStockInForm />} />
               <Route path="sales/stock-in/:id" element={<WarehouseStockInDetail />} />
+              <Route path="sales/vehicle-mutations" element={<VehicleMutationList />} />
               <Route path="warehouse-stock" element={<WarehouseStockList />} />
               <Route path="stok" element={<StokDashboard />} />
               <Route path="sales/transactions" element={<SalesTransactionList />} />

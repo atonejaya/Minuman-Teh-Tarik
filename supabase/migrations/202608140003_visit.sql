@@ -316,30 +316,7 @@ begin
          'SALE', v_outlet_cur, -v_sold, v_outlet_cur - v_sold,
          'SalesTransaction', v_tx_id, v_visit.id, v_user_id, null);
 
-      select coalesce(max(balance), 0) into v_sales_balance
-      from public."SalesStockLedger"
-      where sales_id = v_visit.sales_id and product_id = (v_item.j->>'product_id')::int;
 
-      v_sales_balance := greatest(v_sales_balance - v_sold, 0);
-
-      insert into public."SalesStockLedger"
-        (sales_id, product_id, movement_type, qty, balance, document_type, document_id, transaction_date)
-      values
-        (v_visit.sales_id, (v_item.j->>'product_id')::int,
-         'SALE'::public."MovementType", v_sold, v_sales_balance,
-         'SalesTransaction', v_tx_id, current_date);
-
-      begin
-        insert into public."SalesStockProjection" (sales_id, product_id, qty_available, qty_damaged, qty_expired, last_update)
-        values (v_visit.sales_id, (v_item.j->>'product_id')::int, -v_sold, 0, 0, now());
-      exception
-        when unique_violation then
-          update public."SalesStockProjection"
-             set qty_available = greatest(qty_available - v_sold, 0),
-                 last_update = now()
-           where sales_id = v_visit.sales_id
-             and product_id = (v_item.j->>'product_id')::int;
-      end;
     end if;
 
     if v_expired > 0 then
@@ -388,18 +365,7 @@ begin
          'RETURN_BAD', v_outlet_cur - v_sold, -v_expired, v_outlet_cur - v_sold - v_expired,
          'SalesReturn', v_return_id, v_visit.id, v_user_id, 'Expired');
 
-      select coalesce(max(balance), 0) into v_sales_balance
-      from public."SalesStockLedger"
-      where sales_id = v_visit.sales_id and product_id = (v_item.j->>'product_id')::int;
 
-      v_sales_balance := greatest(v_sales_balance - v_expired, 0);
-
-      insert into public."SalesStockLedger"
-        (sales_id, product_id, movement_type, qty, balance, document_type, document_id, transaction_date)
-      values
-        (v_visit.sales_id, (v_item.j->>'product_id')::int,
-         'SALE_RETURN_DAMAGED'::public."MovementType", v_expired, v_sales_balance,
-         'SalesReturn', v_return_id, current_date);
 
       begin
         insert into public."SalesStockProjection" (sales_id, product_id, qty_available, qty_damaged, qty_expired, last_update)
@@ -738,9 +704,12 @@ begin
            'REFILL', v_physical, v_refill, v_par,
            'SalesVisit', v_visit.id, v_visit.id, v_user_id, null);
 
-        select coalesce(max(balance), 0) into v_sales_balance
-        from public."SalesStockLedger"
-        where sales_id = v_visit.sales_id and product_id = v_item.product_id;
+        select coalesce((
+          select balance from public."SalesStockLedger"
+          where sales_id = v_visit.sales_id and product_id = v_item.product_id
+          order by id desc
+          limit 1
+        ), 0) into v_sales_balance;
 
         if v_sales_balance < v_refill then
           raise exception 'Stok kendaraan tidak cukup: % (butuh % , tersedia %)',

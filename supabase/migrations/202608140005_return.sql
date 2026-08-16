@@ -184,9 +184,12 @@ begin
        v_outlet_cur, -v_item.qty, greatest(v_outlet_cur - v_item.qty, 0),
        'SalesReturn', p_return_id, v_user_id, null);
 
-    select coalesce(max(balance), 0) into v_van_balance
-    from public."SalesStockLedger"
-    where sales_id = v_sales_id and product_id = v_item.product_id;
+    select coalesce((
+      select balance from public."SalesStockLedger"
+      where sales_id = v_sales_id and product_id = v_item.product_id
+      order by id desc
+      limit 1
+    ), 0) into v_van_balance;
 
     v_van_balance := v_van_balance + v_item.qty;
 

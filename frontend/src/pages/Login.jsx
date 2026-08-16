@@ -34,54 +34,35 @@ export default function Login() {
   return (
     <div className="login-wrapper">
       <div className="login-layout">
-        <div className="login-brand">
-          <div className="login-brand-inner">
-            <div className="login-logo">
-              {logoUrl ? (
-                <img src={logoUrl} alt={companyName} className="login-logo-img" />
-              ) : (
-                <Coffee size={40} />
-              )}
-            </div>
-            <h1 className="login-brand-name">{companyName}</h1>
-            <p className="login-brand-tagline">{tagline}</p>
-            {(address || phone) && (
-              <div className="login-brand-info">
-                {address && (
-                  <p className="login-brand-line"><MapPin size={14} /> {address}</p>
-                )}
-                {phone && (
-                  <p className="login-brand-line"><Phone size={14} /> {phone}</p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
 
+        {/* Kiri: Form */}
         <div className="login-form-side">
           <div className="login-card">
-            <h3 className="login-card-title">Masuk</h3>
-            <p className="login-card-subtitle">Silakan masuk dengan akun Anda</p>
+            <h3 className="login-card-title">Login</h3>
+            <div className="login-title-divider"></div>
+            <p className="login-card-subtitle">{companyName}</p>
 
             {error && <div className="login-error">{error}</div>}
 
             <form onSubmit={handleSubmit}>
               <div className="login-field">
-                <User size={16} className="login-field-icon" />
+                <label className="login-field-label">Username</label>
+                <User size={16} className="login-field-icon" style={{ top: 'calc(50% + 11px)' }} />
                 <input
                   className="login-input"
-                  placeholder="Username"
+                  placeholder="Masukkan username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
                 />
               </div>
               <div className="login-field">
-                <Lock size={16} className="login-field-icon" />
+                <label className="login-field-label">Password</label>
+                <Lock size={16} className="login-field-icon" style={{ top: 'calc(50% + 11px)' }} />
                 <input
                   className="login-input"
                   type="password"
-                  placeholder="Password"
+                  placeholder="Masukkan password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -89,7 +70,7 @@ export default function Login() {
               </div>
 
               <button type="submit" className="login-button" disabled={loading}>
-                {loading ? 'Memproses...' : 'LOGIN'} <LogIn size={16} style={{ marginLeft: 8 }} />
+                {loading ? 'Memproses...' : 'Login'} <LogIn size={16} style={{ marginLeft: 8 }} />
               </button>
             </form>
 
@@ -98,6 +79,32 @@ export default function Login() {
             </div>
           </div>
         </div>
+
+        {/* Kanan: Brand/Logo */}
+        <div className="login-brand">
+          <div className="login-brand-inner">
+            <div className="login-logo">
+              {logoUrl ? (
+                <img src={logoUrl} alt={companyName} className="login-logo-img" />
+              ) : (
+                <Coffee size={56} />
+              )}
+            </div>
+            <h1 className="login-brand-name">{companyName}</h1>
+            <p className="login-brand-tagline">{tagline}</p>
+            {(address || phone) && (
+              <div className="login-brand-info">
+                {address && (
+                  <p className="login-brand-line"><MapPin size={13} /> {address}</p>
+                )}
+                {phone && (
+                  <p className="login-brand-line"><Phone size={13} /> {phone}</p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   );

@@ -5,8 +5,17 @@ const SetoranApiService = {
     return supabase.rpc('get_setoran_summary', { p_date: date });
   },
 
-  submit(date, notes) {
-    return supabase.rpc('sales_setoran_submit', { p_date: date, p_notes: notes });
+  async submit(date, notes) {
+    const res = await supabase.rpc('sales_setoran_submit', { p_date: date, p_notes: notes });
+    if (!res.error) {
+      await supabase.from('Notification').insert({
+        target_role: 'OWNER',
+        title: 'Setoran Uang Baru',
+        message: 'Sales telah melakukan penyetoran uang. Silakan verifikasi di menu Setoran.',
+        link: '/setoran',
+      });
+    }
+    return res;
   },
 
   verify(collectionId, result, failureReason, notes, receivedAmount) {

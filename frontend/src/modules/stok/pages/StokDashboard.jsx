@@ -12,7 +12,7 @@ const cell = { padding: '12px 16px', fontSize: '14px', borderBottom: '1px solid 
 
 const fmtQty = (n) => `${(Number(n) || 0).toLocaleString('id-ID')} cup`;
 
-const Section = ({ title, rows, qtyKey }) => {
+const Section = ({ title, rows, qtyKey, groupTitle }) => {
   const total = rows.reduce((a, r) => a + (Number(r[qtyKey]) || 0), 0);
   return (
     <>
@@ -26,6 +26,7 @@ const Section = ({ title, rows, qtyKey }) => {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead style={{ backgroundColor: 'var(--background)' }}>
             <tr>
+              {groupTitle && <th style={cell}>{groupTitle}</th>}
               <th style={cell}>Produk</th>
               <th style={cell}>Qty</th>
             </tr>
@@ -33,8 +34,11 @@ const Section = ({ title, rows, qtyKey }) => {
           <tbody>
             {rows.map((r) => (
               <tr key={`${r.group}-${r.product_id}`}>
+                {groupTitle && (
+                  <td style={{ ...cell }}>{r.group || '-'}</td>
+                )}
                 <td style={{ ...cell, fontWeight: '500' }}>
-                  {r.group ? `${r.group} — ` : ''}{r.product?.name || '-'}
+                  {r.product?.name || '-'}
                 </td>
                 <td style={{ ...cell, fontWeight: '600' }}>{fmtQty(r[qtyKey])}</td>
               </tr>
@@ -104,9 +108,9 @@ const StokDashboard = () => {
         ))}
       </div>
       <div className="stok-panel">
-        {tab === 'gudang' && <Section title="Stok Gudang Pusat" rows={data.gudang} qtyKey="qty_available" />}
-        {tab === 'kendaraan' && <Section title="Stok Kendaraan Sales" rows={data.kendaraan} qtyKey="qty_available" />}
-        {tab === 'warung' && <Section title="Stok Titipan Warung" rows={data.warung} qtyKey="current_stock" />}
+        {tab === 'gudang' && <Section title="Stok Gudang Pusat" rows={data.gudang} qtyKey="qty_available" groupTitle="Gudang" />}
+        {tab === 'kendaraan' && <Section title="Stok Kendaraan Sales" rows={data.kendaraan} qtyKey="qty_available" groupTitle="Nama Sales" />}
+        {tab === 'warung' && <Section title="Stok Titipan Warung" rows={data.warung} qtyKey="current_stock" groupTitle="Nama Warung" />}
       </div>
     </div>
   );

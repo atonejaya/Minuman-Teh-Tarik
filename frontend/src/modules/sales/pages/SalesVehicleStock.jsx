@@ -66,9 +66,9 @@ const SalesVehicleStock = () => {
     const items = [];
     for (const row of rows) {
       const f = form[row.product_id] || {};
-      const good = Number(f.good) || 0;
-      const damaged = Number(f.damaged) || 0;
-      const expired = Number(f.expired) || 0;
+      const good = Number(f.good ?? row.qty_available) || 0;
+      const damaged = Number(f.damaged ?? row.qty_damaged) || 0;
+      const expired = Number(f.expired ?? row.qty_expired) || 0;
       const total = good + damaged + expired;
       if (total <= 0) continue;
       if (total > Number(row.qty_available) + Number(row.qty_damaged) + Number(row.qty_expired)) {
@@ -98,7 +98,7 @@ const SalesVehicleStock = () => {
 
     setReturning(true);
     try {
-      const { error } = await supabase.rpc('sales_stock_return', {
+      const { data, error } = await supabase.rpc('sales_stock_return', {
         p_payload: {
           sales_id: user.id,
           warehouse_id: issue.warehouse_id,
@@ -108,7 +108,19 @@ const SalesVehicleStock = () => {
         },
       });
       if (error) throw error;
-      toast.success('Retur sisa stok berhasil dikembalikan ke gudang.');
+      
+      let sumRetur = 0;
+      items.forEach(i => sumRetur += i.qty);
+      if (data && data.success === false) throw new Error(data.error);
+      
+      await supabase.from('Notification').insert({
+        target_role: 'OWNER',
+        title: 'Mutasi & Retur Stok',
+        message: `${user?.name || 'Sales'} telah melakukan mutasi/retur stok sisa kendaraan (${sumRetur} cup).`,
+        link: '/stok-masuk',
+      });
+
+      toast.success(`Mutasi dan Retur sisa stok berhasil diproses (${sumRetur} cup).`);
       setReturnOpen(false);
       setForm({});
       load(false);
@@ -132,10 +144,10 @@ const SalesVehicleStock = () => {
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             className="mobile-icon-btn"
-            aria-label="Retur sisa stok"
+            aria-label="Mutasi / Retur sisa stok"
             onClick={openReturn}
-            disabled={rows.length === 0}
-            title="Retur sisa stok ke gudang"
+            disabled={rows.length === 0 || (total + totalDamaged + totalExpired) === 0}
+            title="Mutasi sisa stok baik & Retur stok rusak"
           >
             <Undo2 size={18} />
           </button>
@@ -221,12 +233,12 @@ const SalesVehicleStock = () => {
       {returnOpen && (
         <div className="modal-backdrop" onClick={() => setReturnOpen(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxHeight: '85vh', overflowY: 'auto' }}>
-            <h4 style={{ margin: 0, marginBottom: '4px' }}>Retur Sisa Stok</h4>
+            <h4 style={{ margin: 0, marginBottom: '4px' }}>Mutasi & Retur Sisa Stok</h4>
             <p className="text-muted" style={{ marginBottom: '12px', fontSize: '13px' }}>
-              Sisa stok dikembalikan ke gudang. Nilai sudah terisi dari stok tercatat; sesuaikan bila ada yang rusak/expired.
+              Stok baik akan <b>dimutasi</b> kembali ke gudang pusat. Stok rusak atau expired akan <b>diretur</b> (tidak masuk ke gudang).
             </p>
 
-            {rows.map((r) => {
+            {rows.filter(r => (Number(r.qty_available) || 0) + (Number(r.qty_damaged) || 0) + (Number(r.qty_expired) || 0) > 0).map((r) => {
               const f = form[r.product_id] || {};
               const good = f.good ?? (Number(r.qty_available) || 0);
               const damaged = f.damaged ?? (Number(r.qty_damaged) || 0);

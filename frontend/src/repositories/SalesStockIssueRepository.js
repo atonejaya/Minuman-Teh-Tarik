@@ -137,6 +137,17 @@ const SalesStockIssueRepository = {
   async closeSalesStockIssue(id) {
     const { data, error } = await supabase.rpc('sales_stock_issue_close', { p_issue_id: id });
     if (error) throw error;
+    
+    const { data: issue } = await supabase.from('SalesStockIssue').select('sales_id, issue_number').eq('id', id).single();
+    if (issue && issue.sales_id) {
+      await supabase.from('Notification').insert({
+        user_id: issue.sales_id,
+        title: 'Stok Kendaraan Masuk',
+        message: `Stok baru (${issue.issue_number}) telah masuk ke kendaraan Anda.`,
+        link: '/stok-kendaraan',
+      });
+    }
+
     return { data };
   },
 };

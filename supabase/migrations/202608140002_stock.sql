@@ -92,9 +92,12 @@ begin
        'ISSUE_TO_SALES'::public."WarehouseMovementType", v_item.qty, v_wh_balance,
        'SalesStockIssue', v_issue.issue_number, null, v_user_id, v_issue.issue_date);
 
-    select coalesce(max(balance), 0) into v_sales_balance
-    from public."SalesStockLedger"
-    where sales_id = v_issue.sales_id and product_id = v_item.product_id;
+    select coalesce((
+      select balance from public."SalesStockLedger"
+      where sales_id = v_issue.sales_id and product_id = v_item.product_id
+      order by id desc
+      limit 1
+    ), 0) into v_sales_balance;
 
     v_sales_balance := v_sales_balance + v_item.qty;
 
@@ -271,9 +274,12 @@ begin
     end if;
     v_total_qty := v_total_qty + v_qty;
 
-    select coalesce(max(balance), 0) into v_sales_balance
-    from public."SalesStockLedger"
-    where sales_id = v_sales_id and product_id = v_prod_id;
+    select coalesce((
+      select balance from public."SalesStockLedger"
+      where sales_id = v_sales_id and product_id = v_prod_id
+      order by id desc
+      limit 1
+    ), 0) into v_sales_balance;
 
     v_sales_balance := greatest(v_sales_balance - v_qty, 0);
 
@@ -351,7 +357,7 @@ begin
   return jsonb_build_object('success', true, 'reference_number', v_ref_id);
 exception
   when others then
-    raise exception 'sales_stock_return failed: %', SQLERRM;
+    return jsonb_build_object('success', false, 'error', 'sales_stock_return failed: ' || SQLERRM);
 end;
 $$;
 
