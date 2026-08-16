@@ -37,6 +37,7 @@ const SettingsPage = lazy(() => import('./modules/settings/pages/SettingsPage.js
 const AccountPage = lazy(() => import('./modules/account/pages/AccountPage.jsx'));
 const SalesVehicleStock = lazy(() => import('./modules/sales/pages/SalesVehicleStock.jsx'));
 const StokDashboard = lazy(() => import('./modules/stok/pages/StokDashboard.jsx'));
+const ComingSoon = lazy(() => import('./pages/ComingSoon.jsx'));
 
 const AreaList = lazy(() => import('./modules/masterdata/pages/AreaList.jsx'));
 const AreaForm = lazy(() => import('./modules/masterdata/pages/AreaForm.jsx'));
@@ -158,6 +159,8 @@ function App() {
 
               <Route path="reports" element={<ReportsPage />} />
               <Route path="settings" element={<SettingsPage />} />
+              <Route path="payroll" element={<ComingSoon title="Gajih" />} />
+              <Route path="operational-cost" element={<ComingSoon title="Biaya Operasional" />} />
             </Route>
           </Route>
 
