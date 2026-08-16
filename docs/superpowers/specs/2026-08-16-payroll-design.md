@@ -35,9 +35,11 @@ Migration baru `supabase/migrations/202608160003_payroll.sql`.
 - `security definer`, `set search_path = public, pg_temp`.
 - Guard: `public.current_user_role() <> 'OWNER'` → `raise exception 'forbidden'`.
 - Validasi `p_month` format `YYYY-MM` → selain itu `raise exception 'invalid month'`.
-- Untuk **semua sales aktif** (`User.role = 'SALES'` dan `is_active`), left join
-  agregasi transaksi valid bulan `p_month` (`date_trunc('month', created_at) =
-  to_date(p_month, 'YYYY-MM')` dan `status <> 'CANCELLED'`).
+- Untuk **semua sales aktif** (`User.role` berisi `'SALES'` dan `is_active`),
+  left join agregasi transaksi valid bulan `p_month` (`date_trunc('month',
+  created_at) = to_date(p_month, 'YYYY-MM')` dan `status <> 'CANCELLED'`).
+  Bandingkan role via text cast (`u.role::text = 'SALES'`) agar bebas dari error
+  enum-coercion (konsisten dengan catatan di foundation).
 - Sales tanpa transaksi tetap muncul dengan angka 0.
 - Nilai setting dibaca dari `Setting` (`commission_per_cup`, `fuel_allowance`),
   fallback default `500` dan `10000` bila tidak ada.
@@ -64,8 +66,8 @@ Migration baru `supabase/migrations/202608160003_payroll.sql`.
 - **Klik baris sales** → detail per tanggal tampil inline di bawah baris
   (fetch `get_payroll_detail` saat baris dibuka): **Tanggal | Jumlah Transaksi |
   Cups | Komisi Hari | Uang Operasional Hari**. Klik lagi untuk menutup.
-- Rupiah diformat dengan util `formatRupiah` yang sudah ada di repo
-  (dicek & dipakai ulang saat implementasi).
+- Rupiah diformat dengan util `formatRupiah` yang sudah ada di
+  `frontend/src/utils/format.js`.
 - Loading state saat fetch; error → `toast.error`; detail tanggal kosong →
   empty state "Belum ada transaksi".
 
