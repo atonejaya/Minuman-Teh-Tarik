@@ -13,5 +13,6 @@ assert.equal(findOpenGroupForPath('/settings', config), null, 'top-level route -
 assert.equal(findOpenGroupForPath('/sales/stock-in', config), 'input', 'route -> group input');
 assert.equal(findOpenGroupForPath('/sales/transactions/new', config), 'operasional', 'nested route -> parent group');
 assert.equal(findOpenGroupForPath('/unknown', config), null, 'unknown route -> null');
+assert.equal(findOpenGroupForPath('/sales/stock-in-2', config), null, 'no segment-boundary collision');
 
 console.log('sidebar menu utils: all tests passed');
