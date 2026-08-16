@@ -1,189 +1,138 @@
-﻿### Task 4: VisitWizard â€” input Stok Awal Titipan & perhitungan baseline
+### Task 4: Halaman Biaya Operasional (`/operational-cost`)
 
 **Files:**
-- Modify: `frontend/src/modules/visits/services/VisitApiService.js`
-- Modify: `frontend/src/modules/visits/pages/VisitWizard.jsx`
-- Modify: `frontend/src/styles/components.css` (grid `.stock-row` 4 kolom saat ada input Stok Awal)
+- Create: `frontend/src/modules/payroll/pages/OperationalCostPage.jsx`
+- Modify: `frontend/src/App.jsx` (route `operational-cost`)
 
 **Interfaces:**
-- Consumes: `get_warung_baselines` RPC (Task 1).
-- Produces: state `stockRows` tiap baris kini memiliki `baseline_set`, `opening`; `handleSaveStock` mengirim `opening_qty`; `totalTagihan` memakai baseline.
+- Consumes: `PayrollApiService.getSummary(month)`, `toMonthKey`, `formatRupiah`, `useToast`.
+- Produces: Komponen default `OperationalCostPage` (tanpa props) dirender pada route `operational-cost`.
 
-- [ ] **Step 1: Tambah method di VisitApiService.js**
+- [ ] **Step 1: Tulis halaman Biaya Operasional**
 
-Tambahkan di object `VisitApiService` (setelah `getPlan`):
+Buat `frontend/src/modules/payroll/pages/OperationalCostPage.jsx`:
 
-```js
-  getWarungBaselines(warungId) {
-    return supabase.rpc('get_warung_baselines', { p_warung_id: warungId });
-  },
-```
+```jsx
+import React, { useCallback, useEffect, useState } from 'react';
+import PayrollApiService from '../services/PayrollApiService';
+import { toMonthKey, sumBy } from '../utils/payrollUtils';
+import { formatRupiah } from '../../../utils/format.js';
+import { useToast } from '../../../components/toast/ToastContext';
 
-- [ ] **Step 2: Ubah `loadStock` di VisitWizard.jsx**
+const CELL = { padding: '10px 12px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
+const TH = { ...CELL, fontSize: '13px', color: 'var(--text-muted)' };
+const NUM = { ...CELL, textAlign: 'right' };
 
-Ganti fungsi `loadStock` (mulai `const loadStock = async (targetWarungId) => {`) dengan:
+const OperationalCostPage = () => {
+  const [month, setMonth] = useState(toMonthKey(new Date()));
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
-```js
-  const loadStock = async (targetWarungId) => {
-    const [parRes, baselineRes] = await Promise.all([
-      supabase
-        .from('OutletParStock')
-        .select('id, par_qty, product_id, product:Product(id, code, name, selling_price)')
-        .eq('warung_id', targetWarungId)
-        .eq('is_active', true)
-        .order('id'),
-      VisitApiService.getWarungBaselines(targetWarungId),
-    ]);
-    if (parRes.error) throw parRes.error;
-    if (baselineRes.error) throw baselineRes.error;
-    const baselineMap = new Map(
-      (baselineRes.data || []).map((b) => [b.product_id, { baseline_set: b.baseline_set, opening_stock: Number(b.opening_stock || 0) }])
-    );
-    const rows = (parRes.data || []).map((row) => {
-      const b = baselineMap.get(row.product_id) || { baseline_set: false, opening_stock: 0 };
-      return {
-        product_id: row.product_id,
-        code: row.product?.code || '',
-        name: row.product?.name || 'Produk',
-        par_qty: Number(row.par_qty || 0),
-        selling_price: Number(row.product?.selling_price || 0),
-        baseline_set: b.baseline_set,
-        opening: b.baseline_set ? b.opening_stock : Number(row.par_qty || 0),
-        physical: Number(row.par_qty || 0),
-        expired: 0,
-      };
-    });
-    setStockRows(rows);
-    return rows;
-  };
-```
+  const load = useCallback(async () => {
+    if (!month) return;
+    setLoading(true);
+    try {
+      const data = await PayrollApiService.getSummary(month);
+      setRows(data || []);
+    } catch (err) {
+      toast.error(err.message || 'Gagal memuat data biaya operasional');
+    } finally {
+      setLoading(false);
+    }
+  }, [month, toast]);
 
-- [ ] **Step 3: Ubah `totalTagihan`**
+  useEffect(() => {
+    load();
+  }, [load]);
 
-Ganti `useMemo` `totalTagihan` dengan:
+  const totalUangOp = sumBy(rows, 'uang_operasional');
 
-```js
-  const totalTagihan = useMemo(
-    () =>
-      stockRows.reduce((sum, r) => {
-        const base = Number(r.opening || 0);
-        const sold = Math.max(base - Number(r.physical || 0) - Number(r.expired || 0), 0);
-        return sum + sold * r.selling_price;
-      }, 0),
-    [stockRows]
+  return (
+    <div>
+      <h2 style={{ marginBottom: '16px' }}>Biaya Operasional</h2>
+
+      <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <label style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Bulan</label>
+        <input
+          type="month"
+          value={month}
+          onChange={(e) => setMonth(e.target.value)}
+          style={{
+            padding: '8px 12px',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
+            backgroundColor: 'var(--surface)',
+            color: 'var(--text-main)',
+            fontSize: '14px',
+          }}
+        />
+      </div>
+
+      <div className="card-custom" style={{ overflowX: 'auto' }}>
+        {loading && <p className="empty-hint">Memuat data biaya operasional...</p>}
+        {!loading && rows.length === 0 && <p className="empty-hint">Tidak ada data sales.</p>}
+        {!loading && rows.length > 0 && (
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead style={{ backgroundColor: 'var(--background)' }}>
+              <tr>
+                <th style={TH}>Sales</th>
+                <th style={NUM}>Hari Aktif</th>
+                <th style={NUM}>Uang Operasional (Rp)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.sales_id}>
+                  <td style={{ ...CELL, fontWeight: '600' }}>{r.sales_name}</td>
+                  <td style={NUM}>{Number(r.hari_aktif || 0).toLocaleString('id-ID')}</td>
+                  <td style={NUM}>{formatRupiah(r.uang_operasional)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td style={{ ...CELL, fontWeight: '700' }}>Total</td>
+                <td style={CELL}></td>
+                <td style={{ ...NUM, fontWeight: '700', color: 'var(--primary)' }}>{formatRupiah(totalUangOp)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        )}
+      </div>
+    </div>
   );
+};
+
+export default OperationalCostPage;
 ```
 
-- [ ] **Step 4: Ubah `handleSaveStock` items**
+- [ ] **Step 2: Daftarkan route**
 
-Ganti pembuatan `items` dengan:
+Di `frontend/src/App.jsx`:
+- Tambah import lazy setelah `const PayrollPage = lazy(...)` (baris yang ditambahkan Task 3):
 
-```js
-      const items = stockRows.map((r) => ({
-        product_id: r.product_id,
-        physical_qty: Number(r.physical || 0),
-        expired_qty: Number(r.expired || 0),
-        opening_qty: r.baseline_set ? undefined : Number(r.opening || 0),
-      }));
+```jsx
+const OperationalCostPage = lazy(() => import('./modules/payroll/pages/OperationalCostPage.jsx'));
 ```
 
-- [ ] **Step 5: Ubah header tabel stok**
+- Ganti baris 163 (`<Route path="operational-cost" element={<ComingSoon title="Biaya Operasional" />} />`):
 
-Ganti blok header (`{stockRows.length > 0 && (` sampai penutup) dengan:
-
-```js
-          {stockRows.length > 0 && (
-            <div className={`stock-row stock-row-header ${!stockRows[0].baseline_set ? 'has-opening' : ''}`}>
-              <div className="stock-row-info">
-                <span>Produk</span>
-              </div>
-              {!stockRows[0].baseline_set && <span className="stock-col-label">Stok Awal</span>}
-              <span className="stock-col-label">Sisa</span>
-              <span className="stock-col-label">Rusak</span>
-            </div>
-          )}
+```jsx
+              <Route path="operational-cost" element={<OperationalCostPage />} />
 ```
 
-- [ ] **Step 5b: Tambah CSS variasi grid 4 kolom**
+- [ ] **Step 3: Lint + build**
 
-Di `frontend/src/styles/components.css`, di dekat rule `.stock-row` (baris Â±325), tambahkan:
+Run (dari `frontend/`): `npm run lint; if ($?) { npm run build }`
+Expected: lint 0 error baru; build sukses.
 
-```css
-.stock-row.has-opening { grid-template-columns: 1fr 72px 72px 72px; }
-```
-
-Catatan: `.stock-row` default tetap `1fr 72px 72px` (3 kolom) untuk warung yang sudah baseline; warung yang belum baseline memakai 4 kolom via `.has-opening`.
-
-- [ ] **Step 6: Ubah render baris stok**
-
-Ganti blok `{stockRows.map((row, idx) => { ... })}` dengan:
-
-```js
-          {stockRows.map((row, idx) => {
-            const base = Number(row.opening || 0);
-            const sold = Math.max(base - Number(row.physical || 0) - Number(row.expired || 0), 0);
-            return (
-              <div className={`stock-row ${!row.baseline_set ? 'has-opening' : ''}`} key={row.product_id}>
-                <div className="stock-row-info">
-                  <p>{row.name}</p>
-                  <span>
-                    {row.baseline_set ? `Stok awal ${base}` : 'Kunjungan pertama (baseline)'} Â· {formatRupiah(row.selling_price)} Â· Terjual {sold}
-                  </span>
-                </div>
-                {!row.baseline_set && (
-                  <input
-                    type="number"
-                    min="0"
-                    value={row.opening}
-                    onChange={(e) =>
-                      setStockRows((prev) => prev.map((r, i) => (i === idx ? { ...r, opening: e.target.value } : r)))
-                    }
-                    placeholder="0"
-                    aria-label={`Stok awal titipan ${row.name}`}
-                  />
-                )}
-                <input
-                  type="number"
-                  min="0"
-                  value={row.physical}
-                  onChange={(e) =>
-                    setStockRows((prev) => prev.map((r, i) => (i === idx ? { ...r, physical: e.target.value } : r)))
-                  }
-                  placeholder="0"
-                  aria-label={`Sisa stok ${row.name}`}
-                />
-                <input
-                  type="number"
-                  min="0"
-                  value={row.expired}
-                  onChange={(e) =>
-                    setStockRows((prev) => prev.map((r, i) => (i === idx ? { ...r, expired: e.target.value } : r)))
-                  }
-                  placeholder="0"
-                  aria-label={`Rusak/kadaluarsa ${row.name}`}
-                />
-              </div>
-            );
-          })}
-```
-
-- [ ] **Step 7: Verifikasi build**
-
-Run (workdir `frontend/`): `npm run build`
-Expected: `âœ“ built in ...` tanpa error.
-
-- [ ] **Step 8: Verifikasi lint**
-
-Run (workdir `frontend/`): `npx oxlint src/modules/visits/pages/VisitWizard.jsx src/modules/visits/services/VisitApiService.js`
-Expected: tidak ada error.
-
-- [ ] **Step 9: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add frontend/src/modules/visits/services/VisitApiService.js frontend/src/modules/visits/pages/VisitWizard.jsx
-git commit -m "feat(stok): VisitWizard input stok awal titipan & hitung baseline"
+git add frontend/src/modules/payroll/pages/OperationalCostPage.jsx frontend/src/App.jsx
+git commit -m "feat(payroll): halaman Biaya Operasional (ringkasan uang operasional per sales)"
 ```
 
 ---
-
 

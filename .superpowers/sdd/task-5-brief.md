@@ -1,75 +1,39 @@
-﻿### Task 5: Dashboard owner â€” 3 KPI stok klik-able
+### Task 5: Verifikasi & Deploy
 
 **Files:**
-- Modify: `frontend/src/modules/dashboard/components/OwnerDashboard.jsx`
+- No new code — run checks and deploy.
 
-**Interfaces:**
-- Consumes: `supabase` tables `WarehouseStock`, `SalesStockProjection`, `OutletStockProjection`.
-- Produces: `data.stokKendaraan`, `data.stokWarung`; KPI cards navigasi ke `/stok?tab=...`.
+- [ ] **Step 1: Jalankan seluruh test node**
 
-- [ ] **Step 1: Tambah fetch stok kendaraan & warung**
+Run (dari `frontend/`): `node test-payroll-utils.mjs; if ($?) { node test-sidebar-menu.mjs; if ($?) { node test-sidebar-config.mjs } }`
+Expected: ketiganya PASS.
 
-Di dalam `Promise.all`, setelah `warehouseRes` dan sebelum `last7Res`, tambahkan dua query:
+- [ ] **Step 2: Lint + build**
 
-```js
-          supabase.from('SalesStockProjection').select('qty_available').limit(5000),
-          supabase.from('OutletStockProjection').select('current_stock').limit(5000),
-```
+Run (dari `frontend/`): `npm run lint; if ($?) { npm run build }`
+Expected: 0 error; build sukses.
 
-Ubah destructuring `[... warehouseRes, last7Res]` menjadi:
-
-```js
-          visitsRes,
-          warehouseRes,
-          salesStockRes,
-          outletStockRes,
-          last7Res,
-        ] = await Promise.all([
-```
-
-- [ ] **Step 2: Hitung & set state**
-
-Di `setData({ ... })`, tambahkan:
-
-```js
-          stokKendaraan: sum(salesStockRes.data, 'qty_available'),
-          stokWarung: sum(outletStockRes.data, 'current_stock'),
-```
-
-- [ ] **Step 3: Tambah KPI cards + navigasi (BrowserRouter)**
-
-Aplikasi memakai `BrowserRouter` (lihat `frontend/src/main.jsx`) â†’ TIDAK boleh pakai hash link. Gunakan `useNavigate` dari `react-router-dom`. Tambahkan import di bagian atas `OwnerDashboard.jsx`:
-
-```js
-import { useNavigate } from 'react-router-dom';
-```
-
-dan di dalam komponen (setelah `const [data, setData] = useState(null);`):
-
-```js
-  const navigate = useNavigate();
-```
-
-Lalu ganti blok grid KPI (baris `KpiCard ... Stok Gudang` dan `KpiCard ... Visit Hari Ini`) dengan:
-
-```jsx
-        <KpiCard label="Stok Gudang" value={`${data.stokGudang.toLocaleString('id-ID')} cup`} color="var(--secondary)" link={<a href="/stok?tab=gudang" onClick={(e) => { e.preventDefault(); navigate('/stok?tab=gudang'); }}>Lihat</a>} />
-        <KpiCard label="Stok Kendaraan" value={`${data.stokKendaraan.toLocaleString('id-ID')} cup`} color="var(--warning)" link={<a href="/stok?tab=kendaraan" onClick={(e) => { e.preventDefault(); navigate('/stok?tab=kendaraan'); }}>Lihat</a>} />
-        <KpiCard label="Stok Warung" value={`${data.stokWarung.toLocaleString('id-ID')} cup`} color="var(--primary)" link={<a href="/stok?tab=warung" onClick={(e) => { e.preventDefault(); navigate('/stok?tab=warung'); }}>Lihat</a>} />
-```
-
-- [ ] **Step 5: Verifikasi build**
-
-Run (workdir `frontend/`): `npm run build`
-Expected: sukses tanpa error.
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 3: Commit hasil verifikasi**
 
 ```bash
-git add frontend/src/modules/dashboard/components/OwnerDashboard.jsx
-git commit -m "feat(stok): KPI stok gudang/kendaraan/warung di dashboard owner"
+git add -A
+git commit -m "chore: verifikasi modul payroll (test, lint, build)"
 ```
 
----
+- [ ] **Step 4: Buat PR & merge**
 
+Pakai pola repo (GitHub API, kerja langsung di branch `main`): buat branch `feat/payroll`, push, buat PR, review, merge (rebase), delete branch. Setelah merge, sync `main`.
 
+- [ ] **Step 5: Deploy ke Cloudflare Workers**
+
+Run (dari `frontend/`): `npx wrangler deploy`
+Expected: deploy sukses ke `https://operasional.atonejaya.workers.dev`; cek status 200 (`Invoke-WebRequest -Method Head`).
+
+- [ ] **Step 6: Checklist verifikasi oleh USER (PENDING human)**
+
+1. Apply `supabase/migrations/202608160003_payroll.sql` di Supabase SQL Editor.
+2. Jalankan query verifikasi Task 1 Step 4 — pastikan angka masuk akal.
+3. Login OWNER → menu KEUANGAN → **Gajih**: tabel per sales tampil; pilih bulan; angka cups/komisi/hari aktif/uang op/total konsisten; klik baris sales → detail per tanggal muncul; klik lagi → tertutup.
+4. Menu KEUANGAN → **Biaya Operasional**: tabel per sales (hari aktif + uang op) tampil; total baris bawah benar.
+5. Ubah `commission_per_cup`/`fuel_allowance` di Pengaturan → Penggajian → Gajih berubah sesuai.
+6. Login SALES → menu Gajih/Biaya Operasional tidak tampil (hanya OWNER).

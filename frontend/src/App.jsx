@@ -32,12 +32,13 @@ const SalesReturnFormPage = lazy(() => import('./modules/sales/pages/SalesReturn
 const VisitList = lazy(() => import('./modules/visits/pages/VisitList.jsx'));
 const VisitWizard = lazy(() => import('./modules/visits/pages/VisitWizard.jsx'));
 const SetoranList = lazy(() => import('./modules/finance/pages/SetoranList.jsx'));
+const PayrollPage = lazy(() => import('./modules/finance/pages/PayrollPage.jsx'));
+const OperationalCostPage = lazy(() => import('./modules/finance/pages/OperationalCostPage.jsx'));
 const ReportsPage = lazy(() => import('./modules/reports/pages/ReportsPage.jsx'));
 const SettingsPage = lazy(() => import('./modules/settings/pages/SettingsPage.jsx'));
 const AccountPage = lazy(() => import('./modules/account/pages/AccountPage.jsx'));
 const SalesVehicleStock = lazy(() => import('./modules/sales/pages/SalesVehicleStock.jsx'));
 const StokDashboard = lazy(() => import('./modules/stok/pages/StokDashboard.jsx'));
-const ComingSoon = lazy(() => import('./pages/ComingSoon.jsx'));
 
 const AreaList = lazy(() => import('./modules/masterdata/pages/AreaList.jsx'));
 const AreaForm = lazy(() => import('./modules/masterdata/pages/AreaForm.jsx'));
@@ -159,8 +160,8 @@ function App() {
 
               <Route path="reports" element={<ReportsPage />} />
               <Route path="settings" element={<SettingsPage />} />
-              <Route path="payroll" element={<ComingSoon title="Gajih" />} />
-              <Route path="operational-cost" element={<ComingSoon title="Biaya Operasional" />} />
+              <Route path="payroll" element={<PayrollPage />} />
+              <Route path="operational-cost" element={<OperationalCostPage />} />
             </Route>
           </Route>
 

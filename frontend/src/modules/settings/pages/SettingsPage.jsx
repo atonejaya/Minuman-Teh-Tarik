@@ -201,7 +201,9 @@ const SettingsPage = () => {
           <h5 style={{ marginBottom: '16px' }}>Parameter Gaji & Komisi</h5>
           <Field label="Komisi per Cup Terjual (Rp)" type="number" value={form.commission_per_cup ?? ''} onChange={(v) => updateField('commission_per_cup', v)} />
           <Field label="Uang Bensin Harian (Rp)" type="number" value={form.fuel_allowance ?? ''} onChange={(v) => updateField('fuel_allowance', v)} />
-          <SaveButton saving={saving} onSave={() => handleSave(['commission_per_cup', 'fuel_allowance'])} />
+          <Field label="Modal Operasional Harian (Rp)" type="number" value={form.daily_opex_allowance ?? ''} onChange={(v) => updateField('daily_opex_allowance', v)} />
+          <p className="empty-hint" style={{ marginTop: '-6px', marginBottom: '14px' }}>Modal yang diberikan kepada setiap sales sebelum berangkat setiap hari kerja.</p>
+          <SaveButton saving={saving} onSave={() => handleSave(['commission_per_cup', 'fuel_allowance', 'daily_opex_allowance'])} />
         </div>
       )}
 

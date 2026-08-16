@@ -224,19 +224,39 @@ Retur divalidasi dan diverifikasi Owner sebelum mempengaruhi stok.
 
 ---
 
-## 🚧 Sprint 11.0F
+## ✅ Sprint 11.0F
 
-### Sales Stock Closing
-Closing Harian Sales.
-
-Perhitungan:
-`Opening Stock + Additional Pickup - Total Refill - Return to Warehouse = Closing Stock`
-
-Jika tidak balance: `Adjustment Required`
+### Penambahan Warung oleh Sales
+Sales dapat mendaftarkan outlet/warung baru langsung dari lapangan.
+- GPS otomatis direkam saat pendaftaran (koordinat wajib akurat, tidak bisa simpan jika GPS gagal)
+- Kode warung di-generate otomatis (`WRG-YYYYMM-XXXXXX`), unik berbasis timestamp + random
+- Owner juga dapat menambah warung dari dashboard (tanpa GPS, koordinat default 0)
 
 ---
 
-## 🔜 Sprint 11.1
+## ✅ Sprint 11.0G
+
+### Modul Keuangan: Gajih & Biaya Operasional
+
+#### Rekap Gajih Sales
+Dihitung otomatis dari data transaksi dan kunjungan yang sudah ada — tanpa tabel baru.
+- **Komisi** = total cup terjual (dari `SalesTransactionItem`) × `commission_per_cup`
+- **Uang Bensin** = jumlah hari kerja (distinct `visit_date` COMPLETED) × `fuel_allowance`
+- Filter per bulan & tahun, export Excel
+
+#### Rekap Biaya Operasional
+Modal harian yang diberikan kepada sales sebelum berangkat.
+- **Modal** = jumlah hari kerja × `daily_opex_allowance` (default Rp 10.000)
+- Expand/collapse detail per sales per hari, export Excel
+
+#### Parameter di Pengaturan → Penggajian
+- Komisi per Cup Terjual (Rp)
+- Uang Bensin Harian (Rp)
+- Modal Operasional Harian (Rp)
+
+---
+
+## 🚧 Sprint 11.1
 
 ### Dashboard Sales
 - Jadwal Kunjungan, Progress Kunjungan, Penjualan Hari Ini, Refill Hari Ini, Pembayaran Hari Ini, Target Penjualan, Sisa Barang
@@ -281,7 +301,7 @@ Sales Visit
 
 # Setup Lokal
 
-1. Jalankan seluruh migrasi di `supabase/migrations/` secara berurutan di **Supabase SQL Editor** (urut berdasarkan prefix tanggal pada nama file, dari `202608140001_foundation` sampai `202608160002_create_sales_user`).
+1. Jalankan seluruh migrasi di `supabase/migrations/` secara berurutan di **Supabase SQL Editor** (urut berdasarkan prefix tanggal pada nama file, dari `202608140001_foundation` sampai `202608160001_sales_add_warung`).
 2. Buat akun **OWNER awal** secara manual di Supabase (Auth → Add user) dan isi `auth_id` pada tabel `User`.
    Setelah itu, akun **SALES baru dibuat langsung dari aplikasi** (Master Data → Pengguna Sales): form mengisi nama, username, role, dan password, lalu RPC `create_sales_user` otomatis membuat akun auth + profil. Email login = `<username>@tehtarik.local`, password minimal 6 karakter.
 3. Salin `frontend/.env.example` menjadi `frontend/.env` lalu isi:

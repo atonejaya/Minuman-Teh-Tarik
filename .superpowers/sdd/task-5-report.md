@@ -1,36 +1,50 @@
-# Task 5 Report — Dashboard owner: 3 KPI stok klik-able
+# Task 5 Report: Verifikasi & Deploy (Steps 1–3)
 
-## What I implemented
-Applied the brief's replacement code to `OwnerDashboard.jsx`, verbatim:
+Branch: `feat/payroll` (worktree `D:\Minuman @One\.worktrees\feat-payroll`)
+Date: 2026-08-16
 
-1. **Import** — added `import { useNavigate } from 'react-router-dom';` (BrowserRouter app, so `useNavigate` instead of hash links).
-2. **Hook** — added `const navigate = useNavigate();` inside the component.
-3. **Fetch blocks** — inside the existing `Promise.all`, after `WarehouseStock` (`warehouseRes`) and before the last-7-days query, added:
-   - `supabase.from('SalesStockProjection').select('qty_available').limit(5000)` → `salesStockRes`
-   - `supabase.from('OutletStockProjection').select('current_stock').limit(5000)` → `outletStockRes`
-   - Updated the destructuring to include `salesStockRes, outletStockRes`.
-4. **State** — in `setData({ ... })` added `stokKendaraan: sum(salesStockRes.data, 'qty_available')` and `stokWarung: sum(outletStockRes.data, 'current_stock')`.
-5. **KPI cards** — replaced the old `Stok Gudang` + `Visit Hari Ini` cards with the 3 new cards (per the brief's verbatim block): Stok Gudang, Stok Kendaraan, Stok Warung, each with a `Lihat` link using `e.preventDefault()` + `navigate('/stok?tab=gudang|kendaraan|warung')` and value in `cup` formatted with `toLocaleString('id-ID')`.
+## Step 1 — Node tests (from `frontend/`)
 
-## Files changed
-- `frontend/src/modules/dashboard/components/OwnerDashboard.jsx` (only file; +11 / -2)
+Command: `node test-payroll-utils.mjs; if ($?) { node test-sidebar-menu.mjs; if ($?) { node test-sidebar-config.mjs } }`
 
-## Build output summary
-`npm run build` (workdir `frontend/`): **SUCCESS** — Vite v8.2.1, 1947 modules transformed, built in ~952ms, no errors. `dist/` emitted normally.
+Result:
 
-## Lint output summary
-`npx oxlint src/modules/dashboard/components/OwnerDashboard.jsx` (workdir `frontend/`): **CLEAN** — exit 0, no warnings or errors.
+```
+payroll utils: all tests passed
+sidebar menu utils: all tests passed
+sidebar config: 6 top-level items OK
+```
 
-## Self-review findings
-- All 5 steps of the brief applied; code matches the brief verbatim.
-- `navigate('/stok?tab=...')` is forward-compatible: `/stok` route arrives in Task 6. Until then clicking `Lihat` will land on a not-found page — acceptable by design.
-- Note: the brief's replacement removes the "Visit Hari Ini" card. `visitsToday` is still computed and stored in `data` (unused) — kept as-is per "apply verbatim"; harmless.
-- `sum` helper already existed; reused for the two new fetches.
-- Unit label changed from `unit` (old Stok Gudang card) to `cup` for all 3 new cards, per brief.
+All PASS.
 
-## Concerns
-- None blocking. `/stok` route does not exist until Task 6; the dashboard references it only on click (no hard dependency).
-- `visitsToday` is now effectively dead data in `data` — optional cleanup in a later task.
+## Step 2 — Lint + build (from `frontend/`)
 
-## Commit
-- `e52c219` — `feat(stok): dashboard owner 3 KPI stok klik-able` (1 file changed)
+Command: `npm run lint`
+
+Result: **0 errors**, 18 warnings. All warnings are in unrelated, pre-existing files:
+FilterPanel.jsx, ToastContext.jsx, MasterLookupContext.jsx (x2), CompanyContext.jsx, ProductFilters.jsx, ProductForm.jsx (x6), VisitWizard.jsx, AuthContext.jsx, useCustomerTransactions.js, CustomerForm.jsx, MasterDataRepository.js (x2), WarehouseStockInForm.jsx. No payroll files flagged. Matches the pre-existing 18-warning set.
+
+Command: `npm run build`
+
+Result: **Success** — `vite build` completed, `✓ built in 742ms`, 1959 modules transformed. Payroll chunks emitted: `PayrollPage-BYIYxGeY.js`, `OperationalCostPage-DNE7B9B9.js`, `payrollUtils-JzekJMvP.js`.
+
+## Informational — Network tests (from `frontend/`)
+
+Command: `node test-schema.mjs`
+
+Result: `Definitions keys: []` (no error; RPC definitions keyed list empty — informational only).
+
+Command: `node test-supabase.mjs`
+
+Result: All three queries (User, Area, Route) returned `{"success":true,...,"status":200}`. Network reachable, no code regression.
+
+## Step 3 — Commit
+
+`git status` after all runs: **`nothing to commit, working tree clean`**.
+
+No working-tree changes were produced by the verification battery (`dist/` is gitignored). **No commit needed** — no commit created.
+
+## Issues / Concerns
+
+- None blocking. No code changes, so nothing to commit; the `chore: verifikasi modul payroll` commit is unnecessary here.
+- Steps 4–6 (PR/merge, deploy, user checklist) are out of scope for this task.

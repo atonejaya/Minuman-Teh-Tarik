@@ -43,19 +43,10 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, subm
   const [gpsStatus, setGpsStatus] = useState('idle');
   const [gpsMessage, setGpsMessage] = useState('');
 
-  const filteredRoutes = isSales && salesAreaId
-    ? routes.filter((r) => Number(r.area_id) === Number(salesAreaId))
-    : routes;
-
-  const areaName = areas.find((a) => Number(a.id) === Number(salesAreaId))?.name || '';
-
-  useEffect(() => {
-    if (!isSales) return;
-    let active = true;
+  const captureGps = () => {
     setGpsStatus('loading');
     setGpsMessage('Meminta izin GPS...');
     getCurrentPosition().then((res) => {
-      if (!active) return;
       if (res.latitude !== null && res.longitude !== null) {
         setFormData((prev) => ({
           ...prev,
@@ -66,11 +57,22 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, subm
         setGpsMessage(`Lokasi terekam: ${Number(res.latitude).toFixed(5)}, ${Number(res.longitude).toFixed(5)}`);
       } else {
         setGpsStatus('denied');
-        setGpsMessage(res.error || 'Lokasi tidak terdeteksi');
+        setGpsMessage(res.error || 'Lokasi tidak terdeteksi. Pastikan GPS aktif dan izin lokasi diberikan.');
       }
     });
-    return () => { active = false; };
+  };
+
+  useEffect(() => {
+    if (!isSales) return;
+    captureGps();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSales]);
+
+  const filteredRoutes = isSales && salesAreaId
+    ? routes.filter((r) => Number(r.area_id) === Number(salesAreaId))
+    : routes;
+
+  const areaName = areas.find((a) => Number(a.id) === Number(salesAreaId))?.name || '';
 
   const [provinces, setProvinces] = useState([]);
   const [cities, setCities] = useState([]);
@@ -172,16 +174,39 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
 
       {isSales && (
         <section className="card-custom" style={{ padding: '16px 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            {gpsStatus === 'loading' && <Crosshair size={18} color="var(--warning)" />}
-            {gpsStatus === 'success' && <CheckCircle2 size={18} color="var(--success)" />}
-            {gpsStatus === 'denied' && <TriangleAlert size={18} color="var(--danger)" />}
-            <div>
-              <p style={{ fontWeight: '600', fontSize: '14px', margin: 0 }}>
-                {gpsStatus === 'success' ? 'Lokasi GPS Terekam Otomatis' : gpsStatus === 'denied' ? 'Lokasi GPS Tidak Tersedia' : 'Mendeteksi Lokasi GPS...'}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+            {gpsStatus === 'loading' && <Crosshair size={18} color="var(--warning)" style={{ marginTop: '2px', flexShrink: 0 }} />}
+            {gpsStatus === 'success' && <CheckCircle2 size={18} color="var(--success)" style={{ marginTop: '2px', flexShrink: 0 }} />}
+            {(gpsStatus === 'denied' || gpsStatus === 'idle') && <TriangleAlert size={18} color="var(--danger)" style={{ marginTop: '2px', flexShrink: 0 }} />}
+            <div style={{ flex: 1 }}>
+              <p style={{ fontWeight: '600', fontSize: '14px', margin: '0 0 2px' }}>
+                {gpsStatus === 'success'
+                  ? 'Lokasi GPS Terekam Otomatis'
+                  : gpsStatus === 'loading'
+                  ? 'Mendeteksi Lokasi GPS...'
+                  : 'Lokasi GPS Diperlukan'}
               </p>
-              <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>{gpsMessage}</p>
+              <p style={{ margin: 0, fontSize: '12px', color: gpsStatus === 'denied' ? 'var(--danger)' : 'var(--text-muted)' }}>
+                {gpsStatus === 'denied'
+                  ? gpsMessage
+                  : gpsMessage || 'Koordinat warung digunakan untuk navigasi kunjungan.'}
+              </p>
+              {gpsStatus === 'denied' && (
+                <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--danger)', fontWeight: '500' }}>
+                  ⚠ Koordinat akurat wajib diisi. Form tidak dapat disimpan tanpa GPS.
+                </p>
+              )}
             </div>
+            {(gpsStatus === 'denied' || gpsStatus === 'idle') && (
+              <button
+                type="button"
+                className="btn"
+                style={{ padding: '6px 12px', fontSize: '12px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                onClick={captureGps}
+              >
+                <Crosshair size={13} /> Coba Lagi
+              </button>
+            )}
           </div>
         </section>
       )}
@@ -356,7 +381,12 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
         <button type="button" className="btn" style={{ padding: '8px 16px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }} onClick={onCancel} disabled={isSubmitting}>
           Batal
         </button>
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting || (isSales && !salesAreaId)}>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={isSubmitting || (isSales && !salesAreaId) || (isSales && gpsStatus !== 'success')}
+          title={isSales && gpsStatus !== 'success' ? 'GPS belum berhasil — koordinat akurat wajib diisi sebelum menyimpan' : ''}
+        >
           {isSubmitting ? 'Menyimpan...' : 'Simpan Pelanggan'}
         </button>
       </div>

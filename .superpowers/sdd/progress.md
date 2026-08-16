@@ -39,3 +39,11 @@ PENDING (human): checklist browser 7 item di app live (sidebar accordion eksklus
 ## Bugfix: Tambah Sales -> null password_hash (2026-08-16)
 Root cause: SalesUserForm hanya insert public."User" tanpa password_hash (NOT NULL) & tanpa entri auth (login via Supabase Auth email <username>@tehtarik.local). Fix: RPC create_sales_user (security definer, OWNER-only) = auth.users + auth.identities + public."User" (auth_id, password_hash) di migration 202608160002; SalesUserForm + field Password (create only) panggil RPC; AuthContext trim username. Lint 0 error baru, build ✓. PR #4 (rebase) sha af57252, branch dihapus, main fast-forward. DEPLOYED live v5974aa71, status 200.
 PENDING (human): apply migration 202608160002_create_sales_user.sql di Supabase SQL Editor, lalu uji tambah sales + login sales baru.
+
+## Fitur: Modul Gajih & Biaya Operasional (2026-08-16)
+Plan: docs/superpowers/plans/2026-08-16-payroll.md (worktree .worktrees/feat-payroll, branch feat/payroll)
+Task 1: complete (commits 2504335..bff96b8, review clean; Minor plan-mandated di-record utk final review: NULL-role guard bypass (coalesce), inner-join hari_aktif, month-range check, non-numeric setting, dup guard blocks)
+Task 2: complete (commits bff96b8..c7240e2, review clean; Minor: sumBy null-element guard & negative-value test case — note utk final review)
+Task 3: complete (commits c7240e2..b0f2b78, review clean setelah 2 fix wave: cache detail per bulan + guard stale monthRef + loading per-row + hapus Loader2 + reset rows on error + loading saat bulan kosong)
+Task 4: complete (commits b0f2b78..0732655, review clean setelah 1 fix wave: hapus import ComingSoon tak terpakai, reset rows saat error)
+Task 5: complete (verifikasi: 3/3 node tests PASS, lint 0 errors/18 pre-existing warnings, build ✓, tidak ada commit)

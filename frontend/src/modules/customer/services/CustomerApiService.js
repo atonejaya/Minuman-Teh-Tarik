@@ -47,15 +47,32 @@ const CustomerApiService = {
 
   createCustomer: async (payload) => {
     const finalPayload = { ...payload, updated_at: new Date().toISOString() };
-    if (payload.latitude !== undefined) finalPayload.latitude = payload.latitude === '' ? null : payload.latitude;
-    if (payload.longitude !== undefined) finalPayload.longitude = payload.longitude === '' ? null : payload.longitude;
+    // latitude/longitude NOT NULL di DB — default ke 0 jika tidak diisi (Owner tanpa GPS)
+    finalPayload.latitude  = (payload.latitude  !== undefined && payload.latitude  !== '') ? Number(payload.latitude)  : 0;
+    finalPayload.longitude = (payload.longitude !== undefined && payload.longitude !== '') ? Number(payload.longitude) : 0;
     if (finalPayload.visit_week !== undefined && finalPayload.visit_week !== '') {
       finalPayload.visit_week = Number(finalPayload.visit_week);
     } else {
       finalPayload.visit_week = null;
     }
     if (finalPayload.visit_day === '') finalPayload.visit_day = null;
-    if (finalPayload.code === '') delete finalPayload.code;
+
+    // Generate kode warung otomatis jika kosong.
+    // Tidak pakai NumberSequence (ikut dihapus saat reset data),
+    // tapi pakai timestamp + random → dijamin unik & tidak terpengaruh reset.
+    // Format: WRG-YYYYMM-XXXXXX  (6 karakter base36 dari epoch ms + random)
+    if (!finalPayload.code || finalPayload.code === '') {
+      const now = new Date();
+      const yyyy = String(now.getFullYear());
+      const mm   = String(now.getMonth() + 1).padStart(2, '0');
+      const uniq = (now.getTime() % 1_000_000 + Math.floor(Math.random() * 1000))
+        .toString(36)
+        .toUpperCase()
+        .padStart(6, '0')
+        .slice(-6);
+      finalPayload.code = `WRG-${yyyy}${mm}-${uniq}`;
+    }
+
     const { data, error } = await supabase.from('Warung').insert([finalPayload]).select().single();
     if (error) throw error;
     return { success: true, data };
@@ -63,8 +80,9 @@ const CustomerApiService = {
 
   updateCustomer: async (id, payload) => {
     const finalPayload = { ...payload, updated_at: new Date().toISOString() };
-    if (payload.latitude !== undefined) finalPayload.latitude = payload.latitude === '' ? null : payload.latitude;
-    if (payload.longitude !== undefined) finalPayload.longitude = payload.longitude === '' ? null : payload.longitude;
+    // latitude/longitude NOT NULL di DB — default ke 0 jika tidak diisi
+    finalPayload.latitude  = (payload.latitude  !== undefined && payload.latitude  !== '') ? Number(payload.latitude)  : 0;
+    finalPayload.longitude = (payload.longitude !== undefined && payload.longitude !== '') ? Number(payload.longitude) : 0;
     if (finalPayload.visit_week !== undefined && finalPayload.visit_week !== '') {
       finalPayload.visit_week = Number(finalPayload.visit_week);
     } else {

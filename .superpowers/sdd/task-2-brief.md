@@ -1,146 +1,94 @@
-﻿### Task 2: `visit_save_stock_count` â€” hitung penjualan dari baseline
+### Task 2: Service + util murni (dengan test node)
 
 **Files:**
-- Modify: `supabase/migrations/202608140003_visit.sql` (fungsi `visit_save_stock_count`, mulai baris `declare` Â±158 sampai return Â±440)
+- Create: `frontend/src/modules/payroll/utils/payrollUtils.js`
+- Create: `frontend/src/modules/payroll/services/PayrollApiService.js`
+- Test: `frontend/test-payroll-utils.mjs`
 
 **Interfaces:**
-- Consumes: `get_warung_baselines` (tidak langsung); kolom `baseline_set`, `opening_stock`; item JSON `p_items[i]` kini boleh berisi `opening_qty`.
-- Produces: perilaku baru â€” `terjual = greatest(baseline âˆ’ fisik âˆ’ rusak, 0)`; ledger `ADJUSTMENT` bila fisik > baseline; `current_stock` projection di-set ke `fisik` (sebelum refill); transaksi tetap dibuat pada kunjungan pertama bila terjual > 0.
+- Consumes: `supabase` dari `frontend/src/utils/supabase`.
+- Produces: `toMonthKey(date)` → `'YYYY-MM'`; `sumBy(rows, key)` → number; `PayrollApiService.getSummary(month)` → `Promise<Array>` (rows RPC summary); `PayrollApiService.getDetail(salesId, month)` → `Promise<Array>` (rows RPC detail).
 
-- [ ] **Step 1: Ubah deklarasi variabel**
+- [ ] **Step 1: Tulis test yang gagal dulu**
 
-Pada blok `declare` fungsi `visit_save_stock_count`, tambahkan variabel di dekat deklarasi `v_sold`:
+Buat `frontend/test-payroll-utils.mjs`:
 
-```sql
-  v_sold      int;
-  v_opening   int;
-  v_adjust    int;
-  v_baseline_set boolean;
+```js
+import assert from 'node:assert/strict';
+import { toMonthKey, sumBy } from './src/modules/payroll/utils/payrollUtils.js';
+
+assert.equal(toMonthKey(new Date(2026, 7, 16)), '2026-08', 'bulan Agustus -> 08');
+assert.equal(toMonthKey(new Date(2026, 0, 5)), '2026-01', 'bulan Januari -> 01');
+assert.equal(toMonthKey(new Date(2026, 11, 31)), '2026-12', 'bulan Desember -> 12');
+
+assert.equal(sumBy([{ a: 500 }, { a: 1500 }], 'a'), 2000, 'jumlahkan kolom');
+assert.equal(sumBy([{ a: '500' }, { a: undefined }], 'a'), 500, 'string number + undefined');
+assert.equal(sumBy([], 'a'), 0, 'array kosong -> 0');
+assert.equal(sumBy(null, 'a'), 0, 'null -> 0');
+
+console.log('payroll utils: all tests passed');
 ```
 
-- [ ] **Step 2: Ganti blok perhitungan sold (JANGAN sentuh blok `if v_sold > 0` / `if v_expired > 0`)**
+- [ ] **Step 2: Jalankan test untuk pastikan gagal**
 
-Di dalam `for v_item in ... loop`, ganti HANYA bagian perhitungan stok â€” dari baris `v_par := coalesce(v_par, 0);` sampai `end if;` yang menutup perhitungan `v_sold` (sebelum baris `if v_sold > 0 then`). Blok pembuatan `SalesTransaction`/`SalesReturn` (`if v_sold > 0`, `if v_expired > 0`) TIDAK BOLEH diubah.
+Run (dari `frontend/`): `node test-payroll-utils.mjs`
+Expected: FAIL dengan `Error [ERR_MODULE_NOT_FOUND]` (file util belum ada).
 
-BLOK LAMA (yang harus diganti):
+- [ ] **Step 3: Implementasi util murni**
 
-```sql
-    v_par   := coalesce(v_par, 0);
-    v_price := coalesce(v_price, 0);
+Buat `frontend/src/modules/payroll/utils/payrollUtils.js`:
 
-    select coalesce(current_stock, 0) into v_outlet_cur
-    from public."OutletStockProjection"
-    where warung_id = v_visit.warung_id and product_id = (v_item.j->>'product_id')::int;
+```js
+export const toMonthKey = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+};
 
-    v_outlet_cur := coalesce(v_outlet_cur, 0);
-
-    v_sold := 0;
-    if (v_physical + v_expired) < v_par then
-      v_sold := v_par - v_physical - v_expired;
-    end if;
+export const sumBy = (rows, key) =>
+  (rows || []).reduce((s, r) => s + Number(r[key] || 0), 0);
 ```
 
-BLOK BARU:
+- [ ] **Step 4: Jalankan test untuk pastikan lolos**
 
-```sql
-    v_par   := coalesce(v_par, 0);
-    v_price := coalesce(v_price, 0);
+Run (dari `frontend/`): `node test-payroll-utils.mjs`
+Expected: PASS, `payroll utils: all tests passed`.
 
-    select coalesce(op.baseline_set, false), coalesce(op.opening_stock, 0)
-      into v_baseline_set, v_opening
-    from public."OutletStockProjection" op
-    where op.warung_id = v_visit.warung_id and op.product_id = (v_item.j->>'product_id')::int;
+- [ ] **Step 5: Implementasi service**
 
-    v_baseline_set := coalesce(v_baseline_set, false);
-    v_opening      := coalesce(v_opening, 0);
+Buat `frontend/src/modules/payroll/services/PayrollApiService.js`:
 
-    if not v_baseline_set then
-      v_opening := coalesce((v_item.j->>'opening_qty')::int, v_physical);
-      v_opening := greatest(v_opening, 0);
-    end if;
+```js
+import { supabase } from '../../../utils/supabase';
 
-    if v_expired > v_opening then
-      raise exception 'Retur melebihi stok awal titipan % (stok awal %, rusak %)',
-        (select name from public."Product" where id = (v_item.j->>'product_id')::int),
-        v_opening, v_expired;
-    end if;
+const PayrollApiService = {
+  async getSummary(month) {
+    const { data, error } = await supabase.rpc('get_payroll_summary', { p_month: month });
+    if (error) throw error;
+    return data || [];
+  },
 
-    v_outlet_cur := v_opening;
+  async getDetail(salesId, month) {
+    const { data, error } = await supabase.rpc('get_payroll_detail', { p_sales_id: salesId, p_month: month });
+    if (error) throw error;
+    return data || [];
+  },
+};
 
-    v_sold := 0;
-    if v_physical <= v_opening then
-      v_sold := greatest(v_opening - v_physical - v_expired, 0);
-    end if;
-
-    v_adjust := greatest(v_physical - v_opening, 0);
-    if v_adjust > 0 then
-      insert into public."OutletStockLedger"
-        (warung_id, product_id, movement_type, qty_before, qty_change, qty_after,
-         reference_type, reference_id, visit_id, created_by, notes)
-      values
-        (v_visit.warung_id, (v_item.j->>'product_id')::int,
-         'ADJUSTMENT'::public."OutletMovementType", v_opening, v_adjust, v_physical,
-         'SalesVisit', v_visit.id, v_visit.id, v_user_id, 'Stok lebih dari baseline');
-    end if;
+export default PayrollApiService;
 ```
 
-Catatan:
-- `v_par` tetap dipakai untuk insert `SalesTransactionItem` dan blok projection (PAR sebagai referensi); jangan dihapus.
-- Semua blok setelah `end if;` ini (`if v_sold > 0 then` untuk transaksi, `if v_expired > 0 then` untuk retur) tetap memakai `v_outlet_cur`, `v_sold`, `v_expired` â€” tidak berubah.
-- Cast `'ADJUSTMENT'::public."OutletMovementType"` aman karena nilai enum ditambahkan di Task 1.
+- [ ] **Step 6: Jalankan lint + test**
 
-- [ ] **Step 3: Update blok `if v_sold > 0 or v_expired > 0 then` (projection)**
+Run (dari `frontend/`): `npm run lint; if ($?) { node test-payroll-utils.mjs }`
+Expected: lint 0 error baru; test PASS.
 
-Ganti blok insert/update `OutletStockProjection` (mulai `if v_sold > 0 or v_expired > 0 then` sampai `end if;` sebelum `end loop;`) dengan:
-
-```sql
-    if v_sold > 0 or v_expired > 0 or v_adjust > 0 or not v_baseline_set then
-      begin
-        insert into public."OutletStockProjection" (warung_id, product_id, current_stock, par_qty, opening_stock, total_refill, total_sales, total_return, calculated_sales, required_refill, average_daily_sales, sell_through, last_visit_id, last_count_at, version, updated_at, baseline_set)
-        values (v_visit.warung_id, (v_item.j->>'product_id')::int, v_physical, v_par, v_opening, 0, v_sold, v_expired, v_sold, greatest(v_opening - v_physical, 0), 0, 0, v_visit.id, now(), 1, now(), true);
-      exception
-        when unique_violation then
-          update public."OutletStockProjection"
-             set current_stock = v_physical,
-                 par_qty = v_par,
-                 opening_stock = v_opening,
-                 total_sales = total_sales + v_sold,
-                 calculated_sales = calculated_sales + v_sold,
-                 total_return = total_return + v_expired,
-                 required_refill = greatest(v_opening - v_physical, 0),
-                 last_visit_id = v_visit.id,
-                 last_count_at = now(),
-                 version = version + 1,
-                 baseline_set = true,
-                 updated_at = now()
-           where warung_id = v_visit.warung_id
-             and product_id = (v_item.j->>'product_id')::int;
-      end;
-    end if;
-```
-
-- [ ] **Step 4: Jalankan di SQL Editor**
-
-User menjalankan ulang SELURUH file `202608140003_visit.sql` di Supabase SQL Editor. Diharapkan: `Success` tanpa error.
-
-- [ ] **Step 5: Verifikasi sintaks fungsi**
-
-Jalankan di SQL Editor:
-
-```sql
-select proname, pg_get_functiondef(oid) is not null as ok
-from pg_proc where proname = 'visit_save_stock_count';
-```
-
-Expected: `visit_save_stock_count` / `true`.
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add supabase/migrations/202608140003_visit.sql
-git commit -m "feat(stok): visit_save_stock_count hitung penjualan dari baseline"
+git add frontend/test-payroll-utils.mjs frontend/src/modules/payroll/utils/payrollUtils.js frontend/src/modules/payroll/services/PayrollApiService.js
+git commit -m "feat(payroll): util toMonthKey/sumBy + PayrollApiService (RPC wrapper)"
 ```
 
 ---
-
 
