@@ -93,6 +93,7 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="visits" element={<VisitList />} />
             <Route path="setoran" element={<SetoranList />} />
+            <Route path="customers/new" element={<RequireRole roles={['SALES', 'OWNER', 'ADMIN']}><CustomerFormPage /></RequireRole>} />
 
             {/* Sales-only Routes */}
             <Route path="visits/new" element={<RequireRole roles={['SALES', 'OWNER', 'ADMIN']}><VisitWizard /></RequireRole>} />
@@ -103,7 +104,6 @@ function App() {
             {/* Owner-only Routes */}
             <Route element={<RequireRole roles={['OWNER', 'ADMIN']} />}>
               <Route path="customers" element={<CustomerList />} />
-              <Route path="customers/new" element={<CustomerFormPage />} />
               <Route path="customers/:id" element={<CustomerDetail />} />
               <Route path="customers/:id/edit" element={<CustomerFormPage />} />
 
