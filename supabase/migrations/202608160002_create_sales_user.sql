@@ -12,7 +12,13 @@
 --   2. Membuat auth.identities (email provider) agar login berfungsi.
 --   3. Membuat public."User" lengkap dengan auth_id, role, password_hash.
 -- SECURITY DEFINER: hanya OWNER yang boleh memanggil.
+--
+-- CATATAN: crypt/gen_salt berasal dari ekstensi pgcrypto. Supabase modern
+-- menginstal ekstensi ke schema "extensions", jadi search_path fungsi harus
+-- menyertakannya (selain public).
 -- ============================================================================
+
+create extension if not exists pgcrypto;
 
 drop function if exists public.create_sales_user(text, text, text, text, text, int, boolean);
 
@@ -28,7 +34,7 @@ create or replace function public.create_sales_user(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = public, extensions, pg_temp
 as $$
 declare
   v_email     text;
