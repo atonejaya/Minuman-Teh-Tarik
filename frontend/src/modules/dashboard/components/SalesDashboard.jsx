@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../utils/supabase';
-import { PlayCircle } from 'lucide-react';
+import { PlayCircle, PlusCircle } from 'lucide-react';
 
 const fmtRp = (v) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v || 0);
 
@@ -137,6 +137,27 @@ export const SalesDashboard = ({ user }) => {
         }}
       >
         <PlayCircle size={20} /> MULAI KUNJUNGAN
+      </button>
+
+      <button
+        onClick={() => navigate('/customers/new')}
+        style={{
+          width: '100%',
+          padding: '14px',
+          marginTop: '12px',
+          backgroundColor: 'var(--surface)',
+          color: 'var(--primary)',
+          borderRadius: '14px',
+          fontWeight: 'bold',
+          fontSize: '15px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          border: '1.5px solid var(--primary)',
+        }}
+      >
+        <PlusCircle size={18} /> TAMBAH WARUNG BARU
       </button>
     </div>
   );
