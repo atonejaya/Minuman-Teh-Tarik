@@ -85,7 +85,7 @@ const ReportsPage = () => {
       } else if (reportType === 'per-sales') {
         const { data: d, error: e } = await supabase
           .from('SalesTransaction')
-          .select('id, grand_total, salesman:User!salesman_id(name, id), warung:Warung(name)')
+          .select('id, grand_total, salesman:User!sales_id(name, id), warung:Warung(name)')
           .gte('created_at', `${fromDate}T00:00:00`)
           .lte('created_at', `${toDate}T23:59:59`)
           .eq('status', 'CONFIRMED');
