@@ -61,6 +61,7 @@ const UnitList = lazy(() => import('./modules/masterdata/pages/UnitList.jsx'));
 const UnitForm = lazy(() => import('./modules/masterdata/pages/UnitForm.jsx'));
 const CategoryList = lazy(() => import('./modules/masterdata/pages/CategoryList.jsx'));
 const CategoryForm = lazy(() => import('./modules/masterdata/pages/CategoryForm.jsx'));
+const WilayahRutePage = lazy(() => import('./modules/masterdata/pages/WilayahRutePage.jsx'));
 
 function Loading() {
   return <div className="loading-screen">Memuat...</div>;
@@ -137,6 +138,7 @@ function App() {
               <Route path="categories" element={<CategoryList />} />
               <Route path="categories/new" element={<CategoryForm />} />
               <Route path="categories/:id/edit" element={<CategoryForm />} />
+              <Route path="wilayah-rute" element={<WilayahRutePage />} />
 
               <Route path="sales/stock-issues" element={<SalesStockIssueList />} />
               <Route path="sales/stock-issues/new" element={<SalesStockIssueForm />} />
