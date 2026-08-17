@@ -1,7 +1,7 @@
 import {
-  LayoutDashboard, Users, ShoppingCart, Map, Route as RouteIcon, UserCog, Warehouse,
+  LayoutDashboard, Users, ShoppingCart, Map, UserCog, Warehouse,
   Building2, Tag, Package, Truck, Receipt, Undo2, ClipboardList, Wallet, Banknote,
-  FileText, Settings, Layers, Ruler, BarChart3, PackagePlus, PackageMinus, Coins,
+  FileText, Settings, BarChart3, PackagePlus, PackageMinus, Coins,
   TrendingDown, ChevronDown, History, PackageCheck, Radio
 } from 'lucide-react';
 
@@ -34,10 +34,7 @@ export const MENU_CONFIG = [
       { to: '/customers', label: 'Pelanggan', icon: Users },
       { to: '/sales-users', label: 'Sales', icon: UserCog },
       { to: '/products', label: 'Produk', icon: ShoppingCart },
-      { to: '/categories', label: 'Kategori', icon: Layers },
-      { to: '/units', label: 'Satuan', icon: Ruler },
-      { to: '/areas', label: 'Area', icon: Map },
-      { to: '/routes', label: 'Rute', icon: RouteIcon },
+      { to: '/wilayah-rute', label: 'Wilayah & Rute', icon: Map },
       { to: '/warehouses', label: 'Gudang', icon: Building2 },
     ],
   },
