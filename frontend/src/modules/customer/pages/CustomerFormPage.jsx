@@ -23,19 +23,35 @@ const CustomerFormPage = () => {
     setIsSubmitting(true);
     setError(null);
     try {
+      const parStocks = formData._parStocks || [];
+      const submitData = { ...formData };
+      delete submitData._parStocks;
+
       if (isEdit) {
-        await CustomerRepository.update(id, formData);
+        await CustomerRepository.update(id, submitData);
       } else {
         const payload = isSales
           ? {
-              ...formData,
+              ...submitData,
               assigned_sales_id: user.id,
               area_id: user.area_id,
               created_by: user.id,
               status: 'ACTIVE',
             }
-          : formData;
-        await CustomerRepository.create(payload);
+          : submitData;
+        const newWarung = await CustomerRepository.create(payload);
+        if (parStocks.length > 0 && newWarung?.id) {
+          const { supabase } = await import('../../../utils/supabase');
+          const rows = parStocks.map(ps => ({
+            warung_id: newWarung.id,
+            product_id: ps.product_id,
+            par_qty: ps.par_qty,
+            min_qty: ps.min_qty || 0,
+            max_qty: ps.max_qty || 0,
+            is_active: true,
+          }));
+          await supabase.from('OutletParStock').insert(rows);
+        }
       }
       toast.success('Data pelanggan berhasil disimpan');
       navigate(isSales ? '/dashboard' : '/customers');

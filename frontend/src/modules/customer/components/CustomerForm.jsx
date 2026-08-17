@@ -50,7 +50,11 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, subm
   const [newParStock, setNewParStock] = useState({ product_id: '', par_qty: '', min_qty: '', max_qty: '' });
 
   useEffect(() => {
-    if (!isEdit || !initialData?.id) return;
+    if (!initialData?.id) {
+      supabase.from('Product').select('id, name, code').eq('is_active', true).order('name')
+        .then(({ data, error }) => { if (!error) setProducts(data || []); });
+      return;
+    }
     const loadParStock = async () => {
       const [psRes, pRes] = await Promise.all([
         supabase.from('OutletParStock').select('*, product:Product(name, code)').eq('warung_id', initialData.id).order('id'),
@@ -60,7 +64,7 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, subm
       if (!pRes.error) setProducts(pRes.data || []);
     };
     loadParStock();
-  }, [isEdit, initialData?.id]);
+  }, [initialData?.id]);
 
   const captureGps = () => {
     setGpsStatus('loading');
@@ -89,23 +93,40 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, subm
 
   const handleAddParStock = async () => {
     if (!newParStock.product_id || !newParStock.par_qty) return;
-    const { data, error } = await supabase.from('OutletParStock').insert({
-      warung_id: initialData.id,
-      product_id: Number(newParStock.product_id),
-      par_qty: Number(newParStock.par_qty),
-      min_qty: Number(newParStock.min_qty) || 0,
-      max_qty: Number(newParStock.max_qty) || 0,
-      is_active: true,
-    }).select('*, product:Product(name, code)').single();
-    if (!error) {
-      setParStocks(prev => [...prev, data]);
+    if (isEdit) {
+      const { data, error } = await supabase.from('OutletParStock').insert({
+        warung_id: initialData.id,
+        product_id: Number(newParStock.product_id),
+        par_qty: Number(newParStock.par_qty),
+        min_qty: Number(newParStock.min_qty) || 0,
+        max_qty: Number(newParStock.max_qty) || 0,
+        is_active: true,
+      }).select('*, product:Product(name, code)').single();
+      if (!error) {
+        setParStocks(prev => [...prev, data]);
+        setNewParStock({ product_id: '', par_qty: '', min_qty: '', max_qty: '' });
+      }
+    } else {
+      const product = products.find(p => p.id === Number(newParStock.product_id));
+      setParStocks(prev => [...prev, {
+        id: `temp_${Date.now()}`,
+        product_id: Number(newParStock.product_id),
+        product: product || { name: newParStock.product_id },
+        par_qty: Number(newParStock.par_qty),
+        min_qty: Number(newParStock.min_qty) || 0,
+        max_qty: Number(newParStock.max_qty) || 0,
+      }]);
       setNewParStock({ product_id: '', par_qty: '', min_qty: '', max_qty: '' });
     }
   };
 
   const handleDeleteParStock = async (psId) => {
-    const { error } = await supabase.from('OutletParStock').delete().eq('id', psId);
-    if (!error) setParStocks(prev => prev.filter(p => p.id !== psId));
+    if (isEdit && typeof psId === 'number') {
+      const { error } = await supabase.from('OutletParStock').delete().eq('id', psId);
+      if (!error) setParStocks(prev => prev.filter(p => p.id !== psId));
+    } else {
+      setParStocks(prev => prev.filter(p => p.id !== psId));
+    }
   };
 
   const filteredRoutes = isSales && salesAreaId
@@ -200,7 +221,7 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, subm
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit({ ...formData, _parStocks: parStocks });
   };
 
 const labelStyle = { display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '13px', color: 'var(--text-main)' };
@@ -415,8 +436,7 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
         </div>
       </section>
 
-      {isEdit && (
-        <section className="card-custom" style={{ padding: '20px' }}>
+      <section className="card-custom" style={{ padding: '20px' }}>
           <h3 style={{ marginBottom: '14px', fontSize: '16px' }}>Stok Normal (Par Stock)</h3>
           {parStocks.length > 0 && (
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '14px', fontSize: '13px' }}>
@@ -474,7 +494,6 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
             </button>
           </div>
         </section>
-      )}
 
       {!isSales && (
         <section className="card-custom" style={{ padding: '16px 20px' }}>
