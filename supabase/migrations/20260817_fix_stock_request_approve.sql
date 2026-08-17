@@ -1,6 +1,8 @@
 -- Migration: Update stock_request_approve to auto-create SalesStockIssue
 -- Run this in Supabase SQL Editor
 
+DROP FUNCTION IF EXISTS public.stock_request_approve(BIGINT, BIGINT);
+
 CREATE OR REPLACE FUNCTION public.stock_request_approve(p_request_id BIGINT, p_approved_by BIGINT)
 RETURNS JSONB AS $$
 DECLARE

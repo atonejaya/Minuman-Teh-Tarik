@@ -30,7 +30,7 @@ const CustomerSummary = ({ data }) => {
         <SummaryItem label="Syarat Pembayaran" value={`${data.payment_term || 0} Hari`} />
       </div>
 
-      {data.latitude && data.longitude && (
+      {data.latitude && data.longitude && !(data.latitude === 0 && data.longitude === 0) && (
         <div style={{ marginTop: 'var(--spacing-md)' }}>
           <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '500', marginBottom: '8px' }}>Lokasi di Peta</p>
           <MiniMap latitude={data.latitude} longitude={data.longitude} label={data.name} />

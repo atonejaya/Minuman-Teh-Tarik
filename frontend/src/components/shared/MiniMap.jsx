@@ -11,7 +11,9 @@ L.Icon.Default.mergeOptions({
 });
 
 const MiniMap = ({ latitude, longitude, label, height = 200 }) => {
-  if (!latitude || !longitude) {
+  const lat = Number(latitude);
+  const lng = Number(longitude);
+  if (!lat || !lng || (lat === 0 && lng === 0)) {
     return (
       <div style={{
         height,
@@ -29,7 +31,7 @@ const MiniMap = ({ latitude, longitude, label, height = 200 }) => {
     );
   }
 
-  const position = [Number(latitude), Number(longitude)];
+  const position = [lat, lng];
 
   return (
     <MapContainer
