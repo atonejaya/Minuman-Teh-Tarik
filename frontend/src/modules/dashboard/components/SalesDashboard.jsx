@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../utils/supabase';
 import { PlayCircle, PlusCircle } from 'lucide-react';
-
-const fmtRp = (v) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v || 0);
+import { formatRupiah } from '../../../utils/format.js';
 
 export const SalesDashboard = ({ user }) => {
   const navigate = useNavigate();
@@ -106,11 +105,11 @@ export const SalesDashboard = ({ user }) => {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
         <div className="card-custom" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '22px', fontWeight: 'bold', color: 'var(--primary)' }}>{fmtRp(data.salesToday)}</div>
+          <div style={{ fontSize: '22px', fontWeight: 'bold', color: 'var(--primary)' }}>{formatRupiah(data.salesToday)}</div>
           <small style={{ color: 'var(--text-muted)' }}>Omzet Hari Ini</small>
         </div>
         <div className="card-custom" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '22px', fontWeight: 'bold', color: 'var(--warning)' }}>{fmtRp(data.kasDibawa)}</div>
+          <div style={{ fontSize: '22px', fontWeight: 'bold', color: 'var(--warning)' }}>{formatRupiah(data.kasDibawa)}</div>
           <small style={{ color: 'var(--text-muted)' }}>Kas Dibawa</small>
         </div>
         <div className="card-custom" style={{ textAlign: 'center', gridColumn: '1 / -1' }}>

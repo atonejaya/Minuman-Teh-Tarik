@@ -4,9 +4,10 @@ import { useProduct } from '../hooks/useProduct';
 import EntityDetailPage from '../../../components/entity/EntityDetailPage';
 import { supabase } from '../../../utils/supabase';
 import { formatRupiah, formatDate } from '../../../utils/format';
+import { tableCell, tableHeader } from '../../../utils/tableStyles.js';
 
-const CELL = { padding: '10px 12px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
-const TH = { ...CELL, fontSize: '13px', color: 'var(--text-muted)' };
+const CELL = tableCell;
+const TH = tableHeader;
 const PAYMENT_LABELS = { PAID: 'Lunas', PARTIAL: 'Sebagian', UNPAID: 'Belum Lunas', COMPLETED: 'Selesai', CANCELLED: 'Dibatalkan' };
 
 const OverviewTab = ({ product }) => {

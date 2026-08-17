@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import EntityFormPage from '../../../components/entity/EntityFormPage';
 import { useToast } from '../../../components/toast/ToastContext';
+import TableMessage from '../../../components/shared/TableMessage';
 
 const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--surface)', color: 'var(--text-main)' };
 const labelStyle = { display: 'block', marginBottom: '8px', fontWeight: '500', color: 'var(--text-main)' };
@@ -81,7 +82,7 @@ const MasterFormPage = ({ title, listPath, fields, getById, create, update, toPa
 
   const renderForm = ({ onCancel }) => {
     if (loading) {
-      return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat...</p>;
+      return <TableMessage>Memuat...</TableMessage>;
     }
 
     return (

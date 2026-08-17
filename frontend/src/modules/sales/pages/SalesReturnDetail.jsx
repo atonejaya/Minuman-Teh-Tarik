@@ -2,14 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import EntityDetailPage from '../../../components/entity/EntityDetailPage';
 import { SalesReturnRepository } from '../../../repositories/SalesReturnRepository';
-
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0
-  }).format(value || 0);
-};
+import { formatRupiah } from '../../../utils/format.js';
+import TableMessage from '../../../components/shared/TableMessage';
+import StatusBadge from '../../../components/shared/StatusBadge';
 
 const STATUS_LABELS = {
   DRAFT: 'Draft', PENDING: 'Menunggu', CONFIRMED: 'Terkonfirmasi', COMPLETED: 'Selesai',
@@ -58,7 +53,7 @@ const SalesReturnDetail = () => {
   }, [id]);
 
   if (loading) {
-    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat...</p>;
+    return <TableMessage>Memuat...</TableMessage>;
   }
 
   if (error) {
@@ -77,7 +72,7 @@ const SalesReturnDetail = () => {
           <InfoRow label="Warung" value={data?.warung?.name} />
           <InfoRow label="Tipe Referensi" value={REFERENCE_TYPE_LABELS[data?.reference_type] || data?.reference_type} />
           <InfoRow label="Status" value={STATUS_LABELS[data?.status] || data?.status} />
-          <InfoRow label="Total" value={formatCurrency(data?.total_amount)} />
+          <InfoRow label="Total" value={formatRupiah(data?.total_amount)} />
           <InfoRow label="Catatan" value={data?.notes} />
         </div>
       )
@@ -104,7 +99,7 @@ const SalesReturnDetail = () => {
                   <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{item.qty}</td>
                   <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{CONDITION_LABELS[item.condition] || item.condition}</td>
                   <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{REASON_LABELS[item.reason] || item.reason || '-'}</td>
-                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{formatCurrency(item.subtotal)}</td>
+                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{formatRupiah(item.subtotal)}</td>
                 </tr>
               ))}
             </tbody>
@@ -116,8 +111,8 @@ const SalesReturnDetail = () => {
 
   const summary = data ? (
     <div>
-      <span className="badge bg-primary me-2">{STATUS_LABELS[data.status] || data.status}</span>
-      <span className="ms-2"><strong>{data.warung?.name || '-'}</strong> — {formatCurrency(data.total_amount)}</span>
+      <StatusBadge status={data.status} />
+      <span className="ms-2"><strong>{data.warung?.name || '-'}</strong> — {formatRupiah(data.total_amount)}</span>
     </div>
   ) : null;
 

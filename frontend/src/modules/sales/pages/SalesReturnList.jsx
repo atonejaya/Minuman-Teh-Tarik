@@ -3,31 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import EntityListPage from '../../../components/entity/EntityListPage';
 import { SalesReturnRepository } from '../../../repositories/SalesReturnRepository';
 import { useAuth } from '../../../contexts/AuthContext.jsx';
+import TableMessage from '../../../components/shared/TableMessage';
 import StatusBadge from '../../../components/shared/StatusBadge';
 import { useToast } from '../../../components/toast/ToastContext';
-
-const cell = { padding: '12px 16px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
+import { formatRupiah } from '../../../utils/format.js';
+import { tableCell } from '../../../utils/tableStyles.js';
 
 const REFERENCE_TYPE_LABELS = {
   SALES: 'Penjualan Sales', SALES_TRANSACTION: 'Transaksi Penjualan', SALES_INVOICE: 'Faktur Penjualan',
   CREDIT_NOTE: 'Nota Kredit', MANUAL: 'Manual',
 };
 
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0
-  }).format(value || 0);
-};
-
 const SalesReturnTable = ({ data, loading, onView, onApprove, onReceive }) => {
   if (loading) {
-    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat...</p>;
+    return <TableMessage>Memuat...</TableMessage>;
   }
 
   if (!data || data.length === 0) {
-    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Tidak ada retur penjualan.</p>;
+    return <TableMessage>Tidak ada retur penjualan.</TableMessage>;
   }
 
   return (
@@ -35,25 +28,25 @@ const SalesReturnTable = ({ data, loading, onView, onApprove, onReceive }) => {
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
         <thead style={{ backgroundColor: 'var(--background)' }}>
           <tr>
-            <th style={cell}>Kode Retur</th>
-            <th style={cell}>Tanggal</th>
-            <th style={cell}>Warung</th>
-            <th style={cell}>Referensi</th>
-            <th style={cell}>Total</th>
-            <th style={cell}>Status</th>
-            <th style={cell}>Aksi</th>
+            <th style={tableCell}>Kode Retur</th>
+            <th style={tableCell}>Tanggal</th>
+            <th style={tableCell}>Warung</th>
+            <th style={tableCell}>Referensi</th>
+            <th style={tableCell}>Total</th>
+            <th style={tableCell}>Status</th>
+            <th style={tableCell}>Aksi</th>
           </tr>
         </thead>
         <tbody>
           {data.map((item) => (
             <tr key={item.id}>
-              <td style={{ ...cell, fontWeight: '500' }}>{item.code}</td>
-              <td style={cell}>{new Date(item.return_date).toLocaleDateString('id-ID')}</td>
-              <td style={cell}>{item.warung?.name || '-'}</td>
-              <td style={cell}>{REFERENCE_TYPE_LABELS[item.reference_type] || item.reference_type || '-'}</td>
-              <td style={{ ...cell, fontWeight: '600' }}>{formatCurrency(item.total_amount)}</td>
-              <td style={cell}><StatusBadge status={item.status} /></td>
-              <td style={cell}>
+              <td style={{ ...tableCell, fontWeight: '500' }}>{item.code}</td>
+              <td style={tableCell}>{new Date(item.return_date).toLocaleDateString('id-ID')}</td>
+              <td style={tableCell}>{item.warung?.name || '-'}</td>
+              <td style={tableCell}>{REFERENCE_TYPE_LABELS[item.reference_type] || item.reference_type || '-'}</td>
+              <td style={{ ...tableCell, fontWeight: '600' }}>{formatRupiah(item.total_amount)}</td>
+              <td style={tableCell}><StatusBadge status={item.status} /></td>
+              <td style={tableCell}>
                 <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: '12px' }} onClick={() => onView(item.id)}>
                   Lihat
                 </button>

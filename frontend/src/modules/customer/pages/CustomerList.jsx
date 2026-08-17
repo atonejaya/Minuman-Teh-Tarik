@@ -10,7 +10,7 @@ import { useToast } from '../../../components/toast/ToastContext';
 const CustomerList = () => {
   const navigate = useNavigate();
   const toast = useToast();
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState({ status: 'ACTIVE' });
   const { data, loading, error, refetch, setParams } = useCustomers(filters);
 
   React.useEffect(() => {

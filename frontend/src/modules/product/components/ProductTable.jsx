@@ -1,9 +1,10 @@
 import React from 'react';
 import { Eye, Pencil, Power } from 'lucide-react';
 import { formatRupiah } from '../../../utils/format';
+import { tableCell, tableHeader } from '../../../utils/tableStyles.js';
 
-const CELL = { padding: '10px 12px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
-const TH = { ...CELL, fontSize: '13px', color: 'var(--text-muted)' };
+const CELL = tableCell;
+const TH = tableHeader;
 
 const ProductTable = ({ data, loading, onView, onEdit, onToggle }) => {
   return (

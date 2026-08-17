@@ -2,8 +2,7 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: #f4f7f9;
+  background-color: var(--background);
   min-height: 100vh;
   box-sizing: border-box;
 }
@@ -18,26 +17,23 @@
 .page-title {
   font-size: 1.875rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-main);
   margin: 0;
 }
 
 .btn-primary {
-  background-color: #3b82f6;
+  background-color: var(--primary);
   color: white;
   padding: 0.625rem 1.25rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-weight: 600;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);
   transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-  background-color: #2563eb;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 8px -1px rgba(59, 130, 246, 0.5);
+  background-color: var(--primary-hover);
 }
 
 .state-container {
@@ -46,17 +42,17 @@
   align-items: center;
   justify-content: center;
   padding: 4rem 2rem;
-  background: #ffffff;
-  border-radius: 12px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
   text-align: center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .spinner {
   width: 3rem;
   height: 3rem;
-  border: 4px solid #e2e8f0;
-  border-top-color: #3b82f6;
+  border: 4px solid var(--border);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1.5rem;
@@ -69,12 +65,12 @@
 .state-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-main);
   margin-bottom: 0.5rem;
 }
 
 .state-desc {
-  color: #64748b;
+  color: var(--text-muted);
   max-width: 400px;
 }
 

@@ -4,6 +4,7 @@ import { supabase } from '../../../utils/supabase';
 import SettingsApiService from '../services/SettingsApiService';
 import { useCompany } from '../../../contexts/CompanyContext';
 import { useToast } from '../../../components/toast/ToastContext';
+import { tableCell, tableHeader } from '../../../utils/tableStyles.js';
 
 const TABS = [
   { key: 'perusahaan', label: 'Perusahaan', icon: Building2 },
@@ -13,8 +14,8 @@ const TABS = [
   { key: 'reset', label: 'Reset Data', icon: Trash2 },
 ];
 
-const CELL = { padding: '10px 12px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
-const TH = { ...CELL, fontSize: '13px', color: 'var(--text-muted)' };
+const CELL = tableCell;
+const TH = tableHeader;
 const LABEL = { display: 'block', marginBottom: '6px', fontWeight: '500', color: 'var(--text-main)' };
 const INPUT = {
   width: '100%',

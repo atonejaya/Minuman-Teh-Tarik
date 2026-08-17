@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import OperationalCostApiService from '../services/OperationalCostApiService';
 import { formatRupiah, formatDate } from '../../../utils/format.js';
+import { financeTH, financeTD, financeTDNum } from '../../../utils/tableStyles.js';
 import * as XLSX from 'xlsx';
 
 const MONTHS = [
@@ -13,22 +14,9 @@ const MONTHS = [
 
 const now = new Date();
 
-const TH = {
-  padding: '10px 14px',
-  fontSize: '13px',
-  color: 'var(--text-muted)',
-  borderBottom: '1px solid var(--border)',
-  textAlign: 'left',
-  fontWeight: '600',
-  whiteSpace: 'nowrap',
-};
-const TD = {
-  padding: '10px 14px',
-  fontSize: '14px',
-  borderBottom: '1px solid var(--border)',
-  verticalAlign: 'middle',
-};
-const TD_NUM = { ...TD, textAlign: 'right', fontVariantNumeric: 'tabular-nums' };
+const TH = financeTH;
+const TD = financeTD;
+const TD_NUM = financeTDNum;
 
 const OperationalCostPage = () => {
   const [month, setMonth] = useState(now.getMonth() + 1);

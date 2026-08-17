@@ -1,14 +1,12 @@
 .piutang-dashboard {
   padding: 24px;
-  background-color: #f9fafc;
+  background-color: var(--background);
   min-height: 100vh;
-  font-family: 'Inter', 'Roboto', sans-serif;
 }
 
 .piutang-dashboard-loading {
   padding: 24px;
-  color: #666;
-  font-family: 'Inter', 'Roboto', sans-serif;
+  color: var(--text-muted);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -22,7 +20,7 @@
 
 .dashboard-header h2 {
   margin: 0 0 8px 0;
-  color: #111827;
+  color: var(--text-main);
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -30,16 +28,16 @@
 
 .dashboard-header p {
   margin: 0;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 15px;
 }
 
 .dashboard-section {
   margin-bottom: 40px;
-  background: white;
+  background: var(--surface);
   padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .priority-section {
@@ -50,20 +48,20 @@
 
 .section-title {
   margin: 0 0 20px 0;
-  color: #374151;
+  color: var(--text-main);
   font-size: 18px;
   font-weight: 600;
-  border-bottom: 2px solid #f3f4f6;
+  border-bottom: 2px solid var(--border);
   padding-bottom: 12px;
 }
 
 .priority-section .section-title {
-  background: white;
+  background: var(--surface);
   padding: 24px 24px 12px 24px;
-  border-radius: 16px 16px 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   margin-bottom: 0;
-  border-bottom: 1px solid #f3f4f6;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
 .priority-lists-grid {
@@ -74,11 +72,11 @@
 }
 
 .priority-list-card {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
-  border: 1px solid #f3f4f6;
+  border: 1px solid var(--border);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
@@ -86,7 +84,7 @@
 
 .priority-list-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .list-header {
@@ -94,14 +92,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid var(--border);
 }
 
 .list-header h4 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-main);
 }
 
 .list-icon {
@@ -109,21 +107,21 @@
 }
 
 /* Color Variants */
-.card-blue .list-header { background-color: #eff6ff; border-bottom-color: #bfdbfe; }
-.card-blue .list-header h4 { color: #1e3a8a; }
-.card-blue .score-value { background-color: #dbeafe; color: #1e40af; }
+.card-blue .list-header { background-color: color-mix(in srgb, var(--primary) 10%, var(--surface)); border-bottom-color: color-mix(in srgb, var(--primary) 30%, var(--surface)); }
+.card-blue .list-header h4 { color: var(--primary); }
+.card-blue .score-value { background-color: color-mix(in srgb, var(--primary) 14%, var(--surface)); color: var(--primary); }
 
-.card-red .list-header { background-color: #fef2f2; border-bottom-color: #fecaca; }
-.card-red .list-header h4 { color: #7f1d1d; }
-.card-red .score-value { background-color: #fee2e2; color: #991b1b; }
+.card-red .list-header { background-color: color-mix(in srgb, var(--danger) 10%, var(--surface)); border-bottom-color: color-mix(in srgb, var(--danger) 30%, var(--surface)); }
+.card-red .list-header h4 { color: var(--danger); }
+.card-red .score-value { background-color: color-mix(in srgb, var(--danger) 14%, var(--surface)); color: var(--danger); }
 
-.card-yellow .list-header { background-color: #fefce8; border-bottom-color: #fef08a; }
-.card-yellow .list-header h4 { color: #713f12; }
-.card-yellow .score-value { background-color: #fef9c3; color: #854d0e; }
+.card-yellow .list-header { background-color: color-mix(in srgb, var(--warning) 10%, var(--surface)); border-bottom-color: color-mix(in srgb, var(--warning) 30%, var(--surface)); }
+.card-yellow .list-header h4 { color: var(--warning); }
+.card-yellow .score-value { background-color: color-mix(in srgb, var(--warning) 18%, var(--surface)); color: var(--warning); }
 
-.card-purple .list-header { background-color: #f5f3ff; border-bottom-color: #e9d5ff; }
-.card-purple .list-header h4 { color: #4c1d95; }
-.card-purple .score-value { background-color: #ede9fe; color: #5b21b6; }
+.card-purple .list-header { background-color: color-mix(in srgb, #8b5cf6 10%, var(--surface)); border-bottom-color: color-mix(in srgb, #8b5cf6 30%, var(--surface)); }
+.card-purple .list-header h4 { color: #8b5cf6; }
+.card-purple .score-value { background-color: color-mix(in srgb, #8b5cf6 14%, var(--surface)); color: #8b5cf6; }
 
 .list-content {
   padding: 0;
@@ -133,13 +131,13 @@
 .empty-list {
   padding: 32px;
   text-align: center;
-  color: #9ca3af;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
 .list-item {
   padding: 16px 20px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -151,7 +149,7 @@
 }
 
 .list-item:hover {
-  background-color: #f8fafc;
+  background-color: var(--background);
 }
 
 .item-main {
@@ -162,13 +160,13 @@
 
 .customer-name {
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-main);
   font-size: 14px;
 }
 
 .invoice-no {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .item-meta {
@@ -180,7 +178,7 @@
 
 .amount {
   font-weight: 700;
-  color: #111827;
+  color: var(--text-main);
   font-size: 14px;
 }
 
@@ -192,7 +190,7 @@
 }
 
 .score-label {
-  color: #6b7280;
+  color: var(--text-muted);
   font-weight: 500;
 }
 

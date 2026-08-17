@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../../../utils/supabase';
+import { tableCell } from '../../../utils/tableStyles.js';
 
 const TABS = [
   { key: 'gudang', label: 'Gudang' },
   { key: 'kendaraan', label: 'Kendaraan' },
   { key: 'warung', label: 'Warung' },
 ];
-
-const cell = { padding: '12px 16px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
 
 const fmtQty = (n) => `${(Number(n) || 0).toLocaleString('id-ID')} cup`;
 
@@ -26,21 +25,21 @@ const Section = ({ title, rows, qtyKey, groupTitle }) => {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead style={{ backgroundColor: 'var(--background)' }}>
             <tr>
-              {groupTitle && <th style={cell}>{groupTitle}</th>}
-              <th style={cell}>Produk</th>
-              <th style={cell}>Qty</th>
+              {groupTitle && <th style={tableCell}>{groupTitle}</th>}
+              <th style={tableCell}>Produk</th>
+              <th style={tableCell}>Qty</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => (
               <tr key={`${r.group}-${r.product_id}`}>
                 {groupTitle && (
-                  <td style={{ ...cell }}>{r.group || '-'}</td>
+                  <td style={{ ...tableCell }}>{r.group || '-'}</td>
                 )}
-                <td style={{ ...cell, fontWeight: '500' }}>
+                <td style={{ ...tableCell, fontWeight: '500' }}>
                   {r.product?.name || '-'}
                 </td>
-                <td style={{ ...cell, fontWeight: '600' }}>{fmtQty(r[qtyKey])}</td>
+                <td style={{ ...tableCell, fontWeight: '600' }}>{fmtQty(r[qtyKey])}</td>
               </tr>
             ))}
           </tbody>

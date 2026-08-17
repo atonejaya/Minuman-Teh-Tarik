@@ -1,14 +1,14 @@
 import React from 'react';
-
-const cell = { padding: '12px 16px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
+import { tableCell } from '../../../utils/tableStyles.js';
+import TableMessage from '../../../components/shared/TableMessage';
 
 const MasterTable = ({ columns, data, loading, onEdit, onToggleActive, getActive }) => {
   if (loading) {
-    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat...</p>;
+    return <TableMessage>Memuat...</TableMessage>;
   }
 
   if (!data || data.length === 0) {
-    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Tidak ada data.</p>;
+    return <TableMessage>Tidak ada data.</TableMessage>;
   }
 
   return (
@@ -17,18 +17,18 @@ const MasterTable = ({ columns, data, loading, onEdit, onToggleActive, getActive
         <thead style={{ backgroundColor: 'var(--background)' }}>
           <tr>
             {columns.map((c) => (
-              <th key={c.key} style={cell}>{c.label}</th>
+              <th key={c.key} style={tableCell}>{c.label}</th>
             ))}
-            <th style={cell}>Aksi</th>
+            <th style={tableCell}>Aksi</th>
           </tr>
         </thead>
         <tbody>
           {data.map((row) => (
             <tr key={row.id}>
               {columns.map((c) => (
-                <td key={c.key} style={cell}>{c.render ? c.render(row) : String(row[c.key] ?? '-')}</td>
+                <td key={c.key} style={tableCell}>{c.render ? c.render(row) : String(row[c.key] ?? '-')}</td>
               ))}
-              <td style={cell}>
+              <td style={tableCell}>
                 <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px' }} onClick={() => onEdit(row.id)}>
                   Ubah
                 </button>

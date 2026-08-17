@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../../utils/supabase';
 import { useNavigate } from 'react-router-dom';
-
-const fmtRp = (v) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(v || 0);
+import { formatRupiah } from '../../../utils/format.js';
 
 const KpiCard = ({ label, value, color = 'var(--primary)', link }) => (
   <div className="card kpi-card">
@@ -141,10 +140,10 @@ export const OwnerDashboard = () => {
   return (
     <div className="owner-dashboard">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <KpiCard label="Omzet Hari Ini" value={fmtRp(data.omzetToday)} color="var(--primary)" />
-        <KpiCard label="Kas Sales (Belum Setor)" value={fmtRp(data.kasSales)} color="var(--warning)" />
-        <KpiCard label="Kas Owner" value={fmtRp(data.kasOwner)} color="var(--success)" />
-        <KpiCard label="Piutang Berjalan" value={fmtRp(data.piutang)} color="var(--danger)" />
+        <KpiCard label="Omzet Hari Ini" value={formatRupiah(data.omzetToday)} color="var(--primary)" />
+        <KpiCard label="Kas Sales (Belum Setor)" value={formatRupiah(data.kasSales)} color="var(--warning)" />
+        <KpiCard label="Kas Owner" value={formatRupiah(data.kasOwner)} color="var(--success)" />
+        <KpiCard label="Piutang Berjalan" value={formatRupiah(data.piutang)} color="var(--danger)" />
         <KpiCard label="Stok Gudang" value={`${data.stokGudang.toLocaleString('id-ID')} cup`} color="var(--secondary)" link={<a href="/stok?tab=gudang" onClick={(e) => { e.preventDefault(); navigate('/stok?tab=gudang'); }}>Lihat</a>} />
         <KpiCard label="Stok Kendaraan" value={`${data.stokKendaraan.toLocaleString('id-ID')} cup`} color="var(--warning)" link={<a href="/stok?tab=kendaraan" onClick={(e) => { e.preventDefault(); navigate('/stok?tab=kendaraan'); }}>Lihat</a>} />
         <KpiCard label="Stok Warung" value={`${data.stokWarung.toLocaleString('id-ID')} cup`} color="var(--primary)" link={<a href="/stok?tab=warung" onClick={(e) => { e.preventDefault(); navigate('/stok?tab=warung'); }}>Lihat</a>} />

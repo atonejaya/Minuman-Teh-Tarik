@@ -8,6 +8,7 @@ import {
 import { Bar, Pie } from 'react-chartjs-2';
 import * as XLSX from 'xlsx';
 import { formatRupiah, formatDate } from '../../../utils/format.js';
+import { tableCell, tableHeader } from '../../../utils/tableStyles.js';
 
 ChartJS.register(
   CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, Tooltip, Legend, Title
@@ -20,8 +21,8 @@ const REPORT_TYPES = [
   { value: 'piutang', label: 'Laporan Piutang Warung' },
 ];
 
-const CELL = { padding: '10px 12px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
-const TH = { ...CELL, fontSize: '13px', color: 'var(--text-muted)' };
+const CELL = tableCell;
+const TH = tableHeader;
 
 const ReportsPage = () => {
   const defaultFrom = useTodayMinusDays(6);

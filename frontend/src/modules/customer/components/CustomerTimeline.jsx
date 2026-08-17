@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatRupiah } from '../../../utils/format.js';
 
 const CustomerTimeline = ({ events }) => {
   if (!events || events.length === 0) {
@@ -46,7 +47,7 @@ const CustomerTimeline = ({ events }) => {
                   fontWeight: '700', 
                   color: event.amount > 0 ? 'var(--color-success)' : 'var(--color-danger)'
                 }}>
-                  {event.amount > 0 ? '+' : ''}{formatCurrency(event.amount)}
+                  {event.amount > 0 ? '+' : ''}{formatRupiah(event.amount)}
                 </span>
               )}
             </div>
@@ -75,10 +76,6 @@ const getTimelineColor = (type) => {
 const formatDate = (dateStr) => {
   const d = new Date(dateStr);
   return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-};
-
-const formatCurrency = (amount) => {
-  return `Rp ${Math.abs(amount).toLocaleString('id-ID')}`;
 };
 
 export default CustomerTimeline;

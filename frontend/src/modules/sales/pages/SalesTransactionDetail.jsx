@@ -3,15 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import EntityDetailPage from '../../../components/entity/EntityDetailPage';
 import { SalesTransactionRepository } from '../../../repositories/SalesTransactionRepository';
 import StatusBadge from '../../../components/shared/StatusBadge';
+import TableMessage from '../../../components/shared/TableMessage';
 import { openPrintWindow } from '../../../utils/printInvoice';
-
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0
-  }).format(value || 0);
-};
+import { formatRupiah } from '../../../utils/format.js';
 
 const STATUS_LABELS = {
   DRAFT: 'Draft', PENDING: 'Menunggu', CONFIRMED: 'Terkonfirmasi', COMPLETED: 'Selesai',
@@ -55,7 +49,7 @@ const SalesTransactionDetail = () => {
   }, [id]);
 
   if (loading) {
-    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat...</p>;
+    return <TableMessage>Memuat...</TableMessage>;
   }
 
   if (error) {
@@ -100,8 +94,8 @@ const SalesTransactionDetail = () => {
                 <tr key={item.id}>
                   <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{item.product_name || item.product?.name || '-'}</td>
                   <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{item.qty}</td>
-                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{formatCurrency(item.selling_price)}</td>
-                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{formatCurrency(item.subtotal)}</td>
+                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{formatRupiah(item.selling_price)}</td>
+                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{formatRupiah(item.subtotal)}</td>
                 </tr>
               ))}
             </tbody>
@@ -130,7 +124,7 @@ const SalesTransactionDetail = () => {
                   <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{payment.code}</td>
                   <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{payment.payment_date ? new Date(payment.payment_date).toLocaleDateString('id-ID') : '-'}</td>
                   <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{PAYMENT_METHOD_LABELS[payment.payment_method] || payment.payment_method}</td>
-                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{formatCurrency(payment.amount)}</td>
+                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{formatRupiah(payment.amount)}</td>
                   <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}><StatusBadge status={payment.status} /></td>
                 </tr>
               ))}
@@ -145,12 +139,12 @@ const SalesTransactionDetail = () => {
       content: (
         <div className="tab-section">
           <h3>Ringkasan Keuangan</h3>
-          <InfoRow label="Subtotal" value={formatCurrency(data?.subtotal)} />
-          <InfoRow label="Diskon" value={formatCurrency((data?.item_discount || 0) + (data?.transaction_discount || 0))} />
-          <InfoRow label="Pajak" value={formatCurrency(data?.tax)} />
-          <InfoRow label="Total" value={formatCurrency(data?.grand_total)} />
-          <InfoRow label="Jumlah Dibayar" value={formatCurrency(data?.paid_amount)} />
-          <InfoRow label="Sisa" value={formatCurrency(data?.outstanding_amount)} />
+          <InfoRow label="Subtotal" value={formatRupiah(data?.subtotal)} />
+          <InfoRow label="Diskon" value={formatRupiah((data?.item_discount || 0) + (data?.transaction_discount || 0))} />
+          <InfoRow label="Pajak" value={formatRupiah(data?.tax)} />
+          <InfoRow label="Total" value={formatRupiah(data?.grand_total)} />
+          <InfoRow label="Jumlah Dibayar" value={formatRupiah(data?.paid_amount)} />
+          <InfoRow label="Sisa" value={formatRupiah(data?.outstanding_amount)} />
         </div>
       )
     }
@@ -158,9 +152,9 @@ const SalesTransactionDetail = () => {
 
   const summary = data ? (
     <div>
-      <span className="badge bg-primary me-2">{STATUS_LABELS[data.status] || data.status}</span>
-      <span className="badge bg-warning">{STATUS_LABELS[data.payment_status] || data.payment_status}</span>
-      <span className="ms-2"><strong>{data.customer_name}</strong> — {formatCurrency(data.grand_total)}</span>
+      <StatusBadge status={data.status} />
+      <StatusBadge status={data.payment_status} />
+      <span className="ms-2"><strong>{data.customer_name}</strong> — {formatRupiah(data.grand_total)}</span>
     </div>
   ) : null;
 

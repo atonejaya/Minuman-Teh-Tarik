@@ -2,8 +2,7 @@
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  color: #333;
+  color: var(--text-main);
 }
 
 .product-detail-header {
@@ -24,7 +23,7 @@
   font-size: 2.25rem;
   font-weight: 800;
   margin: 0;
-  color: #111827;
+  color: var(--text-main);
   letter-spacing: -0.02em;
 }
 
@@ -35,24 +34,24 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background-color: #e0f2fe;
-  color: #0284c7;
+  background-color: color-mix(in srgb, var(--primary) 14%, var(--surface));
+  color: var(--primary);
 }
 
 .product-status.Active {
-  background-color: #dcfce7;
-  color: #16a34a;
+  background-color: color-mix(in srgb, var(--success) 14%, var(--surface));
+  color: var(--success);
 }
 
 .product-status.Inactive {
-  background-color: #fef08a;
-  color: #ca8a04;
+  background-color: color-mix(in srgb, var(--warning) 18%, var(--surface));
+  color: var(--warning);
 }
 
 .product-tabs-nav {
   display: flex;
   gap: 0.5rem;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid var(--border);
   margin-bottom: 2.5rem;
   overflow-x: auto;
   scrollbar-width: none;
@@ -69,7 +68,7 @@
   border-bottom: 3px solid transparent;
   font-size: 1rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   white-space: nowrap;
@@ -77,20 +76,20 @@
 }
 
 .product-tab-btn:hover {
-  color: #374151;
-  background-color: rgba(243, 244, 246, 0.5);
-  border-radius: 8px 8px 0 0;
+  color: var(--text-main);
+  background-color: color-mix(in srgb, var(--border) 50%, var(--surface));
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 .product-tab-btn.active {
-  color: #4f46e5;
-  border-bottom-color: #4f46e5;
+  color: var(--primary);
+  border-bottom-color: var(--primary);
 }
 
 .product-tab-content {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   padding: 2.5rem;
   animation: fadeInUp 0.4s ease-out;
 }
@@ -99,7 +98,7 @@
   text-align: center;
   padding: 6rem 2rem;
   font-size: 1.25rem;
-  color: #6b7280;
+  color: var(--text-muted);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -109,18 +108,18 @@
 .spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #e5e7eb;
-  border-top-color: #4f46e5;
+  border: 4px solid var(--border);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 .error-message {
-  color: #b91c1c;
-  background-color: #fef2f2;
-  border: 1px solid #fca5a5;
+  color: var(--danger);
+  background-color: color-mix(in srgb, var(--danger) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, var(--surface));
   padding: 1.5rem;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   text-align: center;
   font-weight: 500;
   max-width: 600px;

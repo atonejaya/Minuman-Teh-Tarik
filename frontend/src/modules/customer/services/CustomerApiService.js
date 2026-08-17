@@ -3,7 +3,13 @@ import { supabase } from '../../../utils/supabase';
 const CustomerApiService = {
   getCustomers: async (params = {}) => {
     let query = supabase.from('Warung').select('*, User!assigned_sales_id(name), Area(name), Route(name)');
-    if (params.search) query = query.ilike('name', `%${params.search}%`);
+    if (params.search)    query = query.ilike('name', `%${params.search}%`);
+    if (params.status)    query = query.eq('status', params.status);
+    if (params.area_id)   query = query.eq('area_id', params.area_id);
+    if (params.route_id)  query = query.eq('route_id', params.route_id);
+    if (params.sales_id)  query = query.eq('assigned_sales_id', params.sales_id);
+    if (params.visit_day) query = query.eq('visit_day', params.visit_day);
+
     const [customersRes, txRes] = await Promise.all([
       query,
       supabase
@@ -24,11 +30,16 @@ const CustomerApiService = {
       }
     }
 
-    const data = (customersRes.data || []).map((c) => ({
+    let data = (customersRes.data || []).map((c) => ({
       ...c,
       outstanding: agg[String(c.id)]?.outstanding || 0,
       last_invoice_date: agg[String(c.id)]?.last_invoice_date || c.last_invoice_date || null,
     }));
+
+    // Filter outstanding_only di client-side (setelah aggregasi)
+    if (params.outstanding_only) {
+      data = data.filter((c) => c.outstanding > 0);
+    }
 
     return { success: true, data, meta: { total: customersRes.count } };
   },

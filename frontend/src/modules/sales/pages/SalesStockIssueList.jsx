@@ -3,28 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import EntityListPage from '../../../components/entity/EntityListPage';
 import SalesStockIssueRepository from '../../../repositories/SalesStockIssueRepository';
 import { useToast } from '../../../components/toast/ToastContext';
-
-const STATUS_COLORS = {
-  DRAFT: '#6c757d',
-  CONFIRMED: '#0d6efd',
-  CLOSED: '#198754'
-};
-
-const STATUS_LABELS = {
-  DRAFT: 'Draft',
-  CONFIRMED: 'Terkonfirmasi',
-  CLOSED: 'Ditutup'
-};
-
-const cell = { padding: '12px 16px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
+import TableMessage from '../../../components/shared/TableMessage';
+import StatusBadge from '../../../components/shared/StatusBadge';
+import { tableCell } from '../../../utils/tableStyles.js';
 
 const SalesStockIssueTable = ({ data, loading, onView, onEdit, onDelete, onConfirm, onClose }) => {
   if (loading) {
-    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat...</p>;
+    return <TableMessage>Memuat...</TableMessage>;
   }
 
   if (!data || data.length === 0) {
-    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Tidak ada mutasi stok.</p>;
+    return <TableMessage>Tidak ada mutasi stok.</TableMessage>;
   }
 
   return (
@@ -32,37 +21,27 @@ const SalesStockIssueTable = ({ data, loading, onView, onEdit, onDelete, onConfi
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
         <thead style={{ backgroundColor: 'var(--background)' }}>
           <tr>
-            <th style={cell}>No. Mutasi</th>
-            <th style={cell}>Tanggal</th>
-            <th style={cell}>Sales</th>
-            <th style={cell}>Gudang</th>
-            <th style={cell}>Total Qty</th>
-            <th style={cell}>Status</th>
-            <th style={cell}>Aksi</th>
+            <th style={tableCell}>No. Mutasi</th>
+            <th style={tableCell}>Tanggal</th>
+            <th style={tableCell}>Sales</th>
+            <th style={tableCell}>Gudang</th>
+            <th style={tableCell}>Total Qty</th>
+            <th style={tableCell}>Status</th>
+            <th style={tableCell}>Aksi</th>
           </tr>
         </thead>
         <tbody>
           {data.map((item) => (
             <tr key={item.id}>
-              <td style={{ ...cell, fontWeight: '500' }}>{item.issue_number}</td>
-              <td style={cell}>{new Date(item.issue_date).toLocaleDateString('id-ID')}</td>
-              <td style={cell}>{item.sales?.name || '-'}</td>
-              <td style={cell}>{item.warehouse?.name || '-'}</td>
-              <td style={cell}>{item.total_qty}</td>
-              <td style={cell}>
-                <span style={{
-                  display: 'inline-block',
-                  padding: '2px 10px',
-                  borderRadius: '999px',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  color: '#fff',
-                  backgroundColor: STATUS_COLORS[item.status] || '#6c757d'
-                }}>
-                  {STATUS_LABELS[item.status] || item.status}
-                </span>
+              <td style={{ ...tableCell, fontWeight: '500' }}>{item.issue_number}</td>
+              <td style={tableCell}>{new Date(item.issue_date).toLocaleDateString('id-ID')}</td>
+              <td style={tableCell}>{item.sales?.name || '-'}</td>
+              <td style={tableCell}>{item.warehouse?.name || '-'}</td>
+              <td style={tableCell}>{item.total_qty}</td>
+              <td style={tableCell}>
+                <StatusBadge status={item.status} />
               </td>
-              <td style={cell}>
+              <td style={tableCell}>
                 <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px' }} onClick={() => onView(item.id)}>
                   Lihat
                 </button>

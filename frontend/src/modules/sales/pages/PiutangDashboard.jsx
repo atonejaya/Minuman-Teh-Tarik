@@ -3,17 +3,10 @@ import KPIGrid from '../../../components/shared/KPIGrid';
 import KPICard from '../../../components/shared/KPICard';
 import StatusBadge from '../../../components/shared/StatusBadge';
 import { supabase } from '../../../utils/supabase';
+import { formatRupiah } from '../../../utils/format.js';
 import './PiutangDashboard.css';
 
 const PriorityList = ({ title, items, icon, colorClass }) => {
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(value || 0);
-  };
-
   return (
     <div className={`priority-list-card ${colorClass}`}>
       <div className="list-header">
@@ -31,7 +24,7 @@ const PriorityList = ({ title, items, icon, colorClass }) => {
                 <span className="invoice-no">#{item.invoice_number}</span>
               </div>
               <div className="item-meta">
-                <span className="amount">{formatCurrency(item.outstanding_amount)}</span>
+                <span className="amount">{formatRupiah(item.outstanding_amount)}</span>
                 <span className="priority-level">
                   <StatusBadge status={item.status || item.priority_level} />
                 </span>
@@ -134,7 +127,7 @@ const PiutangDashboard = () => {
     fetchMetrics();
   }, []);
 
-  const formatCurrency = (value) => {
+  const formatRupiah = (value) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
@@ -211,19 +204,19 @@ const PiutangDashboard = () => {
         <KPIGrid>
           <KPICard
             title="Total Piutang"
-            value={formatCurrency(metrics.global.total_outstanding)}
+            value={formatRupiah(metrics.global.total_outstanding)}
             trend="neutral"
             trendValue="Total Saldo"
           />
           <KPICard
             title="Piutang Hari Ini"
-            value={formatCurrency(metrics.global.piutang_hari_ini)}
+            value={formatRupiah(metrics.global.piutang_hari_ini)}
             trend="neutral"
             trendValue="Saat Ini"
           />
           <KPICard
             title="Piutang Jatuh Tempo"
-            value={formatCurrency(metrics.global.piutang_jatuh_tempo)}
+            value={formatRupiah(metrics.global.piutang_jatuh_tempo)}
             trend="down"
             trendValue="Perlu Perhatian"
           />
@@ -235,27 +228,27 @@ const PiutangDashboard = () => {
         <KPIGrid>
           <KPICard
             title="Belum Jatuh Tempo"
-            value={formatCurrency(metrics.aging.belum_jatuh_tempo)}
+            value={formatRupiah(metrics.aging.belum_jatuh_tempo)}
             icon="📅"
           />
           <KPICard
             title="1-30 Hari"
-            value={formatCurrency(metrics.aging.hari_1_30)}
+            value={formatRupiah(metrics.aging.hari_1_30)}
             icon="⚠️"
           />
           <KPICard
             title="31-60 Hari"
-            value={formatCurrency(metrics.aging.hari_31_60)}
+            value={formatRupiah(metrics.aging.hari_31_60)}
             icon="⏰"
           />
           <KPICard
             title="61-90 Hari"
-            value={formatCurrency(metrics.aging.hari_61_90)}
+            value={formatRupiah(metrics.aging.hari_61_90)}
             icon="🔴"
           />
           <KPICard
             title=">90 Hari"
-            value={formatCurrency(metrics.aging.lebih_90_hari)}
+            value={formatRupiah(metrics.aging.lebih_90_hari)}
             icon="❗"
           />
         </KPIGrid>

@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../utils/supabase';
 import EntityListPage from '../../../components/entity/EntityListPage';
-
-const cell = { padding: '12px 16px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
+import { tableCell } from '../../../utils/tableStyles.js';
+import TableMessage from '../../../components/shared/TableMessage';
 
 const WarehouseStockTable = ({ data, loading }) => {
   if (loading) {
-    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat data stok...</p>;
+    return <TableMessage>Memuat data stok...</TableMessage>;
   }
 
   if (!data || data.length === 0) {
-    return <p style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Tidak ada data stok gudang.</p>;
+    return <TableMessage>Tidak ada data stok gudang.</TableMessage>;
   }
 
   return (
@@ -18,21 +18,21 @@ const WarehouseStockTable = ({ data, loading }) => {
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
         <thead style={{ backgroundColor: 'var(--background)' }}>
           <tr>
-            <th style={cell}>Gudang</th>
-            <th style={cell}>Kode Produk</th>
-            <th style={cell}>Nama Produk</th>
-            <th style={cell}>Kategori</th>
-            <th style={cell}>Sisa Stok (Tersedia)</th>
+            <th style={tableCell}>Gudang</th>
+            <th style={tableCell}>Kode Produk</th>
+            <th style={tableCell}>Nama Produk</th>
+            <th style={tableCell}>Kategori</th>
+            <th style={tableCell}>Sisa Stok (Tersedia)</th>
           </tr>
         </thead>
         <tbody>
           {data.map((item) => (
             <tr key={`${item.warehouse_id}-${item.product_id}`}>
-              <td style={{ ...cell, fontWeight: '500' }}>{item.warehouse?.name || '-'}</td>
-              <td style={cell}>{item.product?.code || '-'}</td>
-              <td style={cell}>{item.product?.name || '-'}</td>
-              <td style={cell}>{item.product?.category?.name || '-'}</td>
-              <td style={{ ...cell, fontWeight: '600', color: item.qty_available > 0 ? 'var(--success)' : 'var(--danger)' }}>
+              <td style={{ ...tableCell, fontWeight: '500' }}>{item.warehouse?.name || '-'}</td>
+              <td style={tableCell}>{item.product?.code || '-'}</td>
+              <td style={tableCell}>{item.product?.name || '-'}</td>
+              <td style={tableCell}>{item.product?.category?.name || '-'}</td>
+              <td style={{ ...tableCell, fontWeight: '600', color: item.qty_available > 0 ? 'var(--success)' : 'var(--danger)' }}>
                 {item.qty_available}
               </td>
             </tr>

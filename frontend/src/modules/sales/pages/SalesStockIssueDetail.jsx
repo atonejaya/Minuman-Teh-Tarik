@@ -3,9 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import EntityDetailPage from '../../../components/entity/EntityDetailPage';
 import SalesStockIssueRepository from '../../../repositories/SalesStockIssueRepository';
 import { supabase } from '../../../utils/supabase';
+import TableMessage from '../../../components/shared/TableMessage';
 import { useToast } from '../../../components/toast/ToastContext';
-
-const cell = { padding: '12px 16px', fontSize: '14px', borderBottom: '1px solid var(--border)', textAlign: 'left' };
+import { tableCell } from '../../../utils/tableStyles.js';
 
 const STATUS_LABELS = {
   DRAFT: 'Draft', PENDING: 'Menunggu', CONFIRMED: 'Terkonfirmasi', COMPLETED: 'Selesai',
@@ -40,8 +40,8 @@ const SalesStockIssueDetail = () => {
     fetchIssue();
   }, [fetchIssue]);
 
-  if (loading) return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Memuat...</div>;
-  if (!data) return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Mutasi Stok Tidak Ditemukan</div>;
+  if (loading) return <TableMessage>Memuat...</TableMessage>;
+  if (!data) return <TableMessage>Mutasi Stok Tidak Ditemukan</TableMessage>;
 
   const handleConfirm = async () => {
     try {
@@ -179,24 +179,24 @@ const SalesStockIssueDetail = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead style={{ backgroundColor: 'var(--background)' }}>
               <tr>
-                <th style={cell}>Produk</th>
-                <th style={cell}>Qty</th>
-                <th style={cell}>Unit</th>
-                <th style={cell}>Keterangan</th>
+                <th style={tableCell}>Produk</th>
+                <th style={tableCell}>Qty</th>
+                <th style={tableCell}>Unit</th>
+                <th style={tableCell}>Keterangan</th>
               </tr>
             </thead>
             <tbody>
               {(data.items || []).map((item, index) => (
                 <tr key={index}>
-                  <td style={cell}>{item.product?.name || '-'}</td>
-                  <td style={cell}>{item.qty}</td>
-                  <td style={cell}>{item.unit?.name || '-'}</td>
-                  <td style={cell}>{item.remark || '-'}</td>
+                  <td style={tableCell}>{item.product?.name || '-'}</td>
+                  <td style={tableCell}>{item.qty}</td>
+                  <td style={tableCell}>{item.unit?.name || '-'}</td>
+                  <td style={tableCell}>{item.remark || '-'}</td>
                 </tr>
               ))}
               {(!data.items || data.items.length === 0) && (
                 <tr>
-                  <td colSpan="4" style={{ ...cell, textAlign: 'center' }}>Tidak ada item</td>
+                  <td colSpan="4" style={{ ...tableCell, textAlign: 'center' }}>Tidak ada item</td>
                 </tr>
               )}
             </tbody>
