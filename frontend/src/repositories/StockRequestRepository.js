@@ -12,12 +12,12 @@ const StockRequestRepository = {
   },
 
   async approveRequest(requestId, approvedBy) {
-    const { error } = await supabase.rpc('stock_request_approve', {
+    const { data, error } = await supabase.rpc('stock_request_approve', {
       p_request_id: requestId,
       p_approved_by: approvedBy,
     });
     if (error) throw error;
-    return { success: true };
+    return data || { success: true };
   },
 
   async rejectRequest(requestId, approvedBy, reason = null) {
