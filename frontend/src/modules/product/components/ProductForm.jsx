@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../utils/supabase';
+import { Settings } from 'lucide-react';
+import InlineCategoryManager from '../../masterdata/components/InlineCategoryManager';
+import InlineUnitManager from '../../masterdata/components/InlineUnitManager';
 
 const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--surface)', color: 'var(--text-main)', fontSize: '14px' };
 const labelStyle = { display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '13px', color: 'var(--text-main)' };
@@ -35,6 +38,8 @@ const ProductForm = ({ initialData, lookups, onSubmit, onCancel, isSubmitting, s
   });
   const [imageFile, setImageFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [showUnitManager, setShowUnitManager] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -113,16 +118,26 @@ const ProductForm = ({ initialData, lookups, onSubmit, onCancel, isSubmitting, s
 
       <Section title="Klasifikasi">
         <Group label="Kategori">
-          <select style={inputStyle} name="category_id" value={formData.category_id} onChange={handleChange}>
-            <option value="">Pilih Kategori</option>
-            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <select style={{ ...inputStyle, flex: 1 }} name="category_id" value={formData.category_id} onChange={handleChange}>
+              <option value="">Pilih Kategori</option>
+              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <button type="button" title="Kelola Kategori" onClick={() => setShowCategoryManager(true)} style={{ padding: '8px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--surface)', cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Settings size={16} />
+            </button>
+          </div>
         </Group>
         <Group label="Satuan">
-          <select style={inputStyle} name="unit_id" value={formData.unit_id} onChange={handleChange}>
-            <option value="">Pilih Satuan</option>
-            {units.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-          </select>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <select style={{ ...inputStyle, flex: 1 }} name="unit_id" value={formData.unit_id} onChange={handleChange}>
+              <option value="">Pilih Satuan</option>
+              {units.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+            </select>
+            <button type="button" title="Kelola Satuan" onClick={() => setShowUnitManager(true)} style={{ padding: '8px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--surface)', cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Settings size={16} />
+            </button>
+          </div>
         </Group>
       </Section>
 
@@ -183,6 +198,18 @@ const ProductForm = ({ initialData, lookups, onSubmit, onCancel, isSubmitting, s
           {uploading ? 'Mengunggah...' : isSubmitting ? 'Menyimpan...' : 'Simpan Produk'}
         </button>
       </div>
+      {showCategoryManager && (
+        <InlineCategoryManager
+          onClose={() => setShowCategoryManager(false)}
+          onSaved={() => {}}
+        />
+      )}
+      {showUnitManager && (
+        <InlineUnitManager
+          onClose={() => setShowUnitManager(false)}
+          onSaved={() => {}}
+        />
+      )}
     </form>
   );
 };
