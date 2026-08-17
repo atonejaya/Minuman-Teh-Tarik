@@ -75,22 +75,22 @@ ALTER TABLE "StockRequest" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "StockRequestItem" ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Sales can view own requests" ON "StockRequest"
-  FOR SELECT USING (sales_id = (SELECT id FROM "User" WHERE auth_id = auth.uid()));
+  FOR SELECT USING (sales_id = public.current_user_id());
 
 CREATE POLICY "Sales can insert own requests" ON "StockRequest"
-  FOR INSERT WITH CHECK (sales_id = (SELECT id FROM "User" WHERE auth_id = auth.uid()));
+  FOR INSERT WITH CHECK (sales_id = public.current_user_id());
 
 CREATE POLICY "Owner can view all requests" ON "StockRequest"
-  FOR SELECT USING ((SELECT role FROM "User" WHERE auth_id = auth.uid()) IN ('OWNER', 'ADMIN'));
+  FOR SELECT USING (public.current_user_role() = 'OWNER');
 
 CREATE POLICY "Owner can update all requests" ON "StockRequest"
-  FOR UPDATE USING ((SELECT role FROM "User" WHERE auth_id = auth.uid()) IN ('OWNER', 'ADMIN'));
+  FOR UPDATE USING (public.current_user_role() = 'OWNER');
 
 CREATE POLICY "Sales can view own request items" ON "StockRequestItem"
-  FOR SELECT USING (request_id IN (SELECT id FROM "StockRequest" WHERE sales_id = (SELECT id FROM "User" WHERE auth_id = auth.uid())));
+  FOR SELECT USING (request_id IN (SELECT id FROM "StockRequest" WHERE sales_id = public.current_user_id()));
 
 CREATE POLICY "Sales can insert own request items" ON "StockRequestItem"
-  FOR INSERT WITH CHECK (request_id IN (SELECT id FROM "StockRequest" WHERE sales_id = (SELECT id FROM "User" WHERE auth_id = auth.uid())));
+  FOR INSERT WITH CHECK (request_id IN (SELECT id FROM "StockRequest" WHERE sales_id = public.current_user_id()));
 
 CREATE POLICY "Owner can view all request items" ON "StockRequestItem"
-  FOR SELECT USING ((SELECT role FROM "User" WHERE auth_id = auth.uid()) IN ('OWNER', 'ADMIN'));
+  FOR SELECT USING (public.current_user_role() = 'OWNER');

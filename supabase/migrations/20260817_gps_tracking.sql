@@ -17,10 +17,10 @@ CREATE INDEX idx_sales_gps_track_tracked_at ON "SalesGpsTrack"(tracked_at DESC);
 ALTER TABLE "SalesGpsTrack" ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Sales can insert own GPS" ON "SalesGpsTrack"
-  FOR INSERT WITH CHECK (sales_id = (SELECT id FROM "User" WHERE auth_id = auth.uid()));
+  FOR INSERT WITH CHECK (sales_id = public.current_user_id());
 
 CREATE POLICY "Owner can view all GPS" ON "SalesGpsTrack"
-  FOR SELECT USING ((SELECT role FROM "User" WHERE auth_id = auth.uid()) IN ('OWNER', 'ADMIN'));
+  FOR SELECT USING (public.current_user_role() = 'OWNER');
 
 CREATE POLICY "Sales can view own GPS" ON "SalesGpsTrack"
-  FOR SELECT USING (sales_id = (SELECT id FROM "User" WHERE auth_id = auth.uid()));
+  FOR SELECT USING (sales_id = public.current_user_id());
