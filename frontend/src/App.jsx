@@ -131,12 +131,6 @@ function App() {
               <Route path="warehouses" element={<WarehouseList />} />
               <Route path="warehouses/new" element={<WarehouseForm />} />
               <Route path="warehouses/:id/edit" element={<WarehouseForm />} />
-              <Route path="price-levels" element={<PriceLevelList />} />
-              <Route path="price-levels/new" element={<PriceLevelForm />} />
-              <Route path="price-levels/:id/edit" element={<PriceLevelForm />} />
-              <Route path="par-stock" element={<ParStockList />} />
-              <Route path="par-stock/new" element={<ParStockForm />} />
-              <Route path="par-stock/:id/edit" element={<ParStockForm />} />
               <Route path="units" element={<UnitList />} />
               <Route path="units/new" element={<UnitForm />} />
               <Route path="units/:id/edit" element={<UnitForm />} />

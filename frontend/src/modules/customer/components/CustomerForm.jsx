@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useMasterLookupContext } from '../../../contexts/MasterLookupContext';
-import { Crosshair, CheckCircle2, TriangleAlert } from 'lucide-react';
+import { Crosshair, CheckCircle2, TriangleAlert, Plus, Trash2 } from 'lucide-react';
 import { getCurrentPosition } from '../../../utils/geolocation';
+import { supabase } from '../../../utils/supabase';
 
 const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, submitError, isSales = false, salesAreaId, salesName }) => {
   const { lookups } = useMasterLookupContext();
@@ -43,6 +44,24 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, subm
   const [gpsStatus, setGpsStatus] = useState('idle');
   const [gpsMessage, setGpsMessage] = useState('');
 
+  const isEdit = Boolean(initialData?.id);
+  const [parStocks, setParStocks] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [newParStock, setNewParStock] = useState({ product_id: '', par_qty: '', min_qty: '', max_qty: '' });
+
+  useEffect(() => {
+    if (!isEdit || !initialData?.id) return;
+    const loadParStock = async () => {
+      const [psRes, pRes] = await Promise.all([
+        supabase.from('OutletParStock').select('*, product:Product(name, code)').eq('warung_id', initialData.id).order('id'),
+        supabase.from('Product').select('id, name, code').eq('is_active', true).order('name'),
+      ]);
+      if (!psRes.error) setParStocks(psRes.data || []);
+      if (!pRes.error) setProducts(pRes.data || []);
+    };
+    loadParStock();
+  }, [isEdit, initialData?.id]);
+
   const captureGps = () => {
     setGpsStatus('loading');
     setGpsMessage('Meminta izin GPS...');
@@ -67,6 +86,27 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, subm
     captureGps();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSales]);
+
+  const handleAddParStock = async () => {
+    if (!newParStock.product_id || !newParStock.par_qty) return;
+    const { data, error } = await supabase.from('OutletParStock').insert({
+      warung_id: initialData.id,
+      product_id: Number(newParStock.product_id),
+      par_qty: Number(newParStock.par_qty),
+      min_qty: Number(newParStock.min_qty) || 0,
+      max_qty: Number(newParStock.max_qty) || 0,
+      is_active: true,
+    }).select('*, product:Product(name, code)').single();
+    if (!error) {
+      setParStocks(prev => [...prev, data]);
+      setNewParStock({ product_id: '', par_qty: '', min_qty: '', max_qty: '' });
+    }
+  };
+
+  const handleDeleteParStock = async (psId) => {
+    const { error } = await supabase.from('OutletParStock').delete().eq('id', psId);
+    if (!error) setParStocks(prev => prev.filter(p => p.id !== psId));
+  };
 
   const filteredRoutes = isSales && salesAreaId
     ? routes.filter((r) => Number(r.area_id) === Number(salesAreaId))
@@ -374,6 +414,67 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
           </select>
         </div>
       </section>
+
+      {isEdit && (
+        <section className="card-custom" style={{ padding: '20px' }}>
+          <h3 style={{ marginBottom: '14px', fontSize: '16px' }}>Stok Normal (Par Stock)</h3>
+          {parStocks.length > 0 && (
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '14px', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
+                  <th style={{ padding: '8px 6px' }}>Produk</th>
+                  <th style={{ padding: '8px 6px', textAlign: 'center' }}>Normal</th>
+                  <th style={{ padding: '8px 6px', textAlign: 'center' }}>Min</th>
+                  <th style={{ padding: '8px 6px', textAlign: 'center' }}>Max</th>
+                  <th style={{ padding: '8px 6px', width: '40px' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {parStocks.map(ps => (
+                  <tr key={ps.id} style={{ borderBottom: '1px solid var(--border-light, var(--border))' }}>
+                    <td style={{ padding: '8px 6px' }}>{ps.product?.name || ps.product_id}</td>
+                    <td style={{ padding: '8px 6px', textAlign: 'center' }}>{ps.par_qty}</td>
+                    <td style={{ padding: '8px 6px', textAlign: 'center' }}>{ps.min_qty}</td>
+                    <td style={{ padding: '8px 6px', textAlign: 'center' }}>{ps.max_qty}</td>
+                    <td style={{ padding: '8px 6px', textAlign: 'center' }}>
+                      <button type="button" onClick={() => handleDeleteParStock(ps.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', padding: '2px' }}>
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          {parStocks.length === 0 && <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '14px' }}>Belum ada data stok normal.</p>}
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: '8px', alignItems: 'end' }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label" style={{ ...labelStyle, marginBottom: '4px' }}>Produk</label>
+              <select className="form-input" style={{ ...inputStyle, fontSize: '13px' }} value={newParStock.product_id} onChange={e => setNewParStock(prev => ({ ...prev, product_id: e.target.value }))}>
+                <option value="">Pilih Produk</option>
+                {products.filter(p => !parStocks.some(ps => ps.product_id === p.id)).map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label" style={{ ...labelStyle, marginBottom: '4px' }}>Normal</label>
+              <input type="number" className="form-input" style={{ ...inputStyle, fontSize: '13px' }} min="0" value={newParStock.par_qty} onChange={e => setNewParStock(prev => ({ ...prev, par_qty: e.target.value }))} />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label" style={{ ...labelStyle, marginBottom: '4px' }}>Min</label>
+              <input type="number" className="form-input" style={{ ...inputStyle, fontSize: '13px' }} min="0" value={newParStock.min_qty} onChange={e => setNewParStock(prev => ({ ...prev, min_qty: e.target.value }))} />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label" style={{ ...labelStyle, marginBottom: '4px' }}>Max</label>
+              <input type="number" className="form-input" style={{ ...inputStyle, fontSize: '13px' }} min="0" value={newParStock.max_qty} onChange={e => setNewParStock(prev => ({ ...prev, max_qty: e.target.value }))} />
+            </div>
+            <button type="button" className="btn btn-primary" style={{ padding: '8px 12px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '4px' }} onClick={handleAddParStock} disabled={!newParStock.product_id || !newParStock.par_qty}>
+              <Plus size={14} />
+            </button>
+          </div>
+        </section>
+      )}
 
       {!isSales && (
         <section className="card-custom" style={{ padding: '16px 20px' }}>

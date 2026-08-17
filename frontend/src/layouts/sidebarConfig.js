@@ -39,8 +39,6 @@ export const MENU_CONFIG = [
       { to: '/areas', label: 'Area', icon: Map },
       { to: '/routes', label: 'Rute', icon: RouteIcon },
       { to: '/warehouses', label: 'Gudang', icon: Building2 },
-      { to: '/price-levels', label: 'Level Harga', icon: Tag },
-      { to: '/par-stock', label: 'Stok Normal', icon: Package },
     ],
   },
   {
