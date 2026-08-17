@@ -1,6 +1,5 @@
 import React from 'react';
 import CustomerStatistics from '../CustomerStatistics';
-import CustomerSummary from '../CustomerSummary';
 import { useCustomerDashboard } from '../../hooks/useCustomerDashboard';
 
 const CustomerFinancialTab = ({ customer }) => {
@@ -16,9 +15,8 @@ const CustomerFinancialTab = ({ customer }) => {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div>
       <CustomerStatistics data={dashboard} />
-      <CustomerSummary data={customer} />
     </div>
   );
 };

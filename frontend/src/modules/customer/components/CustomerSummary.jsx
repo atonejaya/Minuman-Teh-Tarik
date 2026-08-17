@@ -7,18 +7,18 @@ const CustomerSummary = ({ data }) => {
 
   return (
     <div style={{
-      backgroundColor: 'var(--color-bg-primary)',
+      backgroundColor: 'var(--surface)',
       borderRadius: 'var(--radius-lg)',
-      padding: 'var(--spacing-lg)',
-      border: '1px solid var(--color-border)',
+      padding: '20px',
+      border: '1px solid var(--border)',
       boxShadow: 'var(--shadow-sm)'
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-md)' }}>
-        <h3 style={{ margin: 0, color: 'var(--color-text-primary)', fontSize: 'var(--text-lg)', fontWeight: '600' }}>Ringkasan Pelanggan</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+        <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '16px', fontWeight: '600' }}>Ringkasan Pelanggan</h3>
         <CustomerStatusBadge status={data.status || 'ACTIVE'} />
       </div>
       
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-md)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
         <SummaryItem label="Kode Pelanggan" value={data.code} />
         <SummaryItem label="Nama Toko" value={data.name} />
         <SummaryItem label="Pemilik" value={data.owner_name} />
@@ -31,8 +31,8 @@ const CustomerSummary = ({ data }) => {
       </div>
 
       {data.latitude && data.longitude && !(data.latitude === 0 && data.longitude === 0) && (
-        <div style={{ marginTop: 'var(--spacing-md)' }}>
-          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '500', marginBottom: '8px' }}>Lokasi di Peta</p>
+        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+          <p style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600', marginBottom: '8px' }}>Lokasi di Peta</p>
           <MiniMap latitude={data.latitude} longitude={data.longitude} label={data.name} />
         </div>
       )}
@@ -42,8 +42,8 @@ const CustomerSummary = ({ data }) => {
 
 const SummaryItem = ({ label, value }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-    <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '500' }}>{label}</span>
-    <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-primary)', fontWeight: '500' }}>{value || '-'}</span>
+    <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '600' }}>{label}</span>
+    <span style={{ fontSize: '14px', color: 'var(--text-main)', fontWeight: '500' }}>{value || '-'}</span>
   </div>
 );
 
