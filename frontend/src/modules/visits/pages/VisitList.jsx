@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, MapPin, Clock, CheckCircle2, CircleDashed, Wallet } from 'lucide-react';
+import { Store, MapPin, Clock, CheckCircle2, CircleDashed, Wallet, AlertTriangle, X, Search } from 'lucide-react';
 import VisitApiService from '../services/VisitApiService.js';
+import { supabase } from '../../../utils/supabase';
 import { formatRupiah, formatTime } from '../../../utils/format.js';
 
 const IN_PROGRESS = ['CHECKED_IN', 'STOCK_COUNTED', 'DELIVERED'];
@@ -20,6 +21,37 @@ const VisitList = () => {
   const [plan, setPlan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [emergencySearch, setEmergencySearch] = useState('');
+  const [emergencyWarungs, setEmergencyWarungs] = useState([]);
+  const [emergencyLoading, setEmergencyLoading] = useState(false);
+
+  const searchWarungs = async (search) => {
+    if (!search || search.length < 2) {
+      setEmergencyWarungs([]);
+      return;
+    }
+    setEmergencyLoading(true);
+    try {
+      let query = supabase
+        .from('Warung')
+        .select('id, code, name, address, latitude, longitude')
+        .eq('status', 'ACTIVE')
+        .not('latitude', 'is', null)
+        .ilike('name', `%${search}%`)
+        .limit(10);
+      const { data, error } = await query;
+      if (!error) setEmergencyWarungs(data || []);
+    } catch (err) {
+      console.error(err);
+    }
+    setEmergencyLoading(false);
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => searchWarungs(emergencySearch), 300);
+    return () => clearTimeout(timer);
+  }, [emergencySearch]);
 
   useEffect(() => {
     let active = true;
@@ -126,7 +158,82 @@ const VisitList = () => {
           <h2>Rencana Kunjungan</h2>
           <p className="text-muted">{today}</p>
         </div>
+        <button
+          onClick={() => setShowEmergencyModal(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            padding: '8px 12px', border: '1px solid var(--warning)', borderRadius: '8px',
+            background: 'var(--surface)', color: 'var(--warning)', cursor: 'pointer',
+            fontSize: '13px', fontWeight: '500'
+          }}
+        >
+          <AlertTriangle size={16} />
+          Kunjungan Mendadak
+        </button>
       </div>
+
+      {showEmergencyModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: '20px'
+        }}>
+          <div style={{
+            background: 'var(--surface)', borderRadius: '12px', padding: '24px',
+            maxWidth: '400px', width: '100%', maxHeight: '80vh', overflow: 'auto'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0 }}>Kunjungan Mendadak</h3>
+              <button onClick={() => { setShowEmergencyModal(false); setEmergencySearch(''); setEmergencyWarungs([]); }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
+                <X size={20} />
+              </button>
+            </div>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+              Cari warung untuk dikunjungi di luar jadwal
+            </p>
+            <div style={{ position: 'relative', marginBottom: '12px' }}>
+              <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+              <input
+                type="text"
+                placeholder="Cari nama warung..."
+                value={emergencySearch}
+                onChange={(e) => setEmergencySearch(e.target.value)}
+                style={{
+                  width: '100%', padding: '10px 12px 10px 36px',
+                  border: '1px solid var(--border)', borderRadius: '8px',
+                  fontSize: '14px', boxSizing: 'border-box'
+                }}
+                autoFocus
+              />
+            </div>
+            {emergencyLoading && <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Mencari...</p>}
+            {emergencyWarungs.map((w) => (
+              <button
+                key={w.id}
+                onClick={() => {
+                  setShowEmergencyModal(false);
+                  setEmergencySearch('');
+                  setEmergencyWarungs([]);
+                  navigate(`/visits/new?warung=${w.id}`);
+                }}
+                style={{
+                  display: 'block', width: '100%', textAlign: 'left',
+                  padding: '12px', marginBottom: '8px',
+                  border: '1px solid var(--border)', borderRadius: '8px',
+                  background: 'var(--background)', cursor: 'pointer'
+                }}
+              >
+                <div style={{ fontWeight: '600', fontSize: '14px' }}>{w.name}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{w.code} · {w.address}</div>
+              </button>
+            ))}
+            {!emergencyLoading && emergencySearch.length >= 2 && emergencyWarungs.length === 0 && (
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', textAlign: 'center' }}>Warung tidak ditemukan</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {error && <div className="alert alert-error">{error}</div>}
 

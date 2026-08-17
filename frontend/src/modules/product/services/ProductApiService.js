@@ -1,6 +1,6 @@
 import { supabase } from '../../../utils/supabase';
 
-const PRODUCT_SELECT = '*, category:ProductCategory(id, name), brand:Brand(id, name), unit:Unit(id, name), packaging:Packaging(id, name), tax:Tax(id, name, rate), warehouse:Warehouse(id, name)';
+const PRODUCT_SELECT = '*, category:ProductCategory(id, name), brand:Brand(id, name), unit:Unit(id, name), packaging:Packaging(id, name), tax:Tax(id, name, rate), warehouse:Warehouse(id, name), image_url';
 
 const ProductApiService = {
   async getProducts({ search = '', categoryId = '', brandId = '', status = 'all', page = 1, pageSize = 20 } = {}) {

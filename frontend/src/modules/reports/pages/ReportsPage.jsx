@@ -16,6 +16,7 @@ ChartJS.register(
 
 const REPORT_TYPES = [
   { value: 'sales', label: 'Laporan Penjualan (Faktur)' },
+  { value: 'per-sales', label: 'Laporan per Sales' },
   { value: 'product', label: 'Laporan Produk Terjual' },
   { value: 'damaged', label: 'Laporan Barang Pecah / Expired' },
   { value: 'piutang', label: 'Laporan Piutang Warung' },
@@ -81,6 +82,23 @@ const ReportsPage = () => {
           agg[key].value += Number(it.item_price || 0) * Number(it.qty || 0);
         }
         rows = Object.values(agg).sort((a, b) => b.qty - a.qty);
+      } else if (reportType === 'per-sales') {
+        const { data: d, error: e } = await supabase
+          .from('SalesTransaction')
+          .select('id, grand_total, salesman:User!salesman_id(name, id), warung:Warung(name)')
+          .gte('created_at', `${fromDate}T00:00:00`)
+          .lte('created_at', `${toDate}T23:59:59`)
+          .eq('status', 'CONFIRMED');
+        if (e) throw e;
+        const agg = {};
+        for (const it of d || []) {
+          const key = String(it.salesman?.id || 'unknown');
+          if (!agg[key]) agg[key] = { sales_id: key, name: it.salesman?.name || '-', total_qty: 0, total_revenue: 0, warung_count: new Set() };
+          agg[key].total_qty += 1;
+          agg[key].total_revenue += Number(it.grand_total || 0);
+          if (it.warung?.name) agg[key].warung_count.add(it.warung.name);
+        }
+        rows = Object.values(agg).map((r) => ({ ...r, warung_count: r.warung_count.size })).sort((a, b) => b.total_revenue - a.total_revenue);
       } else {
         const { data: d, error: e } = await supabase
           .from('AccountsReceivableProjection')
@@ -200,6 +218,11 @@ const ReportsPage = () => {
                       <th style={TH}>Tanggal</th><th style={TH}>Faktur</th><th style={TH}>Warung</th><th style={TH}>Sales</th><th style={TH}>Status</th><th style={TH}>Total</th>
                     </>
                   )}
+                  {reportType === 'per-sales' && (
+                    <>
+                      <th style={TH}>Sales</th><th style={TH}>Jumlah Faktur</th><th style={TH}>Jumlah Warung</th><th style={TH}>Total Omzet</th>
+                    </>
+                  )}
                   {reportType === 'product' && (
                     <>
                       <th style={TH}>Produk</th><th style={TH}>Qty Terjual</th><th style={TH}>Omzet</th>
@@ -228,6 +251,14 @@ const ReportsPage = () => {
                         <td style={CELL}>{r.salesman?.name || '-'}</td>
                         <td style={CELL}>{r.payment_status || '-'}</td>
                         <td style={{ ...CELL, fontWeight: '600' }}>{formatRupiah(r.grand_total)}</td>
+                      </>
+                    )}
+                    {reportType === 'per-sales' && (
+                      <>
+                        <td style={{ ...CELL, fontWeight: '600' }}>{r.name}</td>
+                        <td style={CELL}>{r.total_qty}</td>
+                        <td style={CELL}>{r.warung_count}</td>
+                        <td style={{ ...CELL, fontWeight: '600' }}>{formatRupiah(r.total_revenue)}</td>
                       </>
                     )}
                     {reportType === 'product' && (
@@ -260,7 +291,7 @@ const ReportsPage = () => {
               {reportType !== 'piutang' && (
                 <tfoot>
                   <tr>
-                    <td colSpan={reportType === 'sales' ? 5 : 2} style={{ ...CELL, textAlign: 'right', fontWeight: '700' }}>TOTAL</td>
+                    <td colSpan={reportType === 'sales' ? 5 : reportType === 'per-sales' ? 3 : 2} style={{ ...CELL, textAlign: 'right', fontWeight: '700' }}>TOTAL</td>
                     <td style={{ ...CELL, fontWeight: '700', color: 'var(--primary)' }}>{formatRupiah(totalAmount)}</td>
                   </tr>
                 </tfoot>

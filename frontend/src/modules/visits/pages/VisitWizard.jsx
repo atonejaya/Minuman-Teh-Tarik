@@ -110,6 +110,78 @@ const VisitWizard = () => {
     return 0;
   };
 
+  const SAVE_KEY = warungId ? `visitWizard_${warungId}` : null;
+
+  useEffect(() => {
+    if (!SAVE_KEY || step === 0) return;
+    const payload = {
+      step,
+      visitId: id || result?.visitId,
+      stockRows,
+      payMethod,
+      payAmount,
+      openingNote,
+      closingNote,
+    };
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(payload)); } catch {}
+  }, [SAVE_KEY, step, id, result, stockRows, payMethod, payAmount, openingNote, closingNote]);
+
+  useEffect(() => {
+    if (!SAVE_KEY || id) return;
+    try {
+      const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+      if (saved && saved.visitId) {
+        setStep(saved.step || 0);
+        setStockRows(saved.stockRows || []);
+        setPayMethod(saved.payMethod || 'CASH');
+        setPayAmount(saved.payAmount || '');
+        setOpeningNote(saved.openingNote || '');
+        setClosingNote(saved.closingNote || '');
+      }
+    } catch {}
+  }, [SAVE_KEY, id]);
+
+  useEffect(() => {
+    if (visit?.status === 'COMPLETED' && SAVE_KEY) {
+      localStorage.removeItem(SAVE_KEY);
+    }
+  }, [visit?.status, SAVE_KEY]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (step > 0 && step < 3 && !done) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [step, done]);
+
+  useEffect(() => {
+    if (step < 1 || step > 3 || done) return;
+    const visitId = visit?.id || result?.visitId;
+    if (!visitId) return;
+
+    const trackGps = async () => {
+      try {
+        const pos = await VisitApiService.getCurrentPosition();
+        if (pos.latitude && pos.longitude) {
+          await supabase.from('SalesGpsTrack').insert({
+            sales_id: user?.id,
+            latitude: pos.latitude,
+            longitude: pos.longitude,
+            visit_id: visitId,
+          });
+        }
+      } catch {}
+    };
+
+    trackGps();
+    const interval = setInterval(trackGps, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [step, done, visit?.id, result?.visitId, user?.id]);
+
   useEffect(() => {
     if (!id) return undefined;
     let active = true;
@@ -254,7 +326,7 @@ const VisitWizard = () => {
     () =>
       stockRows.reduce((sum, r) => {
         const base = Number(r.opening || 0);
-        const sold = Math.max(base - Number(r.physical || 0) - Number(r.expired || 0), 0);
+        const sold = Math.max(base - Number(r.physical || 0), 0);
         return sum + sold * r.selling_price;
       }, 0),
     [stockRows]
@@ -484,7 +556,7 @@ const VisitWizard = () => {
           )}
           {stockRows.map((row, idx) => {
             const base = Number(row.opening || 0);
-            const sold = Math.max(base - Number(row.physical || 0) - Number(row.expired || 0), 0);
+            const sold = Math.max(base - Number(row.physical || 0), 0);
             return (
               <div className={`stock-row ${!row.baseline_set ? 'has-opening' : ''}`} key={row.product_id}>
                 <div className="stock-row-info">
@@ -492,6 +564,11 @@ const VisitWizard = () => {
                   <span>
                     {row.baseline_set ? `Stok awal ${base}` : 'Kunjungan pertama (baseline)'} · {formatRupiah(row.selling_price)} · Terjual {sold}
                   </span>
+                  {Number(row.expired || 0) > 0 && (
+                    <span style={{ color: 'var(--danger)', fontSize: '12px' }}>
+                      · Rusak: {row.expired} (beban owner)
+                    </span>
+                  )}
                 </div>
                 {!row.baseline_set && (
                   <input

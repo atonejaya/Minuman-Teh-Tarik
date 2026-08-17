@@ -39,6 +39,10 @@ const SettingsPage = lazy(() => import('./modules/settings/pages/SettingsPage.js
 const AccountPage = lazy(() => import('./modules/account/pages/AccountPage.jsx'));
 const SalesVehicleStock = lazy(() => import('./modules/sales/pages/SalesVehicleStock.jsx'));
 const StokDashboard = lazy(() => import('./modules/stok/pages/StokDashboard.jsx'));
+const VisitHistoryPage = lazy(() => import('./modules/visits/pages/VisitHistoryPage.jsx'));
+const StockRequestList = lazy(() => import('./modules/sales/pages/StockRequestList.jsx'));
+const StockRequestForm = lazy(() => import('./modules/sales/pages/StockRequestForm.jsx'));
+const LiveTrackingPage = lazy(() => import('./modules/visits/pages/LiveTrackingPage.jsx'));
 
 const AreaList = lazy(() => import('./modules/masterdata/pages/AreaList.jsx'));
 const AreaForm = lazy(() => import('./modules/masterdata/pages/AreaForm.jsx'));
@@ -100,6 +104,7 @@ function App() {
             {/* Sales-only Routes */}
             <Route path="visits/new" element={<RequireRole roles={['SALES', 'OWNER', 'ADMIN']}><VisitWizard /></RequireRole>} />
             <Route path="visits/:id" element={<RequireRole roles={['SALES', 'OWNER', 'ADMIN']}><VisitWizard /></RequireRole>} />
+            <Route path="stock-requests/new" element={<RequireRole roles={['SALES']}><StockRequestForm /></RequireRole>} />
             <Route path="account" element={<RequireRole roles={['SALES']}><AccountPage /></RequireRole>} />
             <Route path="vehicle-stock" element={<RequireRole roles={['SALES', 'OWNER', 'ADMIN']}><SalesVehicleStock /></RequireRole>} />
 
@@ -159,6 +164,9 @@ function App() {
               <Route path="sales/piutang" element={<PiutangDashboard />} />
 
               <Route path="reports" element={<ReportsPage />} />
+              <Route path="visit-history" element={<VisitHistoryPage />} />
+              <Route path="live-tracking" element={<LiveTrackingPage />} />
+              <Route path="stock-requests" element={<StockRequestList />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="payroll" element={<PayrollPage />} />
               <Route path="operational-cost" element={<OperationalCostPage />} />

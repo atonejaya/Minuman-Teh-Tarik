@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../../../utils/supabase';
 
 const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--surface)', color: 'var(--text-main)', fontSize: '14px' };
 const labelStyle = { display: 'block', marginBottom: '6px', fontWeight: '500', fontSize: '13px', color: 'var(--text-main)' };
@@ -30,7 +31,10 @@ const ProductForm = ({ initialData, lookups, onSubmit, onCancel, isSubmitting, s
     cost_price: '',
     selling_price: '',
     is_active: true,
+    image_url: '',
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -43,6 +47,7 @@ const ProductForm = ({ initialData, lookups, onSubmit, onCancel, isSubmitting, s
         cost_price: initialData.cost_price ?? '',
         selling_price: initialData.selling_price ?? '',
         is_active: initialData.is_active !== false,
+        image_url: initialData.image_url || '',
       }));
     }
   }, [initialData]);
@@ -55,9 +60,26 @@ const ProductForm = ({ initialData, lookups, onSubmit, onCancel, isSubmitting, s
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = { ...formData };
+    let imageUrl = formData.image_url;
+    if (imageFile) {
+      setUploading(true);
+      try {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `product_${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, imageFile, { contentType: imageFile.type });
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
+        imageUrl = urlData?.publicUrl || '';
+      } catch (err) {
+        console.error('Upload error:', err);
+      }
+      setUploading(false);
+    }
+    const payload = { ...formData, image_url: imageUrl };
     const numFields = ['cost_price', 'selling_price'];
     numFields.forEach((k) => {
       if (payload[k] === '') payload[k] = null;
@@ -121,12 +143,44 @@ const ProductForm = ({ initialData, lookups, onSubmit, onCancel, isSubmitting, s
         </Group>
       </Section>
 
+      <Section title="Gambar Produk">
+        <div style={{ gridColumn: '1 / -1' }}>
+          {formData.image_url && !imageFile && (
+            <div style={{ marginBottom: '12px' }}>
+              <img src={formData.image_url} alt="Preview" style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border)' }} />
+            </div>
+          )}
+          {imageFile && (
+            <div style={{ marginBottom: '12px' }}>
+              <img src={URL.createObjectURL(imageFile)} alt="Preview" style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border)' }} />
+            </div>
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            id="product-image"
+            style={{ display: 'none' }}
+            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+          />
+          <button
+            type="button"
+            onClick={() => document.getElementById('product-image')?.click()}
+            style={{ padding: '8px 16px', border: '1px dashed var(--border)', borderRadius: '8px', background: 'var(--surface)', cursor: 'pointer', fontSize: '13px' }}
+          >
+            {formData.image_url ? 'Ganti Gambar' : 'Pilih Gambar'}
+          </button>
+          {imageFile && (
+            <span style={{ marginLeft: '8px', fontSize: '13px', color: 'var(--text-muted)' }}>{imageFile.name}</span>
+          )}
+        </div>
+      </Section>
+
       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
-        <button type="button" className="btn" style={{ padding: '8px 16px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }} onClick={onCancel} disabled={isSubmitting}>
+        <button type="button" className="btn" style={{ padding: '8px 16px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }} onClick={onCancel} disabled={isSubmitting || uploading}>
           Batal
         </button>
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? 'Menyimpan...' : 'Simpan Produk'}
+        <button type="submit" className="btn btn-primary" disabled={isSubmitting || uploading}>
+          {uploading ? 'Mengunggah...' : isSubmitting ? 'Menyimpan...' : 'Simpan Produk'}
         </button>
       </div>
     </form>

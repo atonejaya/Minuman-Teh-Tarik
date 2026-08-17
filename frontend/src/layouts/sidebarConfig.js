@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Users, ShoppingCart, Map, Route as RouteIcon, UserCog, Warehouse,
   Building2, Tag, Package, Truck, Receipt, Undo2, ClipboardList, Wallet, Banknote,
   FileText, Settings, Layers, Ruler, BarChart3, PackagePlus, PackageMinus, Coins,
-  TrendingDown, ChevronDown
+  TrendingDown, ChevronDown, History, PackageCheck, Radio
 } from 'lucide-react';
 
 export const MENU_CONFIG = [
@@ -12,6 +12,7 @@ export const MENU_CONFIG = [
     children: [
       { to: '/sales/stock-in', label: 'Barang Masuk', icon: PackagePlus },
       { to: '/sales/stock-issues', label: 'Pengeluaran Stok', icon: PackageMinus },
+      { to: '/stock-requests', label: 'Permintaan Stok', icon: PackageCheck },
     ],
   },
   {
@@ -23,6 +24,8 @@ export const MENU_CONFIG = [
       { to: '/sales/vehicle-mutations', label: 'Mutasi & Retur', icon: Truck },
       { to: '/sales/returns', label: 'Retur Penjualan', icon: Undo2 },
       { to: '/stok', label: 'Pantauan Stok', icon: BarChart3 },
+      { to: '/visit-history', label: 'History Kunjungan', icon: History },
+      { to: '/live-tracking', label: 'Live Tracking', icon: Radio },
     ],
   },
   {

@@ -15,6 +15,7 @@ const ProductTable = ({ data, loading, onView, onEdit, onToggle }) => {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead style={{ backgroundColor: 'var(--background)' }}>
             <tr>
+              <th style={TH}>Gambar</th>
               <th style={TH}>Kode</th>
               <th style={TH}>Nama Produk</th>
               <th style={TH}>Kategori</th>
@@ -28,6 +29,13 @@ const ProductTable = ({ data, loading, onView, onEdit, onToggle }) => {
           <tbody>
             {data.map((p) => (
               <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => onView(p)}>
+                <td style={CELL}>
+                  {p.image_url ? (
+                    <img src={p.image_url} alt={p.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                  ) : (
+                    <div style={{ width: '40px', height: '40px', background: 'var(--background)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '10px' }}>No Img</div>
+                  )}
+                </td>
                 <td style={{ ...CELL, fontWeight: '500' }}>{p.code || '-'}</td>
                 <td style={{ ...CELL, fontWeight: '600' }}>{p.name}</td>
                 <td style={CELL}>{p.category?.name || '-'}</td>

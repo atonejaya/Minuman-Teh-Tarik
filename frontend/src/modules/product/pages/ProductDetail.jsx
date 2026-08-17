@@ -18,6 +18,11 @@ const OverviewTab = ({ product }) => {
   ];
   return (
     <div className="card-custom" style={{ maxWidth: '640px', padding: '20px' }}>
+      {product.image_url && (
+        <div style={{ marginBottom: '16px', textAlign: 'center' }}>
+          <img src={product.image_url} alt={product.name} style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--border)' }} />
+        </div>
+      )}
       {rows.map(([label, value]) => (
         <div key={label} className="summary-row">
           <span>{label}</span>

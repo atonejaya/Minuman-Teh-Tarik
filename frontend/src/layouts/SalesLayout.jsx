@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useCompany } from '../contexts/CompanyContext.jsx';
-import { Home, Store, Banknote, User, LogOut, Coffee, Truck } from 'lucide-react';
+import { Home, Store, Banknote, User, LogOut, Coffee, Truck, PackageCheck } from 'lucide-react';
 import NotificationBell from '../components/common/NotificationBell';
 
 const SalesLayout = () => {
@@ -19,6 +19,7 @@ const SalesLayout = () => {
     { to: '/dashboard', label: 'Dashboard', icon: Home },
     { to: '/visits', label: 'Kunjungan', icon: Store },
     { to: '/vehicle-stock', label: 'Stok', icon: Truck },
+    { to: '/stock-requests/new', label: 'Request', icon: PackageCheck },
     { to: '/setoran', label: 'Setoran', icon: Banknote },
     { to: '/account', label: 'Akun', icon: User },
   ];
