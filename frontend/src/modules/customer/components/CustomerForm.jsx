@@ -374,7 +374,6 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
           </select>
         </div>
       </section>
-      )}
 
       {!isSales && (
         <section className="card-custom" style={{ padding: '16px 20px' }}>

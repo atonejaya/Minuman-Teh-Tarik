@@ -40,7 +40,7 @@ const EntityDetailPage = ({ title, summary, tabs, actions }) => {
             ))}
           </div>
           <div style={{ padding: '0' }}>
-            {tabs.find(t => t.id === activeTab)?.content || (
+            {tabs.find(t => t.id === activeTab)?.component || tabs.find(t => t.id === activeTab)?.content || (
               <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Tidak ada konten untuk tab ini.</div>
             )}
           </div>
