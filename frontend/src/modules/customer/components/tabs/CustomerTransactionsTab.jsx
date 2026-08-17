@@ -5,20 +5,30 @@ import { useCustomerTransactions } from '../../hooks/useCustomerTransactions';
 const CustomerTransactionsTab = ({ customer }) => {
   const { data: transactions, loading } = useCustomerTransactions(customer?.id);
 
-  if (loading) return <div style={{ padding: 'var(--spacing-xl)' }}>Memuat transaksi...</div>;
+  if (loading) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+        <div style={{ display: 'inline-block', width: '24px', height: '24px', border: '3px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <p style={{ marginTop: '12px', fontSize: '14px' }}>Memuat transaksi...</p>
+      </div>
+    );
+  }
 
   if (!transactions || transactions.length === 0) {
     return (
-      <div style={{ padding: 'var(--spacing-xl)', textAlign: 'center' }}>
-        <h3>Belum Ada Transaksi</h3>
-        <p>Pelanggan ini belum memiliki transaksi. Faktur dan pembayaran baru akan muncul di sini.</p>
+      <div style={{ padding: '48px 24px', textAlign: 'center' }}>
+        <div style={{ fontSize: '40px', marginBottom: '12px', opacity: 0.3 }}> </div>
+        <h4 style={{ margin: '0 0 8px', fontSize: '16px', fontWeight: '600', color: 'var(--text-main)' }}>Belum Ada Transaksi</h4>
+        <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', maxWidth: '320px', marginInline: 'auto' }}>
+          Pelanggan ini belum memiliki transaksi. Faktur dan pembayaran baru akan muncul di sini.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="card">
-      <h3 style={{ padding: 'var(--spacing-lg)', margin: 0, borderBottom: '1px solid var(--color-border)' }}>Riwayat Transaksi</h3>
+    <div>
+      <h4 style={{ margin: '0 0 16px', fontSize: '15px', fontWeight: '600', color: 'var(--text-main)' }}>Riwayat Transaksi</h4>
       <CustomerTimeline events={transactions} />
     </div>
   );

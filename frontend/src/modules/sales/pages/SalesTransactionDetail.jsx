@@ -19,7 +19,10 @@ const PAYMENT_METHOD_LABELS = {
 };
 
 const InfoRow = ({ label, value }) => (
-  <p><strong>{label}:</strong> {value || '-'}</p>
+  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
+    <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{label}</span>
+    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>{value || '-'}</span>
+  </div>
 );
 
 const SalesTransactionDetail = () => {
@@ -56,13 +59,17 @@ const SalesTransactionDetail = () => {
     return <div className="alert alert-danger m-3" role="alert">{error}</div>;
   }
 
+  const tableStyle = { width: '100%', borderCollapse: 'collapse', fontSize: '14px' };
+  const thStyle = { padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: 'var(--text-muted)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.03em', borderBottom: '2px solid var(--border)' };
+  const tdStyle = { padding: '12px', borderBottom: '1px solid var(--border)' };
+
   const tabs = [
     {
       id: 'overview',
       label: 'Ringkasan',
-      content: (
-        <div className="tab-section">
-          <h3>Ringkasan</h3>
+      component: (
+        <div style={{ maxWidth: '640px' }}>
+          <h4 style={{ margin: '0 0 14px', fontSize: '15px', fontWeight: '600', color: 'var(--text-main)' }}>Informasi Transaksi</h4>
           <InfoRow label="No. Transaksi" value={data?.code} />
           <InfoRow label="Warung" value={data?.customer_name} />
           <InfoRow label="Sales" value={data?.salesman_name} />
@@ -78,67 +85,67 @@ const SalesTransactionDetail = () => {
     {
       id: 'items',
       label: 'Item',
-      content: data?.items && data.items.length > 0 ? (
+      component: data?.items && data.items.length > 0 ? (
         <div style={{ overflowX: 'auto' }}>
-          <table className="entity-table" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+          <table style={tableStyle}>
             <thead>
               <tr>
-                <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Item</th>
-                <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Qty</th>
-                <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Harga</th>
-                <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Subtotal</th>
+                <th style={thStyle}>Item</th>
+                <th style={thStyle}>Qty</th>
+                <th style={thStyle}>Harga</th>
+                <th style={thStyle}>Subtotal</th>
               </tr>
             </thead>
             <tbody>
               {data.items.map((item) => (
                 <tr key={item.id}>
-                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{item.product_name || item.product?.name || '-'}</td>
-                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{item.qty}</td>
-                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{formatRupiah(item.selling_price)}</td>
-                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{formatRupiah(item.subtotal)}</td>
+                  <td style={tdStyle}>{item.product_name || item.product?.name || '-'}</td>
+                  <td style={tdStyle}>{item.qty}</td>
+                  <td style={tdStyle}>{formatRupiah(item.selling_price)}</td>
+                  <td style={{ ...tdStyle, fontWeight: '700' }}>{formatRupiah(item.subtotal)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      ) : <p>Tidak ada item.</p>
+      ) : <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Tidak ada item.</p>
     },
     {
       id: 'payments',
       label: 'Pembayaran',
-      content: data?.payments && data.payments.length > 0 ? (
+      component: data?.payments && data.payments.length > 0 ? (
         <div style={{ overflowX: 'auto' }}>
-          <table className="entity-table" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+          <table style={tableStyle}>
             <thead>
               <tr>
-                <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Kode</th>
-                <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Tanggal</th>
-                <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Metode</th>
-                <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Jumlah</th>
-                <th style={{ borderBottom: '1px solid #ddd', padding: '8px' }}>Status</th>
+                <th style={thStyle}>Kode</th>
+                <th style={thStyle}>Tanggal</th>
+                <th style={thStyle}>Metode</th>
+                <th style={thStyle}>Jumlah</th>
+                <th style={thStyle}>Status</th>
               </tr>
             </thead>
             <tbody>
               {data.payments.map((payment) => (
                 <tr key={payment.id}>
-                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{payment.code}</td>
-                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{payment.payment_date ? new Date(payment.payment_date).toLocaleDateString('id-ID') : '-'}</td>
-                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{PAYMENT_METHOD_LABELS[payment.payment_method] || payment.payment_method}</td>
-                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{formatRupiah(payment.amount)}</td>
-                  <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}><StatusBadge status={payment.status} /></td>
+                  <td style={tdStyle}>{payment.code}</td>
+                  <td style={tdStyle}>{payment.payment_date ? new Date(payment.payment_date).toLocaleDateString('id-ID') : '-'}</td>
+                  <td style={tdStyle}>{PAYMENT_METHOD_LABELS[payment.payment_method] || payment.payment_method}</td>
+                  <td style={{ ...tdStyle, fontWeight: '700' }}>{formatRupiah(payment.amount)}</td>
+                  <td style={tdStyle}><StatusBadge status={payment.status} /></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      ) : <p>Belum ada pembayaran tercatat.</p>
+      ) : <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Belum ada pembayaran tercatat.</p>
     },
     {
       id: 'financial',
       label: 'Keuangan',
-      content: (
-        <div className="tab-section">
-          <h3>Ringkasan Keuangan</h3>
+      component: (
+        <div style={{ maxWidth: '640px' }}>
+          <h4 style={{ margin: '0 0 14px', fontSize: '15px', fontWeight: '600', color: 'var(--text-main)' }}>Ringkasan Keuangan</h4>
           <InfoRow label="Subtotal" value={formatRupiah(data?.subtotal)} />
           <InfoRow label="Diskon" value={formatRupiah((data?.item_discount || 0) + (data?.transaction_discount || 0))} />
           <InfoRow label="Pajak" value={formatRupiah(data?.tax)} />
@@ -151,10 +158,10 @@ const SalesTransactionDetail = () => {
   ];
 
   const summary = data ? (
-    <div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
       <StatusBadge status={data.status} />
       <StatusBadge status={data.payment_status} />
-      <span className="ms-2"><strong>{data.customer_name}</strong> — {formatRupiah(data.grand_total)}</span>
+      <span style={{ fontSize: '14px' }}><strong>{data.customer_name}</strong> — {formatRupiah(data.grand_total)}</span>
     </div>
   ) : null;
 

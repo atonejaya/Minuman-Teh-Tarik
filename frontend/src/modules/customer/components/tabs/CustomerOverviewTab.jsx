@@ -3,7 +3,7 @@ import CustomerSummary from '../CustomerSummary';
 
 const CustomerOverviewTab = ({ customer }) => {
   return (
-    <div style={{ maxWidth: '800px' }}>
+    <div>
       <CustomerSummary data={customer} />
     </div>
   );
