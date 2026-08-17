@@ -53,7 +53,7 @@ const SalesStockIssueFormComponent = ({ onSubmit, onCancel }) => {
       try {
         const { data, error } = await supabase
           .from('Product')
-          .select('id, code, name, cost_price')
+          .select('id, code, name, cost_price, unit_id')
           .eq('is_active', true)
           .order('name');
         if (error) throw error;
@@ -78,6 +78,14 @@ const SalesStockIssueFormComponent = ({ onSubmit, onCancel }) => {
       const items = prev.items.map((item, i) => (i === index ? { ...item, [field]: value } : item));
       return { ...prev, items };
     });
+  };
+
+  const handleProductChange = (index, productId) => {
+    const product = products.find((p) => String(p.id) === String(productId));
+    updateItem(index, 'product_id', productId);
+    if (product && product.unit_id) {
+      updateItem(index, 'unit_id', product.unit_id);
+    }
   };
 
   const addItem = () => {
@@ -141,7 +149,7 @@ const SalesStockIssueFormComponent = ({ onSubmit, onCancel }) => {
             <select
               style={inputStyle}
               value={item.product_id}
-              onChange={(e) => updateItem(index, 'product_id', e.target.value)}
+              onChange={(e) => handleProductChange(index, e.target.value)}
             >
               <option value="">Pilih produk</option>
               {products.map((p) => (
