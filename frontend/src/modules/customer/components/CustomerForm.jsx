@@ -364,15 +364,46 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
         </section>
       </div>
 
+      <section className="card-custom" style={{ padding: '20px' }}>
+        <h3 style={{ marginBottom: '14px', fontSize: '16px' }}>Status</h3>
+        <div className="form-group">
+          <select className="form-input" style={{ ...inputStyle, maxWidth: '300px' }} name="status" value={formData.status} onChange={handleChange}>
+            <option value="ACTIVE">Aktif</option>
+            <option value="INACTIVE">Nonaktif</option>
+            <option value="BLACKLIST">Blacklist</option>
+          </select>
+        </div>
+      </section>
+      )}
+
       {!isSales && (
-        <section className="card-custom" style={{ padding: '20px' }}>
-          <h3 style={{ marginBottom: '14px', fontSize: '16px' }}>Status</h3>
-          <div className="form-group">
-            <select className="form-input" style={{ ...inputStyle, maxWidth: '300px' }} name="status" value={formData.status} onChange={handleChange}>
-              <option value="ACTIVE">Aktif</option>
-              <option value="INACTIVE">Nonaktif</option>
-              <option value="BLACKLIST">Blacklist</option>
-            </select>
+        <section className="card-custom" style={{ padding: '16px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+            {gpsStatus === 'loading' && <Crosshair size={18} color="var(--warning)" style={{ marginTop: '2px', flexShrink: 0 }} />}
+            {gpsStatus === 'success' && <CheckCircle2 size={18} color="var(--success)" style={{ marginTop: '2px', flexShrink: 0 }} />}
+            {(gpsStatus === 'denied' || gpsStatus === 'idle') && <TriangleAlert size={18} color="var(--text-muted)" style={{ marginTop: '2px', flexShrink: 0 }} />}
+            <div style={{ flex: 1 }}>
+              <p style={{ fontWeight: '600', fontSize: '14px', margin: '0 0 2px' }}>
+                {gpsStatus === 'success'
+                  ? 'Lokasi GPS Terekam'
+                  : gpsStatus === 'loading'
+                  ? 'Mendeteksi Lokasi GPS...'
+                  : 'Lokasi GPS Warung'}
+              </p>
+              <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>
+                {gpsStatus === 'success'
+                  ? `${Number(formData.latitude).toFixed(5)}, ${Number(formData.longitude).toFixed(5)}`
+                  : gpsMessage || 'Klik tombol untuk mengambil lokasi GPS saat ini.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn"
+              style={{ padding: '6px 12px', fontSize: '12px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              onClick={captureGps}
+            >
+              <Crosshair size={13} /> {gpsStatus === 'success' ? 'Update GPS' : 'Ambil Lokasi'}
+            </button>
           </div>
         </section>
       )}
