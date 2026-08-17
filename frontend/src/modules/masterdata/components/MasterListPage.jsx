@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import EntityListPage from '../../../components/entity/EntityListPage';
 import MasterTable from './MasterTable';
 import { useToast } from '../../../components/toast/ToastContext';
@@ -47,7 +48,7 @@ const MasterListPage = ({ title, description, addPath, columns, fetchList, onTog
       description={description}
       error={error}
       actions={{
-        left: [{ label: '+ Tambah', variant: 'primary', onClick: () => navigate(`${addPath}/new`) }],
+        left: [{ icon: Plus, iconOnly: true, tooltip: 'Tambah', variant: 'primary', onClick: () => navigate(`${addPath}/new`) }],
       }}
       table={(props) => (
         <MasterTable

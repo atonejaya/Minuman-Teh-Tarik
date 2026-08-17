@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Building2, Coins, Hash, Users, Upload, Save, Loader2, ImageOff, Trash2, RefreshCw } from 'lucide-react';
+import { Building2, Coins, Hash, Users, Upload, Save, Loader2, ImageOff, Trash2, RefreshCw, Power, PowerOff } from 'lucide-react';
 import { supabase } from '../../../utils/supabase';
 import SettingsApiService from '../services/SettingsApiService';
 import { useCompany } from '../../../contexts/CompanyContext';
@@ -233,10 +233,9 @@ const SettingsPage = () => {
                   <tr>
                     <th style={TH}>Nama Lengkap</th>
                     <th style={TH}>Username</th>
-                    <th style={TH}>Role</th>
                     <th style={TH}>No HP</th>
                     <th style={TH}>Status</th>
-                    <th style={TH}>Aksi</th>
+                    <th style={{ ...TH, width: '60px', textAlign: 'center' }}>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -244,18 +243,32 @@ const SettingsPage = () => {
                     <tr key={u.id}>
                       <td style={{ ...CELL, fontWeight: '600' }}>{u.name}</td>
                       <td style={CELL}>{u.username}</td>
-                      <td style={CELL}>
-                        <span className={`badge ${u.role === 'OWNER' ? 'badge-muted' : 'badge-warning'}`}>{u.role}</span>
-                      </td>
                       <td style={CELL}>{u.phone || '-'}</td>
                       <td style={CELL}>
                         <span className={`badge ${u.is_active ? 'badge-success' : 'badge-muted'}`}>
                           {u.is_active ? 'Aktif' : 'Nonaktif'}
                         </span>
                       </td>
-                      <td style={CELL}>
-                        <button className="btn" style={{ padding: '4px 10px', fontSize: '12px' }} onClick={() => toggleUser(u)}>
-                          {u.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+                      <td style={{ ...CELL, textAlign: 'center' }}>
+                        <button
+                          title={u.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+                          onClick={() => toggleUser(u)}
+                          style={{
+                            padding: '6px',
+                            borderRadius: '6px',
+                            color: u.is_active ? 'var(--danger)' : 'var(--success)',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'background-color 0.15s',
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, currentColor 10%, transparent)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          {u.is_active ? <PowerOff size={15} /> : <Power size={15} />}
                         </button>
                       </td>
                     </tr>

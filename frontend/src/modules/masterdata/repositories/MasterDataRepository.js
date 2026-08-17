@@ -1,13 +1,20 @@
 import { supabase } from '../../../utils/supabase';
 
 const MasterDataRepository = {
-  async list(table, { page = 1, pageSize = 20, order = 'name', select = '*' } = {}) {
+  async list(table, { page = 1, pageSize = 20, order = 'name', select = '*', filters = {} } = {}) {
     const from = (page - 1) * pageSize;
     let query = supabase
       .from(table)
       .select(select, { count: 'exact' })
       .order(order)
       .range(from, from + pageSize - 1);
+
+    for (const [key, value] of Object.entries(filters)) {
+      if (value !== undefined && value !== null && value !== '') {
+        query = query.eq(key, value);
+      }
+    }
+
     const { data, error, count } = await query;
     if (error) throw error;
     return {

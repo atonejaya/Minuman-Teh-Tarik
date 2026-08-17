@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Plus, Eye, Pencil, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import EntityListPage from '../../../components/entity/EntityListPage';
 import SalesStockIssueRepository from '../../../repositories/SalesStockIssueRepository';
 import { useToast } from '../../../components/toast/ToastContext';
@@ -7,14 +8,22 @@ import TableMessage from '../../../components/shared/TableMessage';
 import StatusBadge from '../../../components/shared/StatusBadge';
 import { tableCell } from '../../../utils/tableStyles.js';
 
-const SalesStockIssueTable = ({ data, loading, onView, onEdit, onDelete, onConfirm, onClose }) => {
-  if (loading) {
-    return <TableMessage>Memuat...</TableMessage>;
-  }
+const iconBtnStyle = (color) => ({
+  padding: '6px',
+  borderRadius: '6px',
+  color,
+  backgroundColor: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'background-color 0.15s',
+});
 
-  if (!data || data.length === 0) {
-    return <TableMessage>Tidak ada mutasi stok.</TableMessage>;
-  }
+const SalesStockIssueTable = ({ data, loading, onView, onEdit, onDelete, onConfirm, onClose }) => {
+  if (loading) return <TableMessage>Memuat...</TableMessage>;
+  if (!data || data.length === 0) return <TableMessage>Tidak ada mutasi stok.</TableMessage>;
 
   return (
     <div style={{ overflowX: 'auto' }}>
@@ -27,7 +36,7 @@ const SalesStockIssueTable = ({ data, loading, onView, onEdit, onDelete, onConfi
             <th style={tableCell}>Gudang</th>
             <th style={tableCell}>Total Qty</th>
             <th style={tableCell}>Status</th>
-            <th style={tableCell}>Aksi</th>
+            <th style={{ ...tableCell, width: '140px', textAlign: 'center' }}>Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -38,31 +47,41 @@ const SalesStockIssueTable = ({ data, loading, onView, onEdit, onDelete, onConfi
               <td style={tableCell}>{item.sales?.name || '-'}</td>
               <td style={tableCell}>{item.warehouse?.name || '-'}</td>
               <td style={tableCell}>{item.total_qty}</td>
-              <td style={tableCell}>
-                <StatusBadge status={item.status} />
-              </td>
-              <td style={tableCell}>
-                <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px' }} onClick={() => onView(item.id)}>
-                  Lihat
-                </button>
-                {item.status === 'DRAFT' && (
-                  <>
-                    <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--warning)', color: '#fff' }} onClick={() => onEdit(item.id)}>
-                      Edit
-                    </button>
-                    <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--danger)', color: '#fff' }} onClick={() => onDelete(item.id)}>
-                      Hapus
-                    </button>
-                    <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--success)', color: '#fff' }} onClick={() => onConfirm(item.id)}>
-                      Konfirmasi
-                    </button>
-                  </>
-                )}
-                {item.status === 'CONFIRMED' && (
-                  <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', backgroundColor: 'var(--secondary)', color: '#fff' }} onClick={() => onClose(item.id)}>
-                    Tutup
+              <td style={tableCell}><StatusBadge status={item.status} /></td>
+              <td style={{ ...tableCell, textAlign: 'center' }}>
+                <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                  <button title="Lihat" style={iconBtnStyle('var(--primary)')} onClick={() => onView(item.id)}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--primary) 10%, transparent)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                    <Eye size={15} />
                   </button>
-                )}
+                  {item.status === 'DRAFT' && (
+                    <>
+                      <button title="Konfirmasi" style={iconBtnStyle('var(--success)')} onClick={() => onConfirm(item.id)}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--success) 10%, transparent)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                        <CheckCircle size={15} />
+                      </button>
+                      <button title="Ubah" style={iconBtnStyle('var(--warning)')} onClick={() => onEdit(item.id)}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--warning) 10%, transparent)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                        <Pencil size={15} />
+                      </button>
+                      <button title="Hapus" style={iconBtnStyle('var(--danger)')} onClick={() => onDelete(item.id)}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--danger) 10%, transparent)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                        <Trash2 size={15} />
+                      </button>
+                    </>
+                  )}
+                  {item.status === 'CONFIRMED' && (
+                    <button title="Tutup" style={iconBtnStyle('var(--secondary)')} onClick={() => onClose(item.id)}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--secondary) 10%, transparent)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                      <XCircle size={15} />
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
@@ -93,9 +112,7 @@ const SalesStockIssueList = () => {
     }
   }, [page]);
 
-  useEffect(() => {
-    fetchIssues();
-  }, [fetchIssues]);
+  useEffect(() => { fetchIssues(); }, [fetchIssues]);
 
   const handleConfirm = async (id) => {
     try {
@@ -133,7 +150,7 @@ const SalesStockIssueList = () => {
     <EntityListPage
       title="Mutasi Stok"
       actions={{
-        left: [{ label: '+ Tambah Mutasi Stok', variant: 'primary', onClick: () => navigate('/sales/stock-issues/new') }]
+        left: [{ icon: Plus, iconOnly: true, tooltip: 'Tambah Mutasi Stok', variant: 'primary', onClick: () => navigate('/sales/stock-issues/new') }]
       }}
       table={(props) => (
         <SalesStockIssueTable

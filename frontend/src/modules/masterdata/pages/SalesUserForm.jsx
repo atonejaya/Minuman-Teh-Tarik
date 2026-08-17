@@ -20,10 +20,6 @@ const SalesUserForm = () => {
   const baseFields = [
     { name: 'name', label: 'Nama', required: true },
     { name: 'username', label: 'Username', required: true },
-    { name: 'role', label: 'Role', type: 'select', options: [
-      { value: 'SALES', label: 'SALES' },
-      { value: 'OWNER', label: 'OWNER' },
-    ], required: true },
     { name: 'phone', label: 'No. HP' },
     { name: 'area_id', label: 'Area', type: 'select', options: areas.map((a) => ({ value: a.id, label: a.name })) },
     { name: 'is_active', label: 'Aktif', type: 'checkbox', default: true },
@@ -44,7 +40,7 @@ const SalesUserForm = () => {
           p_username: payload.username,
           p_password: payload.password,
           p_name: payload.name,
-          p_role: payload.role,
+          p_role: 'SALES',
           p_phone: payload.phone || null,
           p_area_id: payload.area_id ? Number(payload.area_id) : null,
           p_is_active: payload.is_active,
@@ -52,7 +48,7 @@ const SalesUserForm = () => {
         if (error) throw error;
         return true;
       }}
-      update={(id, payload) => MasterDataRepository.update('User', id, payload)}
+      update={(id, payload) => MasterDataRepository.update('User', id, { ...payload, role: 'SALES' })}
       toPayload={(payload) => ({ ...payload, area_id: payload.area_id ? Number(payload.area_id) : null })}
     />
   );

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Plus, Eye } from 'lucide-react';
 import EntityListPage from '../../../components/entity/EntityListPage';
 import { SalesTransactionRepository } from '../../../repositories/SalesTransactionRepository';
 import StatusBadge from '../../../components/shared/StatusBadge';
@@ -7,14 +8,22 @@ import TableMessage from '../../../components/shared/TableMessage';
 import { formatRupiah } from '../../../utils/format.js';
 import { tableCell } from '../../../utils/tableStyles.js';
 
-const SalesTransactionTable = ({ data, loading, onView }) => {
-  if (loading) {
-    return <TableMessage>Memuat...</TableMessage>;
-  }
+const iconBtnStyle = (color) => ({
+  padding: '6px',
+  borderRadius: '6px',
+  color,
+  backgroundColor: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'background-color 0.15s',
+});
 
-  if (!data || data.length === 0) {
-    return <TableMessage>Tidak ada transaksi penjualan.</TableMessage>;
-  }
+const SalesTransactionTable = ({ data, loading, onView }) => {
+  if (loading) return <TableMessage>Memuat...</TableMessage>;
+  if (!data || data.length === 0) return <TableMessage>Tidak ada transaksi penjualan.</TableMessage>;
 
   return (
     <div style={{ overflowX: 'auto' }}>
@@ -27,7 +36,7 @@ const SalesTransactionTable = ({ data, loading, onView }) => {
             <th style={tableCell}>Status</th>
             <th style={tableCell}>Pembayaran</th>
             <th style={tableCell}>Total</th>
-            <th style={tableCell}>Aksi</th>
+            <th style={{ ...tableCell, width: '60px', textAlign: 'center' }}>Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -39,10 +48,14 @@ const SalesTransactionTable = ({ data, loading, onView }) => {
               <td style={tableCell}><StatusBadge status={item.status} /></td>
               <td style={tableCell}><StatusBadge status={item.payment_status} /></td>
               <td style={{ ...tableCell, fontWeight: '600' }}>{formatRupiah(item.grand_total)}</td>
-              <td style={tableCell}>
-                <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: '12px' }} onClick={() => onView(item.id)}>
-                  Lihat
-                </button>
+              <td style={{ ...tableCell, textAlign: 'center' }}>
+                <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                  <button title="Lihat" style={iconBtnStyle('var(--primary)')} onClick={() => onView(item.id)}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--primary) 10%, transparent)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                    <Eye size={15} />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
@@ -72,15 +85,13 @@ const SalesTransactionList = () => {
     }
   }, [page]);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
+  useEffect(() => { fetchTransactions(); }, [fetchTransactions]);
 
   return (
     <EntityListPage
       title="Transaksi Penjualan"
       actions={{
-        left: [{ label: '+ Tambah Transaksi Penjualan', variant: 'primary', onClick: () => navigate('/sales/transactions/new') }]
+        left: [{ icon: Plus, iconOnly: true, tooltip: 'Tambah Transaksi', variant: 'primary', onClick: () => navigate('/sales/transactions/new') }]
       }}
       table={(props) => (
         <SalesTransactionTable

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Plus, Eye, CheckCircle, ArrowDownToLine } from 'lucide-react';
 import EntityListPage from '../../../components/entity/EntityListPage';
 import { SalesReturnRepository } from '../../../repositories/SalesReturnRepository';
 import { useAuth } from '../../../contexts/AuthContext.jsx';
@@ -14,14 +15,22 @@ const REFERENCE_TYPE_LABELS = {
   CREDIT_NOTE: 'Nota Kredit', MANUAL: 'Manual',
 };
 
-const SalesReturnTable = ({ data, loading, onView, onApprove, onReceive }) => {
-  if (loading) {
-    return <TableMessage>Memuat...</TableMessage>;
-  }
+const iconBtnStyle = (color) => ({
+  padding: '6px',
+  borderRadius: '6px',
+  color,
+  backgroundColor: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'background-color 0.15s',
+});
 
-  if (!data || data.length === 0) {
-    return <TableMessage>Tidak ada retur penjualan.</TableMessage>;
-  }
+const SalesReturnTable = ({ data, loading, onView, onApprove, onReceive }) => {
+  if (loading) return <TableMessage>Memuat...</TableMessage>;
+  if (!data || data.length === 0) return <TableMessage>Tidak ada retur penjualan.</TableMessage>;
 
   return (
     <div style={{ overflowX: 'auto' }}>
@@ -34,7 +43,7 @@ const SalesReturnTable = ({ data, loading, onView, onApprove, onReceive }) => {
             <th style={tableCell}>Referensi</th>
             <th style={tableCell}>Total</th>
             <th style={tableCell}>Status</th>
-            <th style={tableCell}>Aksi</th>
+            <th style={{ ...tableCell, width: '100px', textAlign: 'center' }}>Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -46,20 +55,28 @@ const SalesReturnTable = ({ data, loading, onView, onApprove, onReceive }) => {
               <td style={tableCell}>{REFERENCE_TYPE_LABELS[item.reference_type] || item.reference_type || '-'}</td>
               <td style={{ ...tableCell, fontWeight: '600' }}>{formatRupiah(item.total_amount)}</td>
               <td style={tableCell}><StatusBadge status={item.status} /></td>
-              <td style={tableCell}>
-                <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: '12px' }} onClick={() => onView(item.id)}>
-                  Lihat
-                </button>
-                {item.status === 'DRAFT' && onApprove && (
-                  <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginLeft: '6px', backgroundColor: 'var(--secondary)', color: '#fff' }} onClick={() => onApprove(item.id)}>
-                    Setujui
+              <td style={{ ...tableCell, textAlign: 'center' }}>
+                <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                  <button title="Lihat" style={iconBtnStyle('var(--primary)')} onClick={() => onView(item.id)}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--primary) 10%, transparent)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                    <Eye size={15} />
                   </button>
-                )}
-                {['DRAFT', 'APPROVED'].includes(item.status) && onReceive && (
-                  <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginLeft: '6px', backgroundColor: 'var(--success)', color: '#fff' }} onClick={() => onReceive(item.id)}>
-                    Terima
-                  </button>
-                )}
+                  {item.status === 'DRAFT' && onApprove && (
+                    <button title="Setujui" style={iconBtnStyle('var(--success)')} onClick={() => onApprove(item.id)}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--success) 10%, transparent)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                      <CheckCircle size={15} />
+                    </button>
+                  )}
+                  {['DRAFT', 'APPROVED'].includes(item.status) && onReceive && (
+                    <button title="Terima" style={iconBtnStyle('var(--warning)')} onClick={() => onReceive(item.id)}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--warning) 10%, transparent)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                      <ArrowDownToLine size={15} />
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
@@ -92,9 +109,7 @@ const SalesReturnList = () => {
     }
   }, [page]);
 
-  useEffect(() => {
-    fetchReturns();
-  }, [fetchReturns]);
+  useEffect(() => { fetchReturns(); }, [fetchReturns]);
 
   const runAction = async (id, fn, successMessage) => {
     try {
@@ -110,7 +125,7 @@ const SalesReturnList = () => {
     <EntityListPage
       title="Retur Penjualan"
       actions={{
-        left: [{ label: '+ Tambah Retur Penjualan', variant: 'primary', onClick: () => navigate('/sales/returns/new') }]
+        left: [{ icon: Plus, iconOnly: true, tooltip: 'Tambah Retur', variant: 'primary', onClick: () => navigate('/sales/returns/new') }]
       }}
       table={(props) => (
         <SalesReturnTable

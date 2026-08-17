@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Plus, Eye, Pencil, Trash2, CheckCircle } from 'lucide-react';
 import EntityListPage from '../../../components/entity/EntityListPage';
 import WarehouseStockInRepository from '../../../repositories/WarehouseStockInRepository';
 import { useToast } from '../../../components/toast/ToastContext';
@@ -7,14 +8,22 @@ import TableMessage from '../../../components/shared/TableMessage';
 import StatusBadge from '../../../components/shared/StatusBadge';
 import { tableCell } from '../../../utils/tableStyles.js';
 
-const WarehouseStockInTable = ({ data, loading, onView, onEdit, onDelete, onConfirm }) => {
-  if (loading) {
-    return <TableMessage>Memuat...</TableMessage>;
-  }
+const iconBtnStyle = (color) => ({
+  padding: '6px',
+  borderRadius: '6px',
+  color,
+  backgroundColor: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'background-color 0.15s',
+});
 
-  if (!data || data.length === 0) {
-    return <TableMessage>Tidak ada data barang masuk.</TableMessage>;
-  }
+const WarehouseStockInTable = ({ data, loading, onView, onEdit, onDelete, onConfirm }) => {
+  if (loading) return <TableMessage>Memuat...</TableMessage>;
+  if (!data || data.length === 0) return <TableMessage>Tidak ada data barang masuk.</TableMessage>;
 
   return (
     <div style={{ overflowX: 'auto' }}>
@@ -26,7 +35,7 @@ const WarehouseStockInTable = ({ data, loading, onView, onEdit, onDelete, onConf
             <th style={tableCell}>Gudang Tujuan</th>
             <th style={tableCell}>Total Qty</th>
             <th style={tableCell}>Status</th>
-            <th style={tableCell}>Aksi</th>
+            <th style={{ ...tableCell, width: '120px', textAlign: 'center' }}>Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -36,26 +45,34 @@ const WarehouseStockInTable = ({ data, loading, onView, onEdit, onDelete, onConf
               <td style={tableCell}>{new Date(item.doc_date).toLocaleDateString('id-ID')}</td>
               <td style={tableCell}>{item.warehouse?.name || '-'}</td>
               <td style={tableCell}>{item.total_qty}</td>
-              <td style={tableCell}>
-                <StatusBadge status={item.status} />
-              </td>
-              <td style={tableCell}>
-                <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px' }} onClick={() => onView(item.id)}>
-                  Lihat
-                </button>
-                {item.status === 'DRAFT' && (
-                  <>
-                    <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--success)', color: '#fff' }} onClick={() => onConfirm(item.id)}>
-                      Konfirmasi
-                    </button>
-                    <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)' }} onClick={() => onEdit(item.id)}>
-                      Ubah
-                    </button>
-                    <button className="btn" style={{ padding: '4px 10px', fontSize: '12px', marginRight: '6px', backgroundColor: 'var(--error)', color: '#fff' }} onClick={() => { if(window.confirm('Hapus transaksi draft ini?')) onDelete(item.id); }}>
-                      Hapus
-                    </button>
-                  </>
-                )}
+              <td style={tableCell}><StatusBadge status={item.status} /></td>
+              <td style={{ ...tableCell, textAlign: 'center' }}>
+                <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                  <button title="Lihat" style={iconBtnStyle('var(--primary)')} onClick={() => onView(item.id)}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--primary) 10%, transparent)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                    <Eye size={15} />
+                  </button>
+                  {item.status === 'DRAFT' && (
+                    <>
+                      <button title="Konfirmasi" style={iconBtnStyle('var(--success)')} onClick={() => onConfirm(item.id)}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--success) 10%, transparent)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                        <CheckCircle size={15} />
+                      </button>
+                      <button title="Ubah" style={iconBtnStyle('var(--warning)')} onClick={() => onEdit(item.id)}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--warning) 10%, transparent)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                        <Pencil size={15} />
+                      </button>
+                      <button title="Hapus" style={iconBtnStyle('var(--danger)')} onClick={() => { if(window.confirm('Hapus transaksi draft ini?')) onDelete(item.id); }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--danger) 10%, transparent)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                        <Trash2 size={15} />
+                      </button>
+                    </>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
@@ -86,9 +103,7 @@ const WarehouseStockInList = () => {
     }
   }, [page]);
 
-  useEffect(() => {
-    fetchStockIns();
-  }, [fetchStockIns]);
+  useEffect(() => { fetchStockIns(); }, [fetchStockIns]);
 
   const handleConfirm = async (id) => {
     try {
@@ -114,7 +129,7 @@ const WarehouseStockInList = () => {
     <EntityListPage
       title="Barang Masuk (Produksi)"
       actions={{
-        left: [{ label: '+ Tambah Barang Masuk', variant: 'primary', onClick: () => navigate('/sales/stock-in/new') }]
+        left: [{ icon: Plus, iconOnly: true, tooltip: 'Tambah Barang Masuk', variant: 'primary', onClick: () => navigate('/sales/stock-in/new') }]
       }}
       table={(props) => (
         <WarehouseStockInTable
