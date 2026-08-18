@@ -53,10 +53,10 @@ const CustomerFormPage = () => {
           await supabase.from('OutletParStock').insert(rows);
         }
       }
-      toast.success('Data pelanggan berhasil disimpan');
+      toast.success('Data warung berhasil disimpan');
       navigate(isSales ? '/dashboard' : '/customers');
     } catch (err) {
-      setError(err.message || 'Gagal menyimpan pelanggan');
+      setError(err.message || 'Gagal menyimpan warung');
     } finally {
       setIsSubmitting(false);
     }
@@ -68,7 +68,7 @@ const CustomerFormPage = () => {
 
   return (
     <EntityFormPage
-      title={isEdit ? 'Ubah Pelanggan' : 'Buat Pelanggan Baru'}
+      title={isEdit ? 'Ubah Warung' : 'Tambah Warung'}
       form={({ onCancel }) => {
         if (isEdit && isLoadingData) {
           return <p className="empty-hint">Memuat...</p>;

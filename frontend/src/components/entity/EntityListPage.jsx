@@ -22,10 +22,12 @@ const EntityListPage = ({
 
   const toolbarActions = { ...(actions || {}) };
   if (headerProps?.onAdd && headerProps?.addButtonLabel) {
-    toolbarActions.left = [
-      ...(toolbarActions.left || []),
-      { label: headerProps.addButtonLabel, variant: 'primary', onClick: headerProps.onAdd },
-    ];
+    const addBtn = { label: headerProps.addButtonLabel, variant: 'primary', onClick: headerProps.onAdd };
+    if (headerProps.addPosition === 'right') {
+      toolbarActions.right = [addBtn, ...(toolbarActions.right || [])];
+    } else {
+      toolbarActions.left = [...(toolbarActions.left || []), addBtn];
+    }
   }
 
   const table = TableComponent ? <TableComponent data={data} /> : tableComponent;

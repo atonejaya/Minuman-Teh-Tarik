@@ -14,7 +14,7 @@ export const useCustomers = (initialParams = {}) => {
       const result = await CustomerApiService.getCustomers(params);
       setData(result.data || []);
     } catch (err) {
-      setError(err.message || 'Gagal memuat data pelanggan');
+      setError(err.message || 'Gagal memuat data warung');
     } finally {
       setLoading(false);
     }

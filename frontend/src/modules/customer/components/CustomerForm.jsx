@@ -280,7 +280,7 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
         <h3 style={{ marginBottom: '14px', fontSize: '16px' }}>Informasi Umum</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
           <div className="form-group">
-            <label className="form-label" style={labelStyle}>Kode Pelanggan</label>
+            <label className="form-label" style={labelStyle}>Kode Warung</label>
             <input type="text" className="form-input" style={inputStyle} name="code" value={formData.code} disabled placeholder="Otomatis Dibuat" />
           </div>
           <div className="form-group">
@@ -387,20 +387,7 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
         )}
       </section>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-        <section className="card-custom" style={{ padding: '20px' }}>
-          <h3 style={{ marginBottom: '14px', fontSize: '16px' }}>Informasi Kredit</h3>
-          <div className="form-group" style={{ marginBottom: '14px' }}>
-            <label className="form-label" style={labelStyle}>Limit Kredit (Rp)</label>
-            <input type="number" className="form-input" style={inputStyle} name="credit_limit" min="0" value={formData.credit_limit} onChange={handleChange} />
-          </div>
-          <div className="form-group">
-            <label className="form-label" style={labelStyle}>Syarat Pembayaran (Hari)</label>
-            <input type="number" className="form-input" style={inputStyle} name="payment_term" min="0" value={formData.payment_term} onChange={handleChange} />
-          </div>
-        </section>
-
-        <section className="card-custom" style={{ padding: '20px' }}>
+      <section className="card-custom" style={{ padding: '20px' }}>
           <h3 style={{ marginBottom: '14px', fontSize: '16px' }}>Informasi Kunjungan</h3>
           <div className="form-group" style={{ marginBottom: '14px' }}>
             <label className="form-label" style={labelStyle}>Hari Kunjungan</label>
@@ -423,7 +410,6 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
             </select>
           </div>
         </section>
-      </div>
 
       <section className="card-custom" style={{ padding: '20px' }}>
         <h3 style={{ marginBottom: '14px', fontSize: '16px' }}>Status</h3>
@@ -537,7 +523,7 @@ const WEEK_LABELS = { ALL: 'Semua', WEEK_1: 'Minggu ke-1', WEEK_2: 'Minggu ke-2'
           disabled={isSubmitting || (isSales && !salesAreaId) || (isSales && gpsStatus !== 'success')}
           title={isSales && gpsStatus !== 'success' ? 'GPS belum berhasil — koordinat akurat wajib diisi sebelum menyimpan' : ''}
         >
-          {isSubmitting ? 'Menyimpan...' : 'Simpan Pelanggan'}
+          {isSubmitting ? 'Menyimpan...' : 'Simpan Warung'}
         </button>
       </div>
     </form>

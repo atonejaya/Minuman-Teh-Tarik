@@ -16,9 +16,9 @@ const CustomerDetail = () => {
 
   const { data: profile, loading, error } = useCustomer(id);
 
-  if (loading) return <p className="empty-hint">Memuat data pelanggan...</p>;
+  if (loading) return <p className="empty-hint">Memuat data warung...</p>;
   if (error) return <div className="alert-error">{error}</div>;
-  if (!profile) return <p className="empty-hint">Pelanggan tidak ditemukan</p>;
+  if (!profile) return <p className="empty-hint">Warung tidak ditemukan</p>;
 
   const tabs = [
     { id: 'overview', label: 'Ringkasan', component: <CustomerOverviewTab customer={profile} /> },

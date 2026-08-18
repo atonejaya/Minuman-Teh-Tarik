@@ -26,7 +26,7 @@ const CustomerList = () => {
       if (action === 'ACTIVE' || action === 'INACTIVE') {
         await Promise.all(selectedIds.map(id => CustomerRepository.update(id, { status: action })));
         refetch();
-        toast.success('Status pelanggan berhasil diperbarui');
+        toast.success('Status warung berhasil diperbarui');
       } else {
         toast.info(`Aksi massal "${action}" belum tersedia`);
       }
@@ -39,10 +39,11 @@ const CustomerList = () => {
   return (
     <EntityListPage
       headerProps={{
-        title: "Pelanggan",
+        title: "Warung",
         description: "Kelola data warung dan toko",
         onAdd: () => navigate('/customers/new'),
-        addButtonLabel: "+ Tambah Pelanggan"
+        addButtonLabel: "+ Tambah Warung",
+        addPosition: 'right'
       }}
       error={error}
       filterProps={<CustomerFilters filters={filters} setFilters={setFilters} />}

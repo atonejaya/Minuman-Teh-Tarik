@@ -31,7 +31,7 @@ export const MENU_CONFIG = [
   {
     key: 'master-data', label: 'Master Data', icon: ChevronDown,
     children: [
-      { to: '/customers', label: 'Pelanggan', icon: Users },
+      { to: '/customers', label: 'Warung', icon: Users },
       { to: '/sales-users', label: 'Sales', icon: UserCog },
       { to: '/products', label: 'Produk', icon: ShoppingCart },
       { to: '/wilayah-rute', label: 'Wilayah & Rute', icon: Map },

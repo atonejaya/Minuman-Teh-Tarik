@@ -14,12 +14,12 @@ const CustomerSummary = ({ data }) => {
       boxShadow: 'var(--shadow-sm)'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-        <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '16px', fontWeight: '600' }}>Ringkasan Pelanggan</h3>
+        <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '16px', fontWeight: '600' }}>Ringkasan Warung</h3>
         <CustomerStatusBadge status={data.status || 'ACTIVE'} />
       </div>
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-        <SummaryItem label="Kode Pelanggan" value={data.code} />
+        <SummaryItem label="Kode Warung" value={data.code} />
         <SummaryItem label="Nama Toko" value={data.name} />
         <SummaryItem label="Pemilik" value={data.owner_name} />
         <SummaryItem label="No. HP" value={data.phone} />

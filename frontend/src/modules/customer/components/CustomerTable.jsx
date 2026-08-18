@@ -55,8 +55,8 @@ const CustomerTable = ({ data, loading, onAction, onBulkAction }) => {
               <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>Sales</th>
               <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>Area / Rute</th>
               <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>Status</th>
-              <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>Sisa</th>
-              <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>Pembelian Terakhir</th>
+              <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>Sisa Stok</th>
+              <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>Kunjungan Terakhir</th>
               <th style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '14px', borderBottom: '1px solid var(--border)' }}>Aksi</th>
             </tr>
           </thead>
@@ -67,7 +67,7 @@ const CustomerTable = ({ data, loading, onAction, onBulkAction }) => {
               </tr>
             ) : data?.length === 0 ? (
               <tr>
-                <td colSpan="10" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Tidak ada pelanggan.</td>
+                <td colSpan="10" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Tidak ada warung.</td>
               </tr>
             ) : (
               data?.map(item => (

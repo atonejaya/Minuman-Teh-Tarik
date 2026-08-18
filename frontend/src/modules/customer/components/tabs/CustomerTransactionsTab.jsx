@@ -20,7 +20,7 @@ const CustomerTransactionsTab = ({ customer }) => {
         <div style={{ fontSize: '40px', marginBottom: '12px', opacity: 0.3 }}> </div>
         <h4 style={{ margin: '0 0 8px', fontSize: '16px', fontWeight: '600', color: 'var(--text-main)' }}>Belum Ada Transaksi</h4>
         <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', maxWidth: '320px', marginInline: 'auto' }}>
-          Pelanggan ini belum memiliki transaksi. Faktur dan pembayaran baru akan muncul di sini.
+          Warung ini belum memiliki transaksi. Faktur dan pembayaran baru akan muncul di sini.
         </p>
       </div>
     );
