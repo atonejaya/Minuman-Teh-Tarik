@@ -101,6 +101,8 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, subm
         min_qty: Number(newParStock.min_qty) || 0,
         max_qty: Number(newParStock.max_qty) || 0,
         is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }).select('*, product:Product(name, code)').single();
       if (!error) {
         setParStocks(prev => [...prev, data]);

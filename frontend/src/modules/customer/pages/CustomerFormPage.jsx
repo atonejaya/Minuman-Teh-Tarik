@@ -42,6 +42,7 @@ const CustomerFormPage = () => {
         const newWarung = await CustomerRepository.create(payload);
         if (parStocks.length > 0 && newWarung?.id) {
           const { supabase } = await import('../../../utils/supabase');
+          const now = new Date().toISOString();
           const rows = parStocks.map(ps => ({
             warung_id: newWarung.id,
             product_id: ps.product_id,
@@ -49,6 +50,8 @@ const CustomerFormPage = () => {
             min_qty: ps.min_qty || 0,
             max_qty: ps.max_qty || 0,
             is_active: true,
+            created_at: now,
+            updated_at: now,
           }));
           await supabase.from('OutletParStock').insert(rows);
         }
