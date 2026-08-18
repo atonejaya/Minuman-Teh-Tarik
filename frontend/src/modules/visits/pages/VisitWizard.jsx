@@ -4,6 +4,7 @@ import {
   MapPin, Camera, Package, Wallet, CheckCircle2, ChevronLeft, ChevronRight, Loader2, Navigation,
 } from 'lucide-react';
 import { supabase } from '../../../utils/supabase';
+import { useAuth } from '../../../contexts/AuthContext.jsx';
 import VisitApiService from '../services/VisitApiService.js';
 import { formatRupiah, formatTime } from '../../../utils/format.js';
 import { openPrintWindow } from '../../../utils/printInvoice';
@@ -38,6 +39,7 @@ const VisitWizard = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [visit, setVisit] = useState(null);
   const [warung, setWarung] = useState(null);
