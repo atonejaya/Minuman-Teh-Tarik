@@ -53,7 +53,11 @@ const CustomerFormPage = () => {
             created_at: now,
             updated_at: now,
           }));
-          await supabase.from('OutletParStock').insert(rows);
+          const { error: parErr } = await supabase.from('OutletParStock').insert(rows);
+          if (parErr) {
+            console.error('Par stock insert failed:', parErr);
+            throw new Error('Warung tersimpan, tapi par stock gagal: ' + parErr.message);
+          }
         }
       }
       toast.success('Data warung berhasil disimpan');
