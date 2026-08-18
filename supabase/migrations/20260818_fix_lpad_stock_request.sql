@@ -68,7 +68,7 @@ BEGIN
       (v_issue_id, v_item.product_id, v_item.qty, v_item.unit_id, v_item.remark);
   END LOOP;
 
-  SELECT public.sales_stock_issue_confirm(v_issue_id) INTO v_result;
+  SELECT public.sales_stock_issue_confirm(v_issue_id::INTEGER) INTO v_result;
 
   UPDATE public."StockRequest"
   SET status = 'APPROVED',
