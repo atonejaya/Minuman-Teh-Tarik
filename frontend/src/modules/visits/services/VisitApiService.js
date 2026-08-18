@@ -43,6 +43,10 @@ const VisitApiService = {
     });
   },
 
+  resetStockCount(visitId) {
+    return supabase.rpc('visit_reset_stock_count', { p_visit_id: visitId });
+  },
+
   async getAuthUserId() {
     const { data } = await supabase.auth.getUser();
     return data?.user?.id || null;

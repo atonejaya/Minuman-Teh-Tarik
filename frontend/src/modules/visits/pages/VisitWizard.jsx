@@ -558,7 +558,7 @@ const VisitWizard = () => {
           )}
           {stockRows.map((row, idx) => {
             const base = Number(row.opening || 0);
-            const sold = Math.max(base - Number(row.physical || 0), 0);
+            const sold = Math.max(base - Number(row.physical || 0) - Number(row.expired || 0), 0);
             return (
               <div className={`stock-row ${!row.baseline_set ? 'has-opening' : ''}`} key={row.product_id}>
                 <div className="stock-row-info">
@@ -614,6 +614,29 @@ const VisitWizard = () => {
             <span>{formatRupiah(totalTagihan)}</span>
           </div>
           <div className="wizard-actions">
+            {visit?.status === 'STOCK_COUNTED' && (
+              <button
+                className="btn-secondary"
+                onClick={async () => {
+                  if (!window.confirm('Hitung ulang stok? Data sebelumnya akan dihapus.')) return;
+                  setSubmitting(true);
+                  try {
+                    const { error: err } = await VisitApiService.resetStockCount(visit.id);
+                    if (err) throw err;
+                    setStep(1);
+                    await loadStock(warungId);
+                    visit.status = 'CHECKED_IN';
+                  } catch (e) {
+                    setError(e.message);
+                  } finally {
+                    setSubmitting(false);
+                  }
+                }}
+                disabled={submitting}
+              >
+                Hitung Ulang
+              </button>
+            )}
             <button className="btn-primary" onClick={handleSaveStock} disabled={submitting}>
               {submitting ? <Loader2 size={16} className="spin" /> : <ChevronRight size={16} />}
               Simpan & Lanjut
