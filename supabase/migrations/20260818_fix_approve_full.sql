@@ -1,4 +1,4 @@
--- Fix: tambah update_at di INSERT SalesStockIssue + sequences
+-- Fix: tambah total_qty di INSERT SalesStockIssue + sequences
 
 CREATE SEQUENCE IF NOT EXISTS stock_request_seq START 1;
 CREATE SEQUENCE IF NOT EXISTS stock_issue_seq START 1;
@@ -40,6 +40,7 @@ DECLARE
   v_issue_id BIGINT;
   v_issue_number TEXT;
   v_warehouse_id BIGINT;
+  v_total_qty INT := 0;
   v_result JSONB;
 BEGIN
   SELECT * INTO v_request FROM public."StockRequest" WHERE id = p_request_id FOR UPDATE;
@@ -49,13 +50,15 @@ BEGIN
   SELECT id INTO v_warehouse_id FROM public."Warehouse" WHERE is_active = true ORDER BY id LIMIT 1;
   IF v_warehouse_id IS NULL THEN RAISE EXCEPTION 'No active warehouse found'; END IF;
 
+  SELECT COALESCE(SUM(qty), 0) INTO v_total_qty FROM public."StockRequestItem" WHERE request_id = p_request_id;
+
   v_issue_number := 'SI-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-' || LPAD(nextval('stock_issue_seq')::TEXT, 4, '0');
 
   INSERT INTO public."SalesStockIssue"
-    (issue_number, sales_id, warehouse_id, issue_date, status, notes, created_by, created_at, update_at)
+    (issue_number, sales_id, warehouse_id, issue_date, status, notes, created_by, created_at, updated_at, total_qty)
   VALUES
     (v_issue_number, v_request.sales_id, v_warehouse_id, CURRENT_DATE, 'DRAFT',
-     'Auto dari permintaan stok ' || v_request.request_number, p_approved_by, NOW(), NOW())
+     'Auto dari permintaan stok ' || v_request.request_number, p_approved_by, NOW(), NOW(), v_total_qty)
   RETURNING id INTO v_issue_id;
 
   FOR v_item IN SELECT * FROM public."StockRequestItem" WHERE request_id = p_request_id
