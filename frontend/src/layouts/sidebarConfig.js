@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Users, ShoppingCart, Map, UserCog, Warehouse,
   Building2, Tag, Package, Truck, Receipt, Undo2, ClipboardList, Wallet, Banknote,
   FileText, Settings, BarChart3, PackagePlus, PackageMinus, Coins,
-  TrendingDown, ChevronDown, History, PackageCheck, Radio
+  TrendingDown, ChevronDown, History, PackageCheck, Radio, Route
 } from 'lucide-react';
 
 export const MENU_CONFIG = [
@@ -26,6 +26,7 @@ export const MENU_CONFIG = [
       { to: '/stok', label: 'Pantauan Stok', icon: BarChart3 },
       { to: '/visit-history', label: 'History Kunjungan', icon: History },
       { to: '/live-tracking', label: 'Live Tracking', icon: Radio },
+      { to: '/travel-monitor', label: 'Monitoring Perjalanan', icon: Route },
     ],
   },
   {

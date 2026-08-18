@@ -43,6 +43,7 @@ const VisitHistoryPage = lazy(() => import('./modules/visits/pages/VisitHistoryP
 const StockRequestList = lazy(() => import('./modules/sales/pages/StockRequestList.jsx'));
 const StockRequestForm = lazy(() => import('./modules/sales/pages/StockRequestForm.jsx'));
 const LiveTrackingPage = lazy(() => import('./modules/visits/pages/LiveTrackingPage.jsx'));
+const TravelMonitorPage = lazy(() => import('./modules/visits/pages/TravelMonitorPage.jsx'));
 
 const AreaList = lazy(() => import('./modules/masterdata/pages/AreaList.jsx'));
 const AreaForm = lazy(() => import('./modules/masterdata/pages/AreaForm.jsx'));
@@ -162,6 +163,7 @@ function App() {
               <Route path="reports" element={<ReportsPage />} />
               <Route path="visit-history" element={<VisitHistoryPage />} />
               <Route path="live-tracking" element={<LiveTrackingPage />} />
+              <Route path="travel-monitor" element={<TravelMonitorPage />} />
               <Route path="stock-requests" element={<StockRequestList />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="payroll" element={<PayrollPage />} />
