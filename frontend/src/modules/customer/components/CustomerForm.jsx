@@ -104,10 +104,13 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isSubmitting, subm
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }).select('*, product:Product(name, code)').single();
-      if (!error) {
-        setParStocks(prev => [...prev, data]);
-        setNewParStock({ product_id: '', par_qty: '', min_qty: '', max_qty: '' });
+      if (error) {
+        console.error('Par stock insert error:', error);
+        alert('Gagal simpan par stock: ' + error.message);
+        return;
       }
+      setParStocks(prev => [...prev, data]);
+      setNewParStock({ product_id: '', par_qty: '', min_qty: '', max_qty: '' });
     } else {
       const product = products.find(p => p.id === Number(newParStock.product_id));
       setParStocks(prev => [...prev, {

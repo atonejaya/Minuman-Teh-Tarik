@@ -328,7 +328,7 @@ const VisitWizard = () => {
     () =>
       stockRows.reduce((sum, r) => {
         const base = Number(r.opening || 0);
-        const sold = Math.max(base - Number(r.physical || 0), 0);
+        const sold = Math.max(base - Number(r.physical || 0) - Number(r.expired || 0), 0);
         return sum + sold * r.selling_price;
       }, 0),
     [stockRows]
