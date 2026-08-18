@@ -7,7 +7,7 @@ import NotificationBell from '../components/common/NotificationBell';
 
 const SalesLayout = () => {
   const { user, logout } = useAuth();
-  const { companyName, logoUrl } = useCompany();
+  const { companyName, tagline, logoUrl } = useCompany();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -37,6 +37,7 @@ const SalesLayout = () => {
           </div>
           <div>
             <p className="mobile-greeting">{companyName}</p>
+            {tagline && <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.55)', margin: 0 }}>{tagline}</p>}
             <h1>{user?.name}</h1>
           </div>
         </div>

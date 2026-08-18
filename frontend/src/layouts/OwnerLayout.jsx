@@ -8,7 +8,7 @@ import SidebarMenu from './SidebarMenu';
 
 const OwnerLayout = () => {
   const { user, logout } = useAuth();
-  const { companyName, logoUrl } = useCompany();
+  const { companyName, tagline, logoUrl } = useCompany();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -27,6 +27,7 @@ const OwnerLayout = () => {
           )}
           <div className="owner-sidebar-brand">
             <span className="owner-sidebar-brand-name">{companyName}</span>
+            {tagline && <span className="owner-sidebar-brand-tagline">{tagline}</span>}
           </div>
         </div>
         <SidebarMenu />
