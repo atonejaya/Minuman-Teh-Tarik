@@ -4,11 +4,13 @@ import { Plus, Trash2, Loader2 } from 'lucide-react';
 import { supabase } from '../../../utils/supabase';
 import StockRequestRepository from '../../../repositories/StockRequestRepository';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../components/toast/ToastContext';
 import { formatRupiah } from '../../../utils/format';
 
 const StockRequestForm = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const toast = useToast();
   const [products, setProducts] = useState([]);
   const [items, setItems] = useState([{ product_id: '', qty: 1, unit_id: '', remark: '' }]);
   const [notes, setNotes] = useState('');
