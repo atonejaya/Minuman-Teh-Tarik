@@ -49,7 +49,7 @@ function FitBounds({ bounds }) {
 
 function formatTime(t) {
   if (!t) return '-';
-  return new Date(t).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  return new Date(t).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
 }
 
 export default function TravelMonitorPage() {
