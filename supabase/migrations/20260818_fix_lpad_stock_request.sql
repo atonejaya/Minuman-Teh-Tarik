@@ -1,5 +1,9 @@
--- Fix: LPAD requires text input, not integer
--- This migration replaces the functions with corrected LPAD casts
+-- Fix: race condition on request_number generation
+-- Use PostgreSQL sequences instead of MAX+1
+
+-- Create sequences
+CREATE SEQUENCE IF NOT EXISTS stock_request_seq START 1;
+CREATE SEQUENCE IF NOT EXISTS stock_issue_seq START 1;
 
 CREATE OR REPLACE FUNCTION public.stock_request_submit(p_sales_id BIGINT, p_items JSONB, p_notes TEXT DEFAULT NULL)
 RETURNS BIGINT AS $$
@@ -9,8 +13,7 @@ DECLARE
   v_total INT := 0;
   v_item JSONB;
 BEGIN
-  SELECT 'SR-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-' || LPAD((COALESCE(MAX(CAST(SUBSTRING(request_number FROM 12) AS INT)), 0) + 1)::TEXT, 4, '0')
-  INTO v_number FROM public."StockRequest" WHERE request_number LIKE 'SR-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-%';
+  v_number := 'SR-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-' || LPAD(nextval('stock_request_seq')::TEXT, 4, '0');
 
   INSERT INTO public."StockRequest" (request_number, sales_id, request_date, status, notes)
   VALUES (v_number, p_sales_id, CURRENT_DATE, 'PENDING', p_notes)
@@ -48,8 +51,7 @@ BEGIN
   SELECT id INTO v_warehouse_id FROM public."Warehouse" WHERE is_active = true ORDER BY id LIMIT 1;
   IF v_warehouse_id IS NULL THEN RAISE EXCEPTION 'No active warehouse found'; END IF;
 
-  SELECT 'SI-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-' || LPAD((COALESCE(MAX(CAST(SUBSTRING(issue_number FROM 12) AS INT)), 0) + 1)::TEXT, 4, '0')
-  INTO v_issue_number FROM public."SalesStockIssue" WHERE issue_number LIKE 'SI-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-%';
+  v_issue_number := 'SI-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-' || LPAD(nextval('stock_issue_seq')::TEXT, 4, '0');
 
   INSERT INTO public."SalesStockIssue"
     (issue_number, sales_id, warehouse_id, issue_date, status, notes, created_by)
