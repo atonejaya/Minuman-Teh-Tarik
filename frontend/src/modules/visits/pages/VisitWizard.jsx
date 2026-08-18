@@ -169,11 +169,10 @@ const VisitWizard = () => {
       try {
         const pos = await VisitApiService.getCurrentPosition();
         if (pos.latitude && pos.longitude) {
-          await supabase.from('SalesGpsTrack').insert({
-            sales_id: user?.id,
-            latitude: pos.latitude,
-            longitude: pos.longitude,
-            visit_id: visitId,
+          await supabase.rpc('track_sales_gps', {
+            p_latitude: pos.latitude,
+            p_longitude: pos.longitude,
+            p_visit_id: visitId,
           });
         }
       } catch {}
