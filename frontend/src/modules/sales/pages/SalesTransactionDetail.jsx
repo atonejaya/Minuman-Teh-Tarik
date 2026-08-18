@@ -6,6 +6,7 @@ import StatusBadge from '../../../components/shared/StatusBadge';
 import TableMessage from '../../../components/shared/TableMessage';
 import { openPrintWindow } from '../../../utils/printInvoice';
 import { formatRupiah } from '../../../utils/format.js';
+import { useCompany } from '../../../contexts/CompanyContext.jsx';
 
 const STATUS_LABELS = {
   DRAFT: 'Draft', PENDING: 'Menunggu', CONFIRMED: 'Terkonfirmasi', COMPLETED: 'Selesai',
@@ -31,10 +32,11 @@ const SalesTransactionDetail = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const company = useCompany();
 
   const handlePrint = () => {
     if (!data) return;
-    openPrintWindow(data);
+    openPrintWindow(data, company);
   };
 
   useEffect(() => {

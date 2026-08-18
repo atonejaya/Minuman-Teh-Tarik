@@ -27,7 +27,7 @@ const OwnerLayout = () => {
           )}
           <div className="owner-sidebar-brand">
             <span className="owner-sidebar-brand-name">{companyName}</span>
-            {tagline && <span className="owner-sidebar-brand-tagline">{tagline}</span>}
+            <span className="owner-sidebar-brand-tagline">{tagline || 'Kesegaran Dalam Setiap Tegukan'}</span>
           </div>
         </div>
         <SidebarMenu />

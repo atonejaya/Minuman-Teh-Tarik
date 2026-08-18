@@ -25,7 +25,7 @@ class SalesTransactionRepositoryClass {
   async fetchById(id) {
     const { data, error } = await supabase
       .from('SalesTransaction')
-      .select('*, items:SalesTransactionItem(*, product:Product(*)), warung:Warung(*), salesman:User!sales_id(name), payments:Payment(*)')
+      .select('*, items:SalesTransactionItem(*, product:Product(*)), warung:Warung(*), salesman:User!sales_id(name, phone), payments:Payment(*)')
       .eq('id', id)
       .single();
     if (error) throw error;

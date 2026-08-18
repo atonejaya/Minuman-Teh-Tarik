@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../../utils/supabase';
 import { useAuth } from '../../../contexts/AuthContext.jsx';
+import { useCompany } from '../../../contexts/CompanyContext.jsx';
 import VisitApiService from '../services/VisitApiService.js';
 import { formatRupiah, formatTime } from '../../../utils/format.js';
 import { openPrintWindow } from '../../../utils/printInvoice';
@@ -40,6 +41,7 @@ const VisitWizard = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const company = useCompany();
 
   const [visit, setVisit] = useState(null);
   const [warung, setWarung] = useState(null);
@@ -69,7 +71,7 @@ const VisitWizard = () => {
   const loadTransaction = async (visitId) => {
     const { data, error: err } = await supabase
       .from('SalesTransaction')
-      .select('*, items:SalesTransactionItem(*, product:Product(*))')
+      .select('*, items:SalesTransactionItem(*, product:Product(*)), sales:User!sales_id(phone)')
       .eq('visit_id', visitId)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -424,7 +426,7 @@ const VisitWizard = () => {
             <button
               className="btn-secondary"
               style={{ marginBottom: '10px', width: '100%' }}
-              onClick={() => openPrintWindow(tx)}
+onClick={() => openPrintWindow(tx, company)}
             >
               Cetak Faktur
             </button>
