@@ -32,7 +32,7 @@ DECLARE
   v_total INT := 0;
   v_item JSONB;
 BEGIN
-  SELECT 'SR-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-' || LPAD(COALESCE(MAX(CAST(SUBSTRING(request_number FROM 12) AS INT)), 0) + 1, 4, '0')
+  SELECT 'SR-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-' || LPAD((COALESCE(MAX(CAST(SUBSTRING(request_number FROM 12) AS INT)), 0) + 1)::TEXT, 4, '0')
   INTO v_number FROM public."StockRequest" WHERE request_number LIKE 'SR-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-%';
 
   INSERT INTO public."StockRequest" (request_number, sales_id, request_date, status, notes)
