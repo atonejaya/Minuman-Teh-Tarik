@@ -4,7 +4,7 @@ import { supabase } from '../utils/supabase';
 const CompanyContext = createContext({
   loading: true,
   companyName: 'AtoneJaya',
-  tagline: '',
+  tagline: 'Kesegaran Dalam Setiap Tegukan',
   address: '',
   phone: '',
   logoUrl: '',
@@ -37,7 +37,7 @@ export const CompanyProvider = ({ children }) => {
   const value = {
     loading: state.loading,
     companyName: state.settingsMap.company_name || 'AtoneJaya',
-    tagline: state.settingsMap.company_tagline || 'Sistem Penjualan Konsinyasi',
+    tagline: state.settingsMap.company_tagline || 'Kesegaran Dalam Setiap Tegukan',
     address: state.settingsMap.company_address || '',
     phone: state.settingsMap.company_phone || '',
     logoUrl: state.settingsMap.company_logo_url || '',

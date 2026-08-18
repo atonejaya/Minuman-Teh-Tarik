@@ -69,7 +69,7 @@ begin
     insert into "Setting" ("key", "value", "type") values ('company_name', 'AtoneJaya', 'text');
   end if;
   if not exists (select 1 from "Setting" where "key" = 'company_tagline') then
-    insert into "Setting" ("key", "value", "type") values ('company_tagline', 'Sistem Penjualan Konsinyasi', 'text');
+    insert into "Setting" ("key", "value", "type") values ('company_tagline', 'Kesegaran Dalam Setiap Tegukan', 'text');
   end if;
   if not exists (select 1 from "Setting" where "key" = 'company_address') then
     insert into "Setting" ("key", "value", "type") values ('company_address', '', 'text');
