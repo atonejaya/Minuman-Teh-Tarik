@@ -1,26 +1,11 @@
 -- ============================================================================
--- Minuman @One - Create sales user (auth + profile)
--- Date: 2026-08-16
--- Applies via: Supabase SQL Editor.
+-- Minuman @One - Fix create_sales_user: raw_user_meta_data harus email_verified
+-- Date: 2026-08-19
 --
--- Perbaikan bug "null value in column password_hash of relation User violates
--- not-null constraint" saat OWNER menambah sales baru. Form lama hanya insert
--- public."User" tanpa password_hash dan tanpa membuat entri auth (login app
--- memakai Supabase Auth via email '<username>@tehtarik.local', lihat
--- AuthContext.jsx). RPC ini:
---   1. Membuat auth.users (email + bcrypt password) sehingga bisa login.
---   2. Membuat auth.identities (email provider) agar login berfungsi.
---   3. Membuat public."User" lengkap dengan auth_id, role, password_hash.
--- SECURITY DEFINER: hanya OWNER yang boleh memanggil.
---
--- CATATAN: crypt/gen_salt berasal dari ekstensi pgcrypto. Supabase modern
--- menginstal ekstensi ke schema "extensions", jadi search_path fungsi harus
--- menyertakannya (selain public).
+-- Root cause: raw_user_meta_data = '{}' menyebabkan signInWithPassword
+-- gagal (Database error querying schema) karena Supabase Auth
+-- membutuhkan {"email_verified":true} untuk login.
 -- ============================================================================
-
-create extension if not exists pgcrypto;
-
-drop function if exists public.create_sales_user(text, text, text, text, text, int, boolean);
 
 create or replace function public.create_sales_user(
   p_username text,
@@ -81,7 +66,7 @@ begin
     (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
   values
     (v_auth_id, v_auth_id, v_email,
-     jsonb_build_object('sub', v_auth_id::text, 'email', v_email, 'email_verified', false, 'phone_verified', false), 'email',
+     jsonb_build_object('sub', v_auth_id::text, 'email', v_email, 'email_verified', true, 'phone_verified', false), 'email',
      now(), now(), now());
 
   insert into public."User"
